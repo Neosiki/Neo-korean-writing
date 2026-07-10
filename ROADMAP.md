@@ -1,4 +1,4 @@
-# ROADMAP — korean-humanize
+# ROADMAP: korean-humanize
 
 5차 고도화(규칙·구현·평가 일치) 이후의 중장기 방향. 우선순위 순이다.
 
