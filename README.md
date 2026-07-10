@@ -14,7 +14,7 @@ Claude Cowork / Claude Code용 Agent Skill이다. 별도 API 키나 외부 서�
 
 ```bash
 mkdir -p ~/.claude/skills
-cp -r korean-humanize ~/.claude/skills/korean-humanize
+git clone https://github.com/Neosiki/korean-humanize.git ~/.claude/skills/korean-humanize
 ```
 
 설치 확인: 아무 글이나 붙여넣고 "윤문해줘"라고 하면 발동한다.
@@ -88,4 +88,4 @@ korean-humanize/
 
 NextAI 윤영식 (osiki999@gmail.com)
 
-4차 고도화는 blader/humanizer, hardikpandya/stop-slop, stephenturner/skill-deslop, conorbronsdon/avoid-ai-writing, theclaymethod/unslop, jpeggdev/humanize-writing 여섯 저장소를 대조해 한국어에 맞게 이식했다.
+4차 고도화는 blader/humanizer, hardikpandya/stop-slop, stephenturner/skill-deslop, conorbronsdon/avoid-ai-writing, theclaymethod/unslop, jpeggdev/humanize-writing 여섯 저장소를 대조해
