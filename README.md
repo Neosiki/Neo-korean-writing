@@ -1,14 +1,14 @@
 # korean-humanize
 
-한국어 텍스트와 문서를 사람이 쓴 글처럼 다듬는 통합 윤문 스킬이다. AI 티, 번역투, 관공서체, 기계 리듬을 걷어내면서도 보존 잠금(LOCK)으로 사실, 숫자, 고유명사, 직접 인용, 출처는 한 글자도 바꾸지 않는다.
+한국어 텍스트와 문서를 사람이 쓴 글처럼 다듬는 통합 윤문 스킬이다. AI 티, 번역투, 관공서체, 기계 리듬을 걷어내면서 표면 잠금(숫자, 직접 인용, 영문 용어)은 기계로 검증하고 의미 동등성(부정, 가능성, 인과)은 경고 휴리스틱과 육안 검토로 지킨다.
 
 > 동작 원칙 한 줄: "문체는 사람처럼, 사실은 원문 그대로."
 
-Claude Cowork와 Claude Code에서 동작하는 Agent Skill이다. 별도 API 키나 외부 서비스가 필요 없고, 정량 도구는 Python 표준 라이브러리만 쓴다. 새 글을 처음부터 쓰는 write-content 스킬도 같은 저장소에 함께 담았다.
+Claude Cowork와 Claude Code에서 동작하는 Agent Skill이다. 별도 API 키나 외부 서비스가 필요 없고, 정량 도구는 Python 표준 라이브러리만 쓴다. 규칙의 단일 원천은 `scripts/patterns.json`이고 `tests/`의 회귀 테스트와 GitHub Actions가 규칙과 구현의 일치를 지킨다. 새 글을 처음부터 쓰는 write-content 스킬도 같은 저장소에 있다.
 
 ## 설치
 
-Cowork에서는 `korean-humanize-v4.skill` 파일을 대화창에 올리거나 스킬 카드에서 "Save skill"을 누르면 된다.
+Cowork에서는 [dist/korean-humanize.skill](dist/korean-humanize.skill)을 내려받아 대화창에 올리고 "Save skill"을 누른다.
 
 Claude Code에서는 저장소를 스킬 폴더로 복제한다.
 
@@ -17,7 +17,7 @@ mkdir -p ~/.claude/skills
 git clone https://github.com/Neosiki/korean-humanize.git ~/.claude/skills/korean-humanize
 ```
 
-함께 담긴 write-content까지 쓰려면 하위 폴더를 스킬 폴더로 한 번 더 복사한다.
+함께 담긴 write-content까지 쓰려면 하위 폴더를 한 번 더 복사한다.
 
 ```bash
 cp -r ~/.claude/skills/korean-humanize/write-content ~/.claude/skills/write-content
@@ -27,51 +27,77 @@ cp -r ~/.claude/skills/korean-humanize/write-content ~/.claude/skills/write-cont
 
 ## 무엇을 하나
 
-두 축으로 동작한다. 동작 축은 윤문(기본), 진단만, 파일 직접 수정 세 가지다. 강도 축은 일반 윤문(S1~S3), 최강 윤문, 8,000자 이상 장편 윤문으로 나뉜다.
+두 축으로 동작한다. 동작 축은 윤문(기본), 진단만, 파일 직접 수정 세 가지다. 강도 축은 일반 윤문(S1~S3), 최강 윤문, 8,000자 이상 장편 윤문으로 나뉜다. 파일 직접 수정은 진단, 수정안 diff 미리보기, 사용자 승인을 거친 뒤에만 반영하고 원본을 백업한다.
 
 | 이렇게 말하면 | 이렇게 동작한다 |
 |---|---|
 | "윤문해줘", "다듬어줘", "번역투 고쳐줘" | 일반 윤문 |
 | "최강 윤문 해줘" | S1 강도, AI 흔적 지수 전후 비교, 8축 루브릭(32/40), 보존 게이트 |
 | "장문 윤문", 원고 8,000자 이상 | 섹션 분할 후 1패스 윤문, 2패스 통합, 일관성 진단 |
-| "진단만 해줘", "AI 티 검사해줘" | 재작성 없이 티와 심각도(P0~P2)만 보고 |
+| "진단만 해줘", "AI 티 검사해줘" | 재작성 없이 문제와 심각도(P0~P2)만 보고 |
 | "내 문체로 고쳐줘" + 내 글 샘플 2~3문단 | 문체 캘리브레이션: 샘플의 문장 길이, 종결어미, 어휘 온도로 윤문 |
+
+진단 결과는 문법 오류, AI 문체 후보, 장르 부적합 후보, 구조 문제, 작성자 문체 보존 경고의 다섯 범주로 나눠 보고한다. 서로 다른 문제를 한 목록에 섞으면 과윤문이 생기기 때문이다.
 
 ## 검출 체계
 
-윤문은 세 겹으로 본다.
+거시 레이어는 번역투부터 신선함 인플레까지 14개 패턴(A~N)을 잡고, 패턴마다 유지 조건이 붙어 과잉교정을 막는다. 미시 레이어(Sunny-7)는 것, 의, 들, -적, 있다 계열 7개 규칙의 밀도를 점검한다. 구조 진단은 문단 셔플 테스트와 트레드밀 테스트로 글 전체를 보고, 구조 자체가 AI면 윤문 대신 재작성을 권고한다. 사람 결 레이어는 원문에 이미 있는 의견과 체험을 앞세우되 없는 감정이나 일화를 만들어 넣지 않는다.
 
-거시 레이어는 번역투, 관공서 상투구, 명사화 종결, 부호 티, 서식 티, 리듬 단조, 과장 수사, 수동·익명화, 이모지, 접속 군더더기, 감정 표방 상투, 사고사슬·챗봇 흔적, 거짓 양보, 신선함 인플레까지 14개 패턴(A~N)을 잡는다. 패턴마다 유지 조건이 붙어 있어 과잉교정을 막는다.
+컨텍스트 프로파일(칼럼·에세이, 보도자료·기사, SNS, 기술문서, 공문서)이 장르별 강도를 조절한다. 이모지 제거나 목록 해체 같은 규칙은 SNS·기술문서에서 오판할 수 있어 프로파일별 완화가 코드에 반영돼 있다.
 
-미시 레이어(Sunny-7)는 것, 의, 들, -적, 있다 계열의 밀도와 잉여를 유지 조건과 짝지어 점검한다. 기능 형태소는 죄가 없고, 문제는 밀도와 뭉침이라는 관점이다.
-
-구조 진단은 문장이 아니라 글 전체를 본다. 문단 둘을 맞바꿔도 글이 안 깨지면 논증이 아니라 나열이고(셔플 테스트), 40~60%를 잘라도 정보 손실이 없으면 반복이다(트레드밀 테스트). 구조 자체가 AI면 윤문 대신 재작성을 권고한다.
-
-여기에 사람 결 레이어가 얹힌다. 티를 지우기만 하면 무균실 글이 되므로, 원문에 이미 있는 의견과 체험을 문장 앞으로 세운다. 원문에 없는 감정이나 일화를 만들어 넣는 일은 금지다. 그건 윤문이 아니라 날조다.
-
-컨텍스트 프로파일(칼럼·에세이, 보도자료·기사, SNS, 기술문서, 공문서)이 장르별 강도를 자동 조절한다.
+이 모든 규칙의 정의, 정규식, 심각도, 유지 조건, 프로파일 완화는 `scripts/patterns.json` 한 파일에 있다. 문서 표는 `krh.py taxonomy`로 생성하고 `--check`로 무결성을 검사한다.
 
 ## 정량 도구 scripts/krh.py
 
-탐지 전용이며 자동 수정은 하지 않는다. 파일 인자를 생략하면 stdin을 읽는다.
+탐지 전용이며 자동 수정은 하지 않는다. 모든 명령이 `--json`을 지원하고, 파일 인자를 생략하면 stdin을 읽는다.
 
 ```bash
-python3 scripts/krh.py diagnose  원문.md          # AI 흔적 지수(/1000자), 등급 A~D, 리듬 진단
-python3 scripts/krh.py sunny     원문.md          # Sunny-7 밀도 (기준 대비 과다 후보)
-python3 scripts/krh.py preserve  원문.md 윤문본.md  # 보존 게이트: 숫자·인용·영문 용어 대조 (exit 0=보존)
-python3 scripts/krh.py diffrate  원문.md 윤문본.md  # 변경률 (S3는 10%, S2는 25% 상한)
-python3 scripts/krh.py consistency draft.md       # 장편 절별 지수, 종결어미 혼용, 중복 문장
-python3 scripts/krh.py format    기본본.txt        # SNS·카톡용 평문 포맷 검사
+python3 scripts/krh.py diagnose  원문.md [--profile official]  # AI 흔적 지수, 등급 A~D, 리듬
+python3 scripts/krh.py sunny     원문.md                       # Sunny-7 밀도
+python3 scripts/krh.py preserve  원문.md 윤문본.md [--strict]   # 표면 잠금 + 의미 동등성 경고
+python3 scripts/krh.py diffrate  원문.md 윤문본.md              # 문자·문장 단위 변경률
+python3 scripts/krh.py consistency draft.md                    # 장편 절별 일관성
+python3 scripts/krh.py format    기본본.txt                     # SNS·카톡 평문 포맷 검사
+python3 scripts/krh.py taxonomy --check                        # 규칙 무결성 검사
 ```
 
-## write-content: 새 글을 쓸 때
+diagnose 출력 예시:
 
-korean-humanize가 이미 쓴 글을 다듬는 스킬이라면, write-content는 메모와 주제를 완성된 글로 바꾸는 스킬이다. 목적 정의, 구조 설계, 초안 작성, 리라이팅, 최종 출력의 5단계 워크플로우로 칼럼과 문서를 만들고, 8,000자 이상은 장편 모드로 전환해 5만 자 이상 장문까지 처리한다. 전문은 [write-content/SKILL.md](write-content/SKILL.md)에 있다.
+```
+AI 흔적 지수: 58.04 /1000자  등급 D(심함)  (신호 13개 / 224자)
+  [P1] B 관공서·보도 상투구: 3
+  [P1] G 상투·과장 수사: 3
+  [P1] M 거짓 양보·헤지 스택: 2
+리듬: 문장 9개, 평균 23자, 변동계수 0.40
+```
 
-## 부가 기능
-
-페북과 스레드용 SNS 요약(평문, 스레드는 500자 이내), pandoc을 이용한 docx 변환, kordoc을 이용한 한국 공문서(.hwp/.hwpx) 입출력과 서식 보존 패치를 지원한다. 기사화나 고도화를 요청하면 정확성, 데스크, 가독성, 팩트체크, 헤드라인의 다섯 관점으로 교차 비평하는 옵션도 있다.
+회귀 테스트는 `python3 -m unittest discover -s tests`로 돌린다. push마다 GitHub Actions가 같은 테스트를 실행한다.
 
 ## 한계
 
-이 스킬은 품질 도구이지 판정기가 아니다. AI 탐지기에서 "100% 인간 작성
+이 스킬은 품질 도구이지 판정기가 아니다. AI 탐지기에서 "100% 인간 작성" 판정을 보장하지 않고, 사람이 급하게 쓴 글도 같은 패턴을 보인다. 스크립트는 표면 신호만 잡으므로 최종 판단은 항상 정성 점검이 한다. Sunny 기준값은 소규모 관찰 기반 임시값이라 장르별 말뭉치 보정이 남은 과제다. 자세한 발전 방향은 [ROADMAP.md](ROADMAP.md)에 있다.
+
+## 파일 구성
+
+```
+korean-humanize/
+├── SKILL.md                 # 스킬 본체 (윤문 규칙과 워크플로 전체)
+├── README.md                # 이 문서
+├── CHANGELOG.md             # 1~5차 고도화 이력
+├── ROADMAP.md               # 중장기 발전 방향
+├── dist/
+│   └── korean-humanize.skill # Cowork 설치 파일
+├── references/
+│   └── examples.md          # 패턴 전후 대조 예시
+├── scripts/
+│   ├── patterns.json        # 규칙 단일 원천 (A~N + Sunny-7 + 의미 가드)
+│   └── krh.py               # 정량 측정과 보존 검증 통합 도구
+├── tests/
+│   └── test_krh.py          # 회귀 테스트
+└── write-content/
+    └── SKILL.md             # 글쓰기 스킬 (5단계 워크플로우)
+```
+
+## 만든이
+
+NextAI 윤영식(osiki999@gmail.com)이 만들었다. 4차 고도화는 blader/humanizer, hardikpandya/stop-slop, stephenturner/skill-deslop, conorbronsdon/avoid-ai-writing, theclaymethod/unslop, jpeggdev/humanize-writing 여섯 저장소를 대조해 한국어에 맞게 이식했고, 5차 고도화는 외부 코드 리뷰를 반영해 규칙·구현·평가를 일치시키는 데 집중했다. 이 README도 스킬 자신의 기준으로 윤문했다.
