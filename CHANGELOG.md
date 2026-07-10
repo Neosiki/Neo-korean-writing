@@ -1,5 +1,10 @@
 # Changelog — korean-humanize
 
+## 4.0.1 (2026-07-10)
+
+- README 전면 윤문: em-dash·볼드 라벨 등 부호·서식 티를 스킬 자신의 기준(거시 D·E 패턴)으로 걷어내고 산문 중심으로 재작성
+- write-content 5단계 글쓰기 스킬 동봉 (write-content/SKILL.md)
+
 ## 4.0.0 (2026-07-10) — 4차 고도화: "사람이 처음부터 끝까지 쓴 글처럼"
 
 GitHub 윤문 스킬 6종(blader/humanizer, stop-slop, skill-deslop, avoid-ai-writing, unslop, humanize-writing)을 대조 분석해 한국어에 맞게 이식.
@@ -35,10 +40,4 @@ GitHub 윤문 스킬 6종(blader/humanizer, stop-slop, skill-deslop, avoid-ai-wr
 
 ## 2.x — 2차 고도화
 
-- 2계층 모델 정립: 거시 A~J 패턴 + 미시 Sunny-7 문장 위생(keep-condition)
-- 보존 잠금(LOCK) 7항목 명문화, 검증 체크리스트
-- 강도 S1~S3, 5인 전문가 비평 옵션
-
-## 1.x — 초판
-
-- 기본 윤문: 번역투·관공서체·상투구 제거, 원문 어투 보존 원칙
+- 2계층 모델 정립: 거시 A~J 패턴 +
