@@ -33,3 +33,13 @@ python benchmark/run_benchmark.py   # krh.py(ce02da2) 경로를 scripts/에 맞�
 ```
 
 원문 텍스트는 KLUE 공개 자료(CC BY-SA 4.0 표시)에서 행 ID로 추출하며, 이 저장소에는 재배포하지 않습니다.
+
+## 저자 정보
+
+- 저자: 윤영식 (尹永植, Young-Shig Yoon)
+- 직함·소속: NextAI 대표 · 아이피플래닛 대표
+- 이메일: osiki999@gmail.com
+- 교신저자: 해당 없음
+- 영문 제목: *Verifying Rule Traceability and Meaning Preservation in a Korean Text Humanization Skill: An Exploratory Artifact Study of Neosiki/korean-humanize v5.0.0*
+
+저자는 `korean-humanize`의 개발·유지보수자다. 따라서 본 연구는 독립적인 제3자 성능평가가 아니라 개발자 연구자가 수행한 탐색적 아티팩트 연구로 해석해야 한다. LLM 모의 판정은 독립 인간 평가 결과가 아니며, 투고 전 독립 평가자 판정으로 대체해야 한다. 자세한 경력과 연구자 위치는 [저자 약력](author_bio.md)을 참조한다.
