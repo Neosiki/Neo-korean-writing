@@ -1,0 +1,12 @@
+﻿category,applied,auto_signal,changed,silent_changed,coverage,silent_rate
+number,17,17,17,0,1.0,0.0
+direct_quote,0,0,0,0,NA,NA
+english_term,5,4,5,1,0.8,0.2
+negation,27,0,27,27,0.0,1.0
+hedge,27,0,23,23,0.0,1.0
+causal,6,0,6,6,0.0,1.0
+structure_bullet,0,0,0,0,NA,NA
+argument_role,14,0,14,14,0.0,1.0
+comparison,8,0,8,8,0.0,1.0
+condition_temporal,14,0,14,14,0.0,1.0
+style_only_control,49,0,0,0,NA,NA

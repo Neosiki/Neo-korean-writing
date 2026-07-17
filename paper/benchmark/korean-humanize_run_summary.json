@@ -1,0 +1,37 @@
+{
+ "total_pairs": 167,
+ "mutations": 118,
+ "controls": 49,
+ "planned": 250,
+ "planned_per_anchor": 5,
+ "anchors_total": 50,
+ "anchors_used": 49,
+ "excluded_anchor": "A030(원문 중복)",
+ "excluded_mutations": 132,
+ "auto": {
+  "silent": 97,
+  "fail": 21
+ },
+ "ctrl_auto": {
+  "silent": 49
+ },
+ "final": {
+  "변경": 114,
+  "유보": 4
+ },
+ "agreement_mut": 0.9237,
+ "kappa_mut": 0.0,
+ "agreement_all": 0.9461,
+ "kappa_all": 0.8786,
+ "disagreements": [
+  "A005/hedge",
+  "A006/hedge",
+  "A008/hedge",
+  "A032/hedge",
+  "A033/hedge",
+  "A037/hedge",
+  "A039/hedge",
+  "A042/hedge",
+  "A044/hedge"
+ ]
+}
