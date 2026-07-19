@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""krh.py v2 — korean-humanize 정량 도구 (표준 라이브러리만, 탐지 전용·자동 수정 없음)
+"""krh.py v3 — korean-humanize 정량 도구 (6.1: 문장 단위 이진 가드·방향 표지·영문 2자 약어) (표준 라이브러리만, 탐지 전용·자동 수정 없음)
 
 사용법:
   python3 krh.py diagnose  원문.md [--profile sns|official|technical] [--json]
@@ -126,7 +126,7 @@ def _facts(t):
     nums = [x.strip() for x in re.findall(
         r"\d[\d,.]*\s*(?:%|퍼센트|억|만|천|원|명|개|년|월|일|시|분|배|건|회|km|m|cm|kg|g)?", t) if x.strip()]
     quotes = re.findall(r"[\"“]([^\"”]{2,})[\"”]", t)
-    eng = re.findall(r"[A-Za-z][A-Za-z0-9.\-]{2,}", t)
+    eng = re.findall(r"[A-Za-z][A-Za-z0-9.\-]{1,}", t)
     return nums, quotes, eng
 
 def _structure(t):
@@ -148,13 +148,27 @@ def preserve_data(a, b):
     warns = []
     G = load_patterns()["meaning_guards"]
     la, lb = max(len(a), 1), max(len(b), 1)
+    # 6.1: 짧은 텍스트(문장 단위)는 밀도 허용 오차 대신 표지 개수 이진 비교.
+    # 근거: paper/ 본실험 실측 — 문장 단위 단일 변형 96건이 전부 무신호였다.
+    short = max(len(a), len(b)) <= G.get("binary_max_chars", 200)
     for key in ("negation", "hedge", "causal"):
-        da = len(re.findall(G[key]["regex"], a)) / la * 1000
-        db = len(re.findall(G[key]["regex"], b)) / lb * 1000
         ca, cb = len(re.findall(G[key]["regex"], a)), len(re.findall(G[key]["regex"], b))
+        if short:
+            if ca != cb:
+                warns.append({"type": G[key]["label"], "before": ca, "after": cb,
+                              "note": "문장 단위 이진 검사: 표지 개수 변화 — 주장 강도·논리 확인"})
+            continue
+        da, db = ca / la * 1000, cb / lb * 1000
         if abs(ca - cb) > G["tolerance_abs"] and abs(da - db) > max(da, db, 0.001) * G["tolerance_ratio"]:
             warns.append({"type": G[key]["label"], "before": ca, "after": cb,
                           "note": "주장 강도·논리가 변형됐는지 육안 확인"})
+    if short and "direction" in G:
+        ta = sorted(re.findall(G["direction"]["regex"], a))
+        tb = sorted(re.findall(G["direction"]["regex"], b))
+        if ta != tb:
+            warns.append({"type": G["direction"]["label"],
+                          "before": " ".join(ta) or "없음", "after": " ".join(tb) or "없음",
+                          "note": "비교·범위 방향이 바뀌었는지 확인"})
     sa, sb = _structure(a), _structure(b)
     for k in sa:
         if sa[k] != sb[k]:

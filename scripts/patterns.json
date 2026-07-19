@@ -1,5 +1,5 @@
 {
-  "version": "6.0.0",
+  "version": "6.1.0",
   "comment": "운영 taxonomy 단일 원천. v6 확장 세부 규칙은 references/ai-tell-taxonomy.md·quick-rules.md에 두고 이 파일은 실행 탐지·회귀 기준으로 사용한다.",
   "macro": [
     {"id": "A", "name": "번역투·영어 간섭", "severity": "P1",
@@ -58,10 +58,12 @@
     {"no": 7, "name": "어색한 있다", "regex": "에\\s있어|함에\\s*있어", "baseline": 0.3, "keep": "고정·기술 표현이라 단순화하면 뜻이 왜곡될 때"}
   ],
   "meaning_guards": {
-    "comment": "preserve의 의미 동등성 경고 휴리스틱. 전후 밀도 차가 tolerance를 넘으면 경고.",
-    "negation": {"regex": "지\\s*않|않는|않았|않다|못하|못했|없다|없었", "label": "부정 표현"},
-    "hedge": {"regex": "수\\s*있다|수\\s*있었|가능성|지도\\s*모른", "label": "가능성·확률 표현"},
-    "causal": {"regex": "때문|그래서|따라서|덕분|탓에|므로", "label": "인과 표지"},
+    "comment": "preserve의 의미 동등성 경고 휴리스틱. 200자 초과 문서는 밀도 차가 tolerance를 넘으면 경고, binary_max_chars 이하 짧은 텍스트는 표지 개수가 다르면 즉시 경고(6.1: paper/ 실측에서 문장 단위 단일 변형이 전부 무신호였던 검사 단위 불일치를 보완).",
+    "negation": {"regex": "지\\s*않|지는\\s*않|지도\\s*않|않는|않았|않다|않을|않고|못하|못했|못한|못해|없다|없었|없는|아니다|아니라|아니었|안\\s*된|안된|지\\s*말", "label": "부정 표현"},
+    "hedge": {"regex": "수\\s*있|수도\\s*있|될\\s*수도|할\\s*수도|일\\s*수도|가능성|지도\\s*모|것\\s*같|듯|보인다|보입니다|보이는|추정|기대된|것으로\\s*알려|전해졌|전해진", "label": "가능성·확률 표현"},
+    "causal": {"regex": "때문|그래서|따라서|덕분|탓에|므로|로\\s*인해|매개로|무관|불구하고", "label": "인과 표지"},
+    "direction": {"regex": "(?<![가-힣])(?:이상(?![하히스])|이하|이전|이후)|부터|까지|초과|미만", "label": "방향·범위 표지"},
+    "binary_max_chars": 200,
     "tolerance_ratio": 0.4,
     "tolerance_abs": 2
   }
