@@ -6,7 +6,7 @@
 
 Claude Cowork, Claude Code, Codex에서 동작하는 Agent Skill이다. 별도 API 키나 외부 서비스가 필요 없고, 정량 도구는 Python 표준 라이브러리만 쓴다. 규칙의 단일 원천은 `scripts/patterns.json`이고 `tests/`의 회귀 테스트와 GitHub Actions가 규칙과 구현의 일치를 지킨다. 새 글을 처음부터 쓰는 write-content 스킬도 같은 저장소에 있다.
 
-현재 본체는 6차 고도화(v6)다. `SKILL.md`는 14개 거시 패턴과 Sunny-7, 한국어 번역투·학술 문체·AI 흔적 확장 taxonomy, span 단위 quick rules, 장문 무손실 청킹, 변경률·보존 게이트를 하나의 윤문 워크플로로 묶는다. `references/`에는 유형별 세부 규칙과 재현 가능한 지표 구현이, `scripts/`에는 진단·청킹·재조립·변경률 검증 도구가 들어 있다.
+현재 본체는 7차 고도화(v7)다. `SKILL.md`는 14개 거시 패턴과 Sunny-7, 한국어 번역투·학술 문체·AI 흔적 확장 taxonomy, span 단위 quick rules, 장문 무손실 청킹, 변경률·보존 게이트에 번역 충실성 감사와 문학 번역 검토 모드를 더한다. `references/`에는 번역 서비스·논문·GitHub benchmark와 데보라 스미스 대비 기준을, `scripts/`에는 번역 전후 구조·표면 잠금 검사 도구를 추가했다.
 
 ## 설치
 
@@ -61,7 +61,10 @@ python3 scripts/krh.py diffrate  원문.md 윤문본.md              # 문자·�
 python3 scripts/krh.py consistency draft.md                    # 장편 절별 일관성
 python3 scripts/krh.py format    기본본.txt                     # SNS·카톡 평문 포맷 검사
 python3 scripts/krh.py taxonomy --check                        # 규칙 무결성 검사
+python3 scripts/krh.py translation-audit 원문.md 번역문.md --direction en-to-ko --literary --json
 ```
+
+번역문 감수에서는 원문에 없는 주어·감정·강도 부사·설명을 넣지 않고, 숫자·약어·구조·부정·양태·인과를 따로 대조한다. 문학 모드는 데보라 스미스의 독자 지향성·맥락 재방문·분위기 중시를 대비 기준으로 참고하되, 그의 추가·삭제 논쟁이나 영어 문체를 모방하지 않는다.
 
 diagnose 출력 예시:
 
@@ -85,7 +88,7 @@ AI 흔적 지수: 58.04 /1000자  등급 D(심함)  (신호 13개 / 224자)
 korean-humanize/
 ├── SKILL.md                 # 스킬 본체 (윤문 규칙과 워크플로 전체)
 ├── README.md                # 이 문서
-├── CHANGELOG.md             # 1~6차 고도화 이력
+├── CHANGELOG.md             # 1~7차 고도화 이력
 ├── ROADMAP.md               # 중장기 발전 방향
 ├── dist/
 │   └── korean-humanize.skill # Cowork 설치 파일
@@ -95,6 +98,8 @@ korean-humanize/
 │   ├── ai-tell-taxonomy.md  # AI 흔적·한국번역학계 유형 확장 분류
 │   ├── quick-rules.md       # span 단위 국소 수술 규칙
 │   ├── rewriting-playbook.md # 장르·강도별 실행 플레이북
+│   ├── translation-fidelity.md # v7 FID/LIT 감사·데보라 스미스 대비 기준
+│   ├── translation-benchmarks.md # 서비스·논문·GitHub benchmark 지도
 │   ├── scholarship.md       # 학술·논문 윤문 원칙
 │   ├── metrics.py           # v1 정량 지표
 │   ├── metrics_v2.py        # v2 지표·장문 청킹 보조
@@ -103,11 +108,13 @@ korean-humanize/
 ├── scripts/
 │   ├── patterns.json        # 규칙 단일 원천 (A~N + Sunny-7 + 의미 가드)
 │   ├── krh.py               # 정량 측정과 보존 검증 통합 도구
+│   ├── translation_audit.py # 번역 전후 표면·구조·위험 감사
 │   ├── prepare_monolith_input.py # 장문 입력·진단 준비
 │   ├── reassemble_chunks.py      # 장문 청크 무손실 재조립
 │   └── verify_change_rate.py     # 변경률 상한 게이트
 ├── tests/
-│   └── test_krh.py          # 회귀 테스트
+│   ├── test_krh.py          # 기존 회귀 테스트
+│   └── test_translation_audit.py # v7 번역 감사 회귀 테스트
 └── write-content/
     └── SKILL.md             # 글쓰기 스킬 (5단계 워크플로우)
 ```

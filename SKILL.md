@@ -1,7 +1,7 @@
 ---
 name: korean-humanize
 description: >-
-  한국어 글을 AI 티 없이 자연스럽게 윤문하되 사실·인용·숫자와 원문 화자를 보존하는 6차 고도화 윤문 스킬이다.
+  한국어 글을 AI 티 없이 자연스럽게 윤문하되 사실·인용·숫자와 원문 화자를 보존하는 7차 고도화 윤문 스킬이다.
   사용자가 "윤문해줘", "다듬어줘", "최강 윤문", "AI 티 없애줘", "번역투 고쳐줘", "사람 글처럼",
   "진단만 해줘", "내 문체로 고쳐줘"라고 하거나 한국어 기사·칼럼·에세이·리뷰·보도자료·리포트·기술문서·원고를
   고칠 때 사용한다. 14개 거시 패턴과 10대 분류 확장 taxonomy, quick-rules span 수술, post-editese 메트릭,
@@ -9,9 +9,9 @@ description: >-
   원문에 없는 내용을 추가하는 작업에는 사용하지 않는다.
 ---
 
-# 한국어 최강 윤문 v6
+# 한국어 최강 윤문 v7
 
-원칙은 **문체는 사람처럼, 사실은 원문 그대로**다. 이 스킬은 사용자의 `Neosiki/korean-humanize` v5를 기반으로, `epoko77-ai/im-not-ai`의 Fast Path·quick-rules·post-editese 메트릭·변경률 게이트·무손실 장문 경로를 흡수한 6차 고도화판이다.
+원칙은 **문체는 사람처럼, 사실은 원문 그대로**다. v7은 v6의 윤문 파이프라인에 번역 후편집 충실성 레인과 문학 번역 검토 모드를 더한다. 번역 서비스·논문·GitHub benchmark의 공통 교훈은 자동 점수보다 원문–번역문 대조와 사람 검수가 중요하다는 것이다.
 
 ## 1. 네 가지 철칙
 
@@ -32,6 +32,7 @@ description: >-
 | 진단만·AI 티 검사 | 진단 전용 | 재작성하지 않고 패턴·위치·심각도만 보고 |
 | 파일 직접 고쳐줘 | 파일 수정 | 진단 → diff 미리보기 → 승인 → `.bak` 백업 후 반영 |
 | 최강 윤문·가장 세게 | heavy 강제 | 확장 taxonomy + 전후 메트릭 + fidelity/naturalness 감사 |
+| 번역문 감수·번역투·문학 번역 | 번역 검토 | 원문–번역문 대조 → 표면 잠금·구조 감사 → FID/LIT 위험 검토 |
 | 장문·장편·롱폼 | 장문 | 경로 판별 후 필요할 때만 무손실 청킹 |
 
 ### 3단 경로
@@ -60,6 +61,8 @@ description: >-
 
 LOCK은 탐지·윤문 대상에서 제외한다. 직접 인용이 비문이어도 고치지 않는다. 숫자·인용·영문 용어는 `scripts/krh.py preserve`로, 전체 의미는 주체·부정·가능성·인과·조건·비교·범위를 육안으로 확인한다.
 
+번역 후편집에서는 원문의 모든 단어를 기계적으로 잠그지 않는다. 번역되어야 할 산문은 열어 두고, 숫자·URL·코드·대문자 약어·링크 대상처럼 양쪽에 그대로 남아야 하는 공유 토큰만 `translation_audit.py`로 잠근다. 인명·기관명·문화어의 번역·음역은 FID-3 사람 검토 대상으로 둔다.
+
 ## 4. 이중 taxonomy 운용
 
 ### 운영 taxonomy: A~N + Sunny-7
@@ -80,6 +83,17 @@ strict/heavy이거나 원문이 한국어 번역투·AI 슬롭으로 의심될 �
 특히 A-7 `가지고 있다`·A-8 이중 피동·A-15 추상 주어·A-16 대명사 직역·A-18 관계절 좌향 수식·A-19 이중 조사, C-11 연결어미 뒤 쉼표, D-1~D-7 관용구·결말 공식, E-2·E-7 리듬·경어법, F-4/F-5 명사화, G-1~G-3 헤지, H-1/H-3/H-4 접속사, I-1~I-4 형식명사, J-1~J-3 장식을 우선 살핀다.
 
 운영 SSOT와 확장 taxonomy가 같은 구간을 잡으면 중복 플래그하지 않는다. 최종 보고에는 운영 코드와 확장 ID를 병기할 수 있지만, 한 문장에 겹친 신호는 하나의 수술 대상으로 합친다.
+
+### 번역 후편집·문학 모드 (v7)
+
+사용자가 원문과 번역문을 함께 주거나 “번역 감수”, “번역투 교정”, “문학 번역”을 요청하면 일반 윤문과 분리된 번역 검토 레인을 켠다. 번역문만 있으면 원문에 대한 충실성 판정은 하지 않고, 한국어 번역투와 문체 위험만 진단한다.
+
+1. `scripts/translation_audit.py`로 숫자·URL·코드·약어·링크 대상과 제목·불릿·표·코드 구조를 먼저 대조한다.
+2. `FID-1~7`로 주체 복원, 문장 분할·통합, 고유명사·문화어, 부정·양태·조건·인과, 구조, 표면 잠금, 번역투를 분리한다.
+3. `--literary`를 지정하면 `LIT-1~3`을 추가한다. 모호성·반복·감각 이미지·정조·초점화는 문단 단위로 읽고, 원문에 없는 주어·감정·강도 부사·설명은 넣지 않는다.
+4. 데보라 스미스는 문학적 판단의 **대비 기준**으로만 참고한다. 독자 친화적 재구성·맥락 재방문·분위기와 리듬 중시는 배울 수 있지만, 추가·삭제·주어 명시·모호성 해소·영국식 어휘를 그대로 모방하지 않는다. 자세한 근거와 주요 판단 어휘는 `references/translation-fidelity.md`에 둔다.
+
+문학 모드의 기본 문장은 다음이다: **정조와 가독성은 다듬되, 사건·화자·단서·불확실성은 보존한다.**
 
 ## 5. 문체 보존과 윤문 처방
 
@@ -125,7 +139,7 @@ P0 → P1 → P2 순으로, 또는 확장 quick-rules 기준으로 D 관용구·
 1. 사전 메트릭·risk_band·route_hint·원문 LOCK 목록을 기록한다.
 2. `references/quick-rules.md`, `ai-tell-taxonomy.md`, `rewriting-playbook.md`를 읽고 finding을 ID/span/severity/fix로 정리한다.
 3. finding이 있는 문장만 겨냥 윤문한다. 전체 재작성하지 않는다.
-4. fidelity 감사: 숫자·명칭·인용뿐 아니라 부정, 가능성, 인과, 주체, 범위, 조건, 제목, 각주, 항목 개수를 대조한다.
+4. fidelity 감사: 숫자·명칭·인용뿐 아니라 부정, 가능성, 인과, 주체, 범위, 조건, 제목, 각주, 항목 개수를 대조한다. 번역문이면 `translation-audit`을 실행한다.
 5. naturalness 재진단: 잔존 S1/S2와 과윤문·장르 이탈·새 AI 표현을 양방향으로 검사한다.
 6. 실패한 edit만 롤백하고 최대 2차 윤문한다. 3차에도 남으면 `hold_and_report`로 사람 검토를 권한다.
 7. 사후 메트릭·변경률·보존 게이트를 기록하고, 최종 결과가 기준을 통과할 때만 출력한다.
@@ -164,6 +178,7 @@ python scripts/krh.py diffrate 원문.md 윤문본.md [--json]
 python scripts/krh.py consistency 장문.md
 python scripts/krh.py format 평문.txt
 python scripts/krh.py taxonomy --check
+python scripts/krh.py translation-audit 원문.md 번역문.md --direction en-to-ko --literary --json
 
 python references/metrics_v2.py --input 원문.md --genre essay --output 00_metrics_v2.json
 python scripts/prepare_monolith_input.py --run-dir _workspace/2026-01-001
@@ -211,7 +226,9 @@ summary.md                   변경률·등급·핵심 변경 요약
 - [ ] 변경률 게이트와 `preserve`가 통과했는가
 - [ ] 장문이면 chunk manifest·재조립 무결성·절 간 일관성을 확인했는가
 - [ ] 기준 미달이면 결과를 억지로 A로 포장하지 않고 경고했는가
+- [ ] 번역문이면 FID-1~7의 hold/warn을 원문과 대조했는가
+- [ ] 문학 모드면 모호성·반복·정조·초점화를 가독성 때문에 평탄화하지 않았는가
 
 ## 출처와 적용 범위
 
-확장 taxonomy·quick-rules·rewriting-playbook·post-editese 지표의 설계 참고 출처는 [`epoko77-ai/im-not-ai`](https://github.com/epoko77-ai/im-not-ai)이며, 원본 MIT 라이선스의 파일을 이 스킬 구조에 맞게 배치했다. 이 스킬의 운영 taxonomy·LOCK·한국어 장르 프로파일·Codex 실행 규칙은 `Neosiki/korean-humanize`의 v5 설계를 계승해 v6으로 통합한 것이다.
+확장 taxonomy·quick-rules·rewriting-playbook·post-editese 지표의 설계 참고 출처는 [`epoko77-ai/im-not-ai`](https://github.com/epoko77-ai/im-not-ai)이며, 원본 MIT 라이선스의 파일을 이 스킬 구조에 맞게 배치했다. 이 스킬의 운영 taxonomy·LOCK·한국어 장르 프로파일·Codex 실행 규칙은 `Neosiki/korean-humanize`의 v5 설계를 계승해 v6으로 통합했고, v7에서 번역 충실성·문학 번역 참고선을 추가했다. 번역·문학 판단의 외부 근거와 서비스 benchmark는 `references/translation-fidelity.md`와 `references/translation-benchmarks.md`에 기록한다.

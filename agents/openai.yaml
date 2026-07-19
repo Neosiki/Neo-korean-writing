@@ -1,4 +1,4 @@
 interface:
-  display_name: "한국어 최강 윤문 v6"
-  short_description: "AI 티와 번역투를 걷어내는 6차 정밀 윤문 스킬"
+  display_name: "한국어 최강 윤문 v7"
+  short_description: "AI 티·번역투와 번역 충실성을 함께 검토하는 7차 정밀 윤문 스킬"
   default_prompt: "Use $korean-humanize to polish this Korean text with span-level rules, strict fact preservation, and change-rate gates."

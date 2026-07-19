@@ -1,5 +1,22 @@
 # Changelog: korean-humanize
 
+## 7.0.0 (2026-07-19) 7차 고도화: "번역 충실성·문학 번역 검토 레인"
+
+깃허브 benchmark, WMT·SemEval·COLING 논문, 한국어 번역 연구, 번역 서비스 평가와 데보라 스미스 인터뷰·비평을 v6 윤문 워크플로에 연결했다.
+
+**핵심 변경**
+
+- `scripts/translation_audit.py` 추가: 원문–번역문 사이의 숫자·URL·코드·약어·링크 대상 표면 잠금, 제목·불릿·표·코드 구조 대조, 번역투·주어 복원·강도 부사 위험 플래그
+- `krh.py translation-audit` 명령 추가 및 `tests/test_translation_audit.py` 회귀 테스트 추가
+- `references/translation-fidelity.md` 추가: FID-1~7·LIT-1~3 감사 차원, 번역 후편집 절차, 문학 모드와 데보라 스미스의 기법·방법·문체·주요 판단 어휘·비평 쟁점
+- `references/translation-benchmarks.md` 추가: DeepL·Papago·Google Translate·ChatGPT·Gemini·Claude·TranslateGemma·Hunyuan-MT·Yanolja Rosetta·Microsoft Translator와 GitHub·논문·보고서 근거 지도
+- SKILL.md·README·에이전트 메타데이터를 v7로 갱신. 문학 모드는 데보라 스미스의 문체를 복제하지 않고 대비 기준으로만 사용
+
+**보존 원칙**
+
+- 번역되어야 할 산문 전체를 기계적으로 잠그지 않고, 양쪽에 그대로 남아야 하는 공유 토큰만 표면 LOCK으로 삼음
+- 자동 점수는 후보 선별용이며, 고유명사·문화어·부정·양태·인과·모호성·반복·초점화는 사람 검토 대상으로 유지
+
 ## 6.0.0 (2026-07-19) 6차 고도화: "유형 분류·국소 수술·장문 검증의 통합"
 
 `epoko77-ai/im-not-ai`의 윤문 스킬업 자료와 한국번역학계 유형을 참고해 윤문 본체와 재현 도구를 확장했다.
