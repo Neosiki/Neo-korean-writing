@@ -4,7 +4,9 @@
 
 > 동작 원칙 한 줄: "문체는 사람처럼, 사실은 원문 그대로."
 
-Claude Cowork와 Claude Code에서 동작하는 Agent Skill이다. 별도 API 키나 외부 서비스가 필요 없고, 정량 도구는 Python 표준 라이브러리만 쓴다. 규칙의 단일 원천은 `scripts/patterns.json`이고 `tests/`의 회귀 테스트와 GitHub Actions가 규칙과 구현의 일치를 지킨다. 새 글을 처음부터 쓰는 write-content 스킬도 같은 저장소에 있다.
+Claude Cowork, Claude Code, Codex에서 동작하는 Agent Skill이다. 별도 API 키나 외부 서비스가 필요 없고, 정량 도구는 Python 표준 라이브러리만 쓴다. 규칙의 단일 원천은 `scripts/patterns.json`이고 `tests/`의 회귀 테스트와 GitHub Actions가 규칙과 구현의 일치를 지킨다. 새 글을 처음부터 쓰는 write-content 스킬도 같은 저장소에 있다.
+
+현재 본체는 6차 고도화(v6)다. `SKILL.md`는 14개 거시 패턴과 Sunny-7, 한국어 번역투·학술 문체·AI 흔적 확장 taxonomy, span 단위 quick rules, 장문 무손실 청킹, 변경률·보존 게이트를 하나의 윤문 워크플로로 묶는다. `references/`에는 유형별 세부 규칙과 재현 가능한 지표 구현이, `scripts/`에는 진단·청킹·재조립·변경률 검증 도구가 들어 있다.
 
 ## 설치
 
@@ -83,15 +85,27 @@ AI 흔적 지수: 58.04 /1000자  등급 D(심함)  (신호 13개 / 224자)
 korean-humanize/
 ├── SKILL.md                 # 스킬 본체 (윤문 규칙과 워크플로 전체)
 ├── README.md                # 이 문서
-├── CHANGELOG.md             # 1~5차 고도화 이력
+├── CHANGELOG.md             # 1~6차 고도화 이력
 ├── ROADMAP.md               # 중장기 발전 방향
 ├── dist/
 │   └── korean-humanize.skill # Cowork 설치 파일
+├── agents/
+│   └── openai.yaml          # Codex 표시명과 기본 프롬프트
 ├── references/
+│   ├── ai-tell-taxonomy.md  # AI 흔적·한국번역학계 유형 확장 분류
+│   ├── quick-rules.md       # span 단위 국소 수술 규칙
+│   ├── rewriting-playbook.md # 장르·강도별 실행 플레이북
+│   ├── scholarship.md       # 학술·논문 윤문 원칙
+│   ├── metrics.py           # v1 정량 지표
+│   ├── metrics_v2.py        # v2 지표·장문 청킹 보조
+│   ├── baseline*.json       # 기준선 데이터
 │   └── examples.md          # 패턴 전후 대조 예시
 ├── scripts/
 │   ├── patterns.json        # 규칙 단일 원천 (A~N + Sunny-7 + 의미 가드)
-│   └── krh.py               # 정량 측정과 보존 검증 통합 도구
+│   ├── krh.py               # 정량 측정과 보존 검증 통합 도구
+│   ├── prepare_monolith_input.py # 장문 입력·진단 준비
+│   ├── reassemble_chunks.py      # 장문 청크 무손실 재조립
+│   └── verify_change_rate.py     # 변경률 상한 게이트
 ├── tests/
 │   └── test_krh.py          # 회귀 테스트
 └── write-content/
@@ -100,4 +114,4 @@ korean-humanize/
 
 ## 만든이
 
-NextAI 윤영식(osiki999@gmail.com)이 만들었다. 4차 고도화는 blader/humanizer, hardikpandya/stop-slop, stephenturner/skill-deslop, conorbronsdon/avoid-ai-writing, theclaymethod/unslop, jpeggdev/humanize-writing 여섯 저장소를 대조해 한국어에 맞게 이식했고, 5차 고도화는 외부 코드 리뷰를 반영해 규칙·구현·평가를 일치시키는 데 집중했다. 이 README도 스킬 자신의 기준으로 윤문했다.
+NextAI 윤영식(osiki999@gmail.com)이 만들었다. 4차 고도화는 blader/humanizer, hardikpandya/stop-slop, stephenturner/skill-deslop, conorbronsdon/avoid-ai-writing, theclaymethod/unslop, jpeggdev/humanize-writing 여섯 저장소를 대조해 한국어에 맞게 이식했고, 5차 고도화는 외부 코드 리뷰를 반영해 규칙·구현·평가를 일치시키는 데 집중했다. 6차 고도화는 `epoko77-ai/im-not-ai`의 유형 분류와 윤문 스킬업 자료를 참고해 한국어 윤문 taxonomy, 장문 처리, 정량 게이트를 확장했다. 이 README도 스킬 자신의 기준으로 윤문했다.

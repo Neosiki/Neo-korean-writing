@@ -1,5 +1,24 @@
 # Changelog: korean-humanize
 
+## 6.0.0 (2026-07-19) 6차 고도화: "유형 분류·국소 수술·장문 검증의 통합"
+
+`epoko77-ai/im-not-ai`의 윤문 스킬업 자료와 한국번역학계 유형을 참고해 윤문 본체와 재현 도구를 확장했다.
+
+**핵심 변경**
+
+- SKILL.md를 v6 워크플로로 갱신: light/standard/heavy 경로, A~N + Sunny-7, 확장 taxonomy, prompt injection 방어, span 수술, 장문 무손실 청킹, 변경률·보존 게이트를 통합
+- `references/ai-tell-taxonomy.md`: AI 흔적·번역투·학술 문체를 아우르는 확장 분류표 추가
+- `references/quick-rules.md`, `rewriting-playbook.md`, `scholarship.md`: 국소 규칙, 장르별 실행 절차, 논문 윤문 원칙 추가
+- `references/metrics_v2.py`와 기준선 JSON 추가: 진단·장문 청크·경로 판정의 재현성 강화
+- `scripts/prepare_monolith_input.py`, `reassemble_chunks.py`, `verify_change_rate.py` 추가: 장문 입력 준비, 무손실 재조립, 변경률 상한 검증
+- `agents/openai.yaml` 추가: Codex에서 v6 스킬을 표시하고 호출하는 메타데이터 제공
+- 기존 `krh.py`, `patterns.json`, `examples.md`를 v6 규칙과 맞춤
+
+**보존 원칙**
+
+- 원문 사실·숫자·인용·화자·불확실성은 계속 LOCK 대상으로 유지
+- 새 규칙은 원문에 없는 감정·사례·주장을 만들지 않으며, 수치 게이트를 통과하지 못하면 윤문을 중단하고 검토를 요구
+
 ## 5.0.0 (2026-07-10) 5차 고도화: "규칙·구현·평가의 일치"
 
 외부 코드 리뷰의 P0 다섯 건과 품질 제안을 반영했다.
