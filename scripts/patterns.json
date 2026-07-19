@@ -1,6 +1,6 @@
 {
-  "version": "5.0.0",
-  "comment": "단일 원천(taxonomy). SKILL.md 표·탐지 코드·테스트가 이 파일을 기준으로 한다. 수정 시 tests/ 회귀 테스트를 함께 갱신할 것.",
+  "version": "6.0.0",
+  "comment": "운영 taxonomy 단일 원천. v6 확장 세부 규칙은 references/ai-tell-taxonomy.md·quick-rules.md에 두고 이 파일은 실행 탐지·회귀 기준으로 사용한다.",
   "macro": [
     {"id": "A", "name": "번역투·영어 간섭", "severity": "P1",
      "keep": "원문이 번역문 인용일 때",
