@@ -1,27 +1,29 @@
 **한국어 윤문 스킬의 규칙 추적성과 의미 보존 검증**
 
-Neosiki/korean-humanize v6 설계 확장과 v5.0.0 기준선 실증에 대한 탐색적 아티팩트 연구
+Neosiki/korean-humanize v7 설계 확장과 v5.0.0 기준선 실증에 대한 탐색적 아티팩트 연구
 
 **저자:** 윤영식 (尹永植, Young-Shig Yoon)  
 **직함·소속:** NextAI 대표 · 아이피플래닛 대표  
 **이메일:** osiki999@gmail.com  
 **교신저자:** 해당 없음  
-**영문 제목:** *Verifying Rule Traceability and Meaning Preservation in a Korean Text Humanization Skill: A v6 Design Extension and v5.0.0 Baseline Artifact Study*
+**영문 제목:** *Verifying Rule Traceability and Meaning Preservation in a Korean Text Humanization Skill: A v7 Design Extension and v5.0.0 Baseline Artifact Study*
 
 **저자 위치 및 이해상충 진술:** 저자는 분석 대상인 `Neosiki/korean-humanize`의 개발·유지보수자다. 따라서 본 연구는 독립적인 제3자 성능평가가 아니라, 개발자가 자신의 소프트웨어 아티팩트를 대상으로 수행한 탐색적 사례 연구로 해석해야 한다. 자동 검사 결과와 LLM 모의 판정 결과를 구분해 제시했으며, 독립 인간 평가가 완료되기 전까지 의미 보존 성능에 대한 일반화 주장을 하지 않는다.
 
-문서 유형: 최종 논문 원고(본실험 자동 검사 실행본) | 작성 기준일: 2026-07-17 | 연구 상태: 자동 검사 실측
-완료·인간 평가 미수행
+문서 유형: 최종 논문 원고(본실험 자동 검사 실행본) | 작성 기준일: 2026-07-19 | 연구 상태: v7 구현·자동 검사 실측 반영
+완료·독립 인간 평가 미수행
 
-**버전 범위 주의:** 본문 4장의 자동 검사 수치는 `Neosiki/korean-humanize` v5.0.0 커밋 `ce02da2`에서 실행한 기준선이다. v6은
+**버전 범위 주의:** 본문 4장의 KLUE 자동 검사 수치는 `Neosiki/korean-humanize` v5.0.0 커밋 `ce02da2`에서 실행한 기준선이다. v6은
 `epoko77-ai/im-not-ai`의 한국어 번역투 유형과 PE 체크리스트를 설계에 통합한 확장판이며, 이 원고에서는 v6의 분류·추적성
-확장을 보고하되 v5 기준선 수치를 v6의 성능 결과로 재해석하지 않는다. v6 구현 커밋은 `d1f4cbf`이며 본문 작성 시점에는
-`agent/korean-humanize-v6` 브랜치에 있다.
+확장을 보고하되 v5 기준선 수치를 v6 또는 v7의 성능 결과로 재해석하지 않는다. v7은 번역 후편집 충실성 레인,
+문학 번역 검토 모드, benchmark 참고 지도와 이를 실행하는 `translation_audit.py`를 추가한 구현 확장이다. v7 구현 커밋은
+`bf4c9ce`, `main` 통합 커밋은 `6dbcc92`이며, feature 브랜치는 통합 후 삭제되었다.
 
-**자료 사용 주의:** 본 원고의 자동 보존 검사 결과(변형 118건, 문체 통제 49건)는 KLUE 공개 원자료를 추출해
+**자료 사용 주의:** 본 원고의 기존 자동 보존 검사 결과(변형 118건, 문체 통제 49건)는 KLUE 공개 원자료를 추출해
 preserve 검사를 실제로 실행한 실측치다. 반면 의미 변화 판정은 독립 인간 평가자가 아니라 LLM(Claude)이 번역
 전문가 페르소나 2종을 적용해 수행한 모의 판정이며, 본문과 부록에 이를 명시한다. 모의 판정 수치를 인간 평가 결과로
-인용해서는 안 된다.
+인용해서는 안 된다. v7의 `translation-audit` 회귀 테스트와 benchmark 지도는 구현·설계 검증 자료이지, 번역 서비스의
+인간 평가나 서비스 간 성능 순위가 아니다.
 
 초록
 
@@ -40,9 +42,12 @@ preserve 검사를 실제로 실행한 실측치다. 반면 의미 변화 판정
 판정은 번역 전문가 페르소나 2종을 적용한 LLM 모의 판정으로 수행했으며(일치율 92.4%, 전체 카파 0.879), 판정
 확정 기준 무신호 의미 변경률은 81.6%였다. 이 수치는 독립 인간 평가로 검증되기 전까지 잠정치다. 본 연구는 해당 스킬이
 모든 한국어 윤문 품질이나 생성 텍스트 탐지 성능을 제공한다고 주장하지 않는다. 대신 규칙·구현·검증의 추적성, 통제 변형
-커버리지, 검사 단위 불일치, 인간 검토가 필요한 경계를 명시하는 평가 틀을 제안한다.
+커버리지, 검사 단위 불일치, 인간 검토가 필요한 경계를 명시하는 평가 틀을 제안한다. v7에서는 추가로 번역 전후의 공유
+표면 토큰·문서 구조를 검사하는 `translation-audit`과 FID-1~7·LIT-1~3 검토 차원을 구현하고, WMT·SemEval·COLING
+자료와 번역 서비스·공개 모델을 절대 순위가 아닌 참고 지도 형태로 정리했다. 문학 번역에서는 데보라 스미스의
+독자 지향적 재구성·맥락 재방문·정조 중시를 대비 기준으로 참고하되, 추가·삭제·주어 명시를 모방 규칙으로 채택하지 않았다.
 
-**주제어:** 한국어 윤문, 생성형 AI, 의미 보존, 소프트웨어 아티팩트, 통제 변형, 추적성
+**주제어:** 한국어 윤문, 번역 후편집, 문학 번역, 생성형 AI, 의미 보존, 소프트웨어 아티팩트, 통제 변형, 추적성
 
 1\. 서론
 
@@ -59,9 +64,10 @@ preserve 검사를 실제로 실행한 실측치다. 반면 의미 변화 판정
 
 본 연구는 공개 저장소 Neosiki/korean-humanize를 사례로 삼는다. 이 저장소는 한국어 윤문을 위한 작업 모드와
 문체 패턴, 의미 보존 규칙, 실행 스크립트, 회귀 테스트를 함께 제공한다. 따라서 프롬프트나 사용 설명서만 분석하는 대신,
-윤문 스킬을 여러 설계 층이 결합된 아티팩트로 검토할 수 있다. 분석 대상은 2026년 7월에 확인한 v5.0.0 기준선 스냅샷과
-v6 설계 확장 스냅샷이며, 기준선 실측 커밋은 `ce02da2`, v6 설계 커밋은 `d1f4cbf`로 고정했다. v6 유형 통합은 성능
-재실험이 아니라 분류·규칙·문서의 추적성 확장으로 분석한다.
+윤문 스킬을 여러 설계 층이 결합된 아티팩트로 검토할 수 있다. 분석 대상은 2026년 7월에 확인한 v5.0.0 기준선 스냅샷,
+v6 설계 확장 스냅샷, v7 구현 스냅샷이며, 기준선 실측 커밋은 `ce02da2`, v6 설계 커밋은 `d1f4cbf`, v7 통합 커밋은
+`6dbcc92`로 고정했다. v6·v7 확장은 기존 기준선의 성능 재실험이 아니라 분류·규칙·문서·번역 감사 구현의 추적성
+확장으로 분석한다.
 
 본 연구의 목적은 이 스킬이 글을 얼마나 '사람답게' 만드는지 일반적으로 판정하는 데 있지 않다. 또한 사람의 글과 생성 모델의
 글을 구별하는 AI 탐지기 연구도 아니다. 한국어 생성 텍스트 탐지 연구는 한국어의 띄어쓰기, 형태·품사 분포, 쉼표 사용 등
@@ -77,6 +83,11 @@ v6 설계 확장 스냅샷이며, 기준선 실측 커밋은 `ce02da2`, v6 설�
 3\. 자동 검사가 포착하지 못하는 변형은 무엇이며, 그 결과는 인간 검토 절차에 어떤 요구를 제기하는가?
 
 4\. 한국 번역학계의 8대 번역투 유형과 15항 PE 체크리스트는 v6의 운영 taxonomy와 보존 평가 설계에 어떻게 연결되는가?
+
+5\. v7의 번역 후편집 충실성 레인과 문학 번역 모드는 어떤 보존 차원과 사람 검토 경계를 추가하는가?
+
+6\. 번역 서비스·공개 모델 benchmark와 데보라 스미스의 문학 번역 논의는 한국어 윤문 아티팩트의 설계 원칙에 어떻게
+    반영되며, 어떤 주장을 보류하게 하는가?
 
 2\. 관련 연구
 
@@ -127,21 +138,72 @@ NMT·LLM 후편집 연구를 종합해 여덟 유형의 학술적 계보를 정�
 interference를 한국어 성능 지표로 직접 단정하지 않고 v6의 해석 가설과 후속 검증 축으로만 둔다. 따라서 본 연구에서
 'AI 티'와 번역투의 겹침은 확정된 인과 결론이 아니라, 한국어 출력의 간섭 현상을 설명하기 위한 검증 가능한 가설이다.
 
+2.2 한국어 번역 서비스·모델 benchmark의 설계적 함의
+
+최근 영한·한영 번역 평가는 자동 점수만으로 모델 순위를 확정하기 어렵다는 점을 반복해서 보여준다. WMT25 General MT
+보고서는 영어–한국어 부문에서 인적 평가 순서와 자동 지표 순서가 일치하지 않을 수 있음을 보고했고, SemEval-2025의
+Team ACK 연구는 5,082개 영한 문장쌍과 13개 모델을 자동 지표·이중언어 평가로 함께 비교했다. 이 연구에서 개체명 오류,
+직역, 음역, word-for-word 대응 실패가 별도 오류로 다뤄진 것은 v7의 FID-3·FID-7 설계와 직접 연결된다(Team ACK,
+2025). COLING 2025의 문맥 인식 한영 담화 평가도 600개 테스트 스위트에서 문맥과 단계별 프롬프트가 사람 선호에 영향을
+주며 자동 지표만으로 충분하지 않음을 보였다. 자막 번역을 대상으로 한 2026년 공개 benchmark 역시 자동 유창성 점수와
+사람 QA가 발견한 충실성 오류가 다를 수 있음을 지적한다.
+
+이 문헌·보고서와 공개 저장소를 바탕으로 v7은 다음의 참고 지도(landscape)를 문서화했다. 아래 목록은 고정된 품질 순위가
+아니라 언어 방향·장르·도메인·평가자에 따라 달라지는 비교 후보다.
+
+| 참고 후보 | 확인된 용도·근거 | v7에서의 역할 |
+|---|---|---|
+| DeepL | 영↔한 IT 텍스트 비교와 공식 파일 번역 평가 | 자연성 후보, 도메인 의존성 검토 |
+| Papago | 한국어 중심 텍스트·이미지·문서·음성·웹 번역 | 한국어 관용·문화어 대조 |
+| Google Translate | 범용·다언어 서비스 | 범용 baseline |
+| ChatGPT 계열 | SemEval-2025 영한 모델 비교 | 문맥 후보, 사실 잠금 필수 |
+| Gemini 계열 | 문맥·담화 및 자막 비교 | 문맥 후보, 자동 점수 단독 사용 금지 |
+| Claude 계열 | WMT25 영한 인적 평가 비교 모델 | 문학·문맥 후보, 양태 재검수 |
+| TranslateGemma | 한국어를 포함한 번역 특화 공개 모델 | 재현 가능한 공개 모델 baseline |
+| Hunyuan-MT / Shy-Hunyuan | GitHub 공개 모델과 WMT 연구 | 공개 모델 비교 후보 |
+| Yanolja Rosetta | 관광·카탈로그·구조화 JSON 특화 모델 | 구조화 문서 후보, 비정형 제한 기록 |
+| Microsoft Translator | 기업용 API·문서 번역 | 엔터프라이즈 baseline |
+
+GitHub의 KorT, Iris Translation, roundtrip translation benchmark는 모호성·관용어·문화 참조, 한국어→영어 품질, 의미·톤·
+register 보존을 평가 설계에 포함한다. v7은 이 자산들을 하나의 점수로 합산하지 않고, 원문–번역문 쌍에 대해 공유 토큰·문서
+구조·주체·부정·양태·인과를 분리 검사하는 방식으로 수용했다. 따라서 서비스별 Top 10은 연구 결과의 순위표가 아니라
+검토 대상과 후속 실험 후보를 명시하는 재현성 목록이다.
+
+2.3 문학 번역의 독자 지향성: 데보라 스미스 대비 기준
+
+데보라 스미스는 번역 서비스나 자동 평가 모델이 아니라 한국문학 번역가다. 인터뷰에서 확인되는 작업 방식은 작품 전체를
+읽은 뒤 막힌 구절을 일단 진행하고 맥락 속에서 다시 보는 구간별 작업, 작품의 문화적 배경을 작가와 질문·대화로 확인하는
+방식, 한국어의 모호성·반복·중복을 영어의 정밀성·간결성 안에서 재구성하는 방식이다(The Guardian; Words Without
+Borders). 그는 번역을 단순한 단어 대응보다 독자를 위한 창의적 재작성으로 설명하면서도 원문의 spirit와 letter 사이의
+긴장을 문제로 삼았다(Korea Times).
+
+그의 자기 설명에서 반복되는 판단 어휘는 `lyrical`(서정적), `jagged`(거칠고 각진), `restraint`(절제),
+`atmosphere`(분위기), `tone`(정조), `ambiguity`(모호성), `repetition`(반복), `precision`(정밀성),
+`concision`(간결성)이다. 특정 비유를 `iceberg`·`calve`와 같은 구체어로 선택한 사례는 추상적인 이미지를 독자가
+붙잡도록 만드는 해석 개입의 예로 읽을 수 있다(Port Magazine). 이 어휘는 작품 전체에서 빈도를 측정한 핵심어 목록이
+아니라 번역가가 자신의 판단을 설명할 때 사용한 메타 어휘다.
+
+그러나 『채식주의자』 번역에 대한 국내 연구와 비평은 가독성을 높이는 과정에서 주어 복원, 단어 추가·삭제, 감정 강도,
+초점화와 서사 단서가 달라질 수 있음을 지적했다. 그러므로 v7은 스미스의 독자 지향성·맥락 재방문·감각 이미지·분위기와
+리듬 중시를 **대비 기준**으로 참고하되, 그의 영어 문체나 논쟁적인 추가·삭제를 한국어 윤문 규칙으로 복제하지 않는다.
+문학 모드의 기본 원칙은 “정조와 가독성은 다듬되, 사건·화자·단서·불확실성은 보존한다”이다.
+
 3\. 연구 대상과 방법
 
 3.1 아티팩트와 분석 자료
 
-분석 자료는 다음 여섯 층으로 나누었다.
+분석 자료는 다음 여덟 층으로 나누었다.
 
 |        |                          |                             |
 | ------ | ------------------------ | --------------------------- |
 | **층위** | **자료**                   | **분석 내용**                   |
 | 문서     | README.md, SKILL.md      | 작업 모드, 사용 절차, 보존 원칙         |
 | 규칙     | scripts/patterns.json    | 거시 패턴 A–N, Sunny-7, 의미 가드   |
-| 구현     | scripts/krh.py           | 진단, 보존 사실 추출, 경고, 엄격 모드     |
-| 테스트    | tests/test\_krh.py       | 패턴 발화, 보존 실패, 구조 경고, 차이율 검사 |
+| 구현     | scripts/krh.py, scripts/translation\_audit.py | 진단, 보존 사실 추출, 번역 표면·구조·문체 위험 감사 |
+| 테스트    | tests/test\_krh.py, tests/test\_translation\_audit.py | 패턴 발화, 보존 실패, 구조 경고, 번역 감사 회귀 검사 |
 | 변경 이력  | CHANGELOG.md, ROADMAP.md | 버전 범위와 향후 확장 계획             |
 | 학술 anchor | `references/scholarship.md`, `ai-tell-taxonomy.md` | 한국 번역학계 8대 유형, PE 15항, 국제 이론의 규칙 매핑 |
+| v7 참고 지도 | `references/translation-fidelity.md`, `translation-benchmarks.md` | FID/LIT 차원, 번역 서비스·모델·GitHub·논문 근거 |
 
 저장소의 주장을 규칙 파일, 실행 코드, 테스트에서 다시 확인했다. 각 항목은 설명된 개념이 규칙·구현·테스트에 모두 연결되면
 '완전 일치', 일부 층에서만 확인되면 '부분 일치', 명시적 모순이 있으면 '불일치', 자료만으로 판단할 수 없으면 '확인
@@ -206,6 +268,20 @@ v6에서 신규 또는 보류 상태의 세부 패턴으로 명시되었다. 이
 
 따라서 이 표의 8/8은 '8개 유형을 모두 탐지한다'는 의미가 아니라, 문헌–분류–규칙 사이의 문서화 연결이 확인되었다는
 뜻이다. 실제 재현율과 과잉 경고율은 유형별 한국어 말뭉치와 독립 평가자를 사용한 별도 실험이 필요하다.
+
+3.3.2 v7 번역 충실성·문학 모드의 추적성
+
+v7은 기존 `preserve`의 단일 텍스트 비교와 번역문 검토를 분리했다. 원문–번역문 쌍을 입력하면
+`scripts/translation_audit.py`가 번역되어야 할 산문 전체를 기계적으로 잠그지 않고, 양쪽에 그대로 남아야 하는 숫자·URL·
+코드·대문자 약어·링크 대상만 공유 LOCK으로 추출한다. 이어 제목·불릿·표·코드·링크 구조를 대조하고, 결과를 `pass`,
+`warn`, `hold`로 구분한다. `hold`는 표면 LOCK 누락이나 문서 구조 변화가 있어 채택을 멈추는 상태이며, `warn`은 주어
+복원·번역투·강도 부사와 같은 위험을 사람 검토 목록으로 올리는 상태다. 따라서 번역문을 만들기 위해 정상적으로 달라지는
+산문 표현과, 달라지면 안 되는 공유 토큰을 같은 잠금 규칙으로 처리하지 않는다.
+
+위험 차원은 FID-1(주체 복원), FID-2(문장 분할·통합), FID-3(개체명·문화어), FID-4(부정·양태·조건·인과·비교·범위),
+FID-5(문서 구조), FID-6(표면 LOCK), FID-7(한국어 번역투)로 나뉜다. `--literary` 모드에서는 LIT-1(모호성·반복·
+정조·초점화), LIT-2(리듬과 화자 거리), LIT-3(무근거 감정·강도 부사·설명 추가)를 별도 사람 검토 항목으로 붙인다.
+이 ID들은 자동 품질 점수가 아니라, 번역 후편집에서 무엇을 먼저 대조할지 기록하는 감사 분류다.
 
 3.4 보존 게이트
 
@@ -355,6 +431,18 @@ control\_warning\_count / control\_case\_count로 계산한다. 분모가 0인 �
 분석에서는 보존/변경 양쪽으로 계산한다. 이 지표들은 특정 저장소와 평가 세트에 대한 커버리지를 나타낼 뿐, 모든
 한국어 윤문 시스템의 성능이나 모든 의미 보존을 보장하지 않는다.
 
+3.9 v7 구현 검증과 해석 범위
+
+v7 구현은 다음 세 종류의 근거로 확인했다. 첫째, `krh.py taxonomy --check`가 A–N 14개 거시 패턴과 Sunny-7 7개 규칙의
+정규식을 재컴파일한다. 둘째, 기존 회귀 테스트와 `tests/test_translation_audit.py`를 합쳐 20개 테스트를 실행한다. 셋째,
+번역 감사 테스트에서 동일 텍스트의 통과, 숫자·약어 누락의 `hold`, 영한 번역문에서 불필요한 대명사·강도 부사의 `warn`,
+불릿 구조 변화의 `hold`, 문학 모드의 LIT-1 사람 검토 플래그를 확인한다. 이 결과는 구현 계약과 회귀 동작을 검증한 것이며,
+번역 품질이나 특정 서비스의 우열을 측정한 결과가 아니다.
+
+v7 배포 archive에는 본체, 번역 감사 스크립트, FID/LIT 참고 문서가 함께 들어간다. 저장소는 `main`의 통합 커밋
+`6dbcc92`를 기준으로 관리하며, feature 브랜치는 통합 후 삭제했다. 이 버전 고정은 논문에서 설계 확장과 기존 v5
+기준선 실측을 혼동하지 않기 위한 재현성 장치다.
+
 4\. 결과
 
 4.1 규칙·구현·검증의 추적성
@@ -371,6 +459,11 @@ v6 설계 감사에서는 한국 번역학계 8대 유형 T1~T8이 모두 학술
 이는 v5의 A–N·Sunny-7 체계가 문체 신호를 나열하는 데 그치지 않고, 한국어 번역투 연구에서 반복된 구문·어휘·화용
 현상을 별도 근거와 함께 추적할 수 있도록 확장되었다는 뜻이다. 다만 이 결과는 문서·분류의 추적성 결과이며, 각 유형의
 탐지 재현율이나 윤문 후 자연스러움의 개선을 보여주는 성능 결과는 아니다.
+
+v7에서는 이 추적성 사슬이 번역 후편집과 문학 검토로 확장되었다. `translation_audit.py`와 두 개의 새 참고 문서는
+문서–규칙–구현–테스트에 더해 **원문–번역문–위험 차원–사람 검토**의 네 요소를 연결한다. FID-1~7은 번역 충실성의
+논리·표면·구조 차원을 나누고, LIT-1~3은 문학 모드에서 자동화하지 않을 판단을 명시한다. 이 확장은 v5 기준선의
+커버리지 수치를 바꾸지 않으며, 번역 품질을 실증했다는 의미도 아니다.
 
 4.2 통제 변형 파일럿
 
@@ -434,6 +527,23 @@ v6 설계 감사에서는 한국 번역학계 8대 유형 T1~T8이 모두 학술
 제외한다. 판정 확정 기준의 종합 커버리지는 21/114(18.4%), 무신호 의미 변경률은
 93/114(81.6%)다. 이 판정 수치는 LLM 모의 판정에 근거한 잠정치이며, 독립 인간 평가로 대체·검증되어야 한다.
 
+4.4 v7 번역 감사 레인의 회귀 검증
+
+v7의 번역 감사는 별도 번역 품질 benchmark가 아니라 구현 회귀 테스트로 검증했다.
+
+| 테스트 사례 | 기대 동작 | 확인된 결과 |
+|---|---|---|
+| 동일 원문·번역문과 공유 토큰 유지 | `pass`·표면 잠금 통과 | 통과 |
+| 숫자 또는 GPT-4 토큰 변경 | `hold`·FID-6 | 통과 |
+| 영한 번역문에 `그는·그의` 반복 삽입 | FID-1 `warn` | 통과 |
+| 원문에 없는 강도 부사 반복 삽입 | LIT-3 `warn` | 통과 |
+| 불릿 항목 병합 | `hold`·FID-5 | 통과 |
+| `--literary` 실행 | LIT-1 사람 검토 플래그 | 통과 |
+
+이 표의 “통과”는 기대한 경고 상태가 발생했다는 의미다. 자동 감사가 의미 동등성을 확정했다는 의미가 아니다. 특히
+FID-3(개체·문화어), FID-4(논리 관계), LIT-1·LIT-2(모호성·정조·초점화·리듬)는 원문과 번역문을 함께 읽는 사람 검토를
+필수로 남긴다.
+
 5\. 논의
 
 5.1 추적성은 품질 보증의 필요조건이지 충분조건이 아니다
@@ -492,6 +602,20 @@ Toury의 간섭 법칙과 Toral의 post-editese 논의로 설명할 수 있는 �
 추적할 수 있게 했다는 데까지다. 한국어의 유형별 재현율, 장르별 과잉 경고율, 번역투 감소와 자연스러움의 관계는 독립
 말뭉치와 인간 평가를 이용한 후속 연구에서 검증해야 한다.
 
+5.6 번역 충실성과 문학적 가독성의 분리
+
+v7의 번역 레인은 번역 서비스의 자연성 경쟁을 해결하려는 것이 아니라, 자연스러움이 올라갈 때 함께 발생할 수 있는 누락·
+추가·주체 복원·구조 변화·문학적 평탄화를 별도 위험으로 기록하려는 시도다. WMT·SemEval·COLING 자료가 자동 점수와
+사람 평가의 차이를 보여준다는 점에서, v7은 서비스별 점수를 합산하는 대신 공유 LOCK과 구조 검사를 먼저 두고, 개체명·
+문화어·부정·양태·인과·모호성·반복을 사람 검토로 남겼다.
+
+데보라 스미스의 사례는 이 설계의 긴장을 선명하게 보여준다. 독자 지향적 재구성, 작품 전체 맥락을 다시 읽는 방식, 정조와
+리듬을 중시하는 태도는 번역 후편집이 단순한 직역 교정이 아님을 알려준다. 반대로 『채식주의자』를 둘러싼 연구·비평은
+재구성이 주어·감정 강도·서사 단서의 변화로 이어질 수 있음을 보여준다. 따라서 v7의 문학 모드는 스미스의 표현을
+재현하거나 고정 어휘를 주입하지 않고, `lyrical`, `jagged`, `restraint`, `atmosphere`, `tone`, `ambiguity`,
+`repetition`, `precision`, `concision`을 질문 목록으로만 사용한다. 이 방식은 가독성 개선과 원문 충실성을 동시에 말하려면
+무엇을 보존했는지, 무엇을 해석했는지, 무엇을 사람에게 넘겼는지를 분리해 기록해야 한다는 결론으로 이어진다.
+
 6\. 한계와 재현성
 
 첫째, 본실험 자료는 KLUE 세 자료군의 문장 단위 텍스트로 한정된다. 결과 수치는 이 통제 변형 세트와 저장소 커밋
@@ -521,6 +645,16 @@ ce02da2에 대한 커버리지이며, 실제 사용 문서나 모든 한국어 �
 이론적 배경이고, Toral(2019)의 post-editese 결과는 한국어에 대한 실측치가 아니다. 따라서 v6 메트릭이나 본 논문의
 논의에서 해당 축을 한국어 성능 수치처럼 사용하지 않으며, 후속 연구에서는 '추정' 또는 '검증 가설'로 표시해야 한다.
 
+일곱째, v7의 번역 감사는 실제 번역 서비스 출력이나 병렬 말뭉치에 대한 인간 품질 평가가 아니다. `pass`, `warn`, `hold`는
+공유 토큰·문서 구조·표층 위험의 회귀 동작을 나타낼 뿐, 번역의 정확성·유창성·문학성을 점수화하지 않는다. 번역 서비스·
+모델 Top 10 참고 지도도 언어 방향·도메인·평가 프로토콜이 다른 자료를 모은 것이므로 서비스 간 순위나 우열로 해석할 수
+없다.
+
+여덟째, 데보라 스미스의 주요 어휘는 인터뷰와 비평에서 확인되는 자기 설명·분석 언어이지, 작품 코퍼스에서 산출한 빈도
+목록이나 자동 문체 모델이 아니다. 또한 특정 번역 사례를 둘러싼 비평은 번역가의 전체 작업을 대표하지 않는다. v7은 이를
+대비 기준으로 제한하고 문학 모드의 LIT 차원을 사람 검토로 남겼지만, 실제 문학 번역 선호도나 번역가 문체 유사성을
+검증하지 않았다.
+
 실제 투고 논문으로 확장하려면 다음 절차를 완료해야 한다. 설명문·뉴스·학술 초록·보고서·에세이 등 최소 세 장르의 한국어 원문을
 확보하고 숫자·인용·용어·부정·양태·인과·조건·비교·논항·구조 변형을 균형 있게 생성한다. 각 변형에 대해 의미 보존 여부를 두
 명 이상의 한국어 검토자가 독립적으로 판정하고 불일치 사례를 조정한다. 보존 게이트의 변형 유형별 커버리지, 문체 통제 사례의
@@ -540,15 +674,19 @@ ce02da2에 대한 커버리지이며, 실제 사용 문서나 모든 한국어 �
 아니라, 표면 사실에 강하고 관계 의미에 침묵하는 위험 선별 장치다.
 
 이 사례의 논문적 기여는 'AI 티를 제거한다'는 포괄적 주장에 있지 않다. 무엇을 규칙으로 잠그고, 무엇을 자동 검증하며,
-무엇을 사람에게 남기는지를 추적 가능한 형태로 명세하고 실측했다는 데 있다. v6 설계 확장은 여기에 한국 번역학계 8대
-유형과 PE1~PE15 처방 목록을 연결해, AI 흔적 분류와 번역투 연구의 학술 근거를 같은 추적성 틀에서 검토할 수 있게 했다.
-다만 이 연결은 유형별 성능 검증이 아니라 문헌 기반 설계 확장이다. 향후 연구는 독립 인간 평가로 모의 판정을
-대체해 무신호 의미 변경률을 확정하고, 문장 단위 이진 극성 비교와 가드 어휘 확장을 적용한 개선판을 동일 벤치마크로 재평가해야
-한다. 그 결과가 추가되더라도 해당 수치는 특정 저장소 버전과 특정 자료 세트에 한정해 해석되어야 한다.
+무엇을 사람에게 남기는지를 추적 가능한 형태로 명세하고 실측했다는 데 있다. v6은 한국 번역학계 8대 유형과 PE1~PE15
+처방 목록을 연결했고, v7은 그 연결을 번역 후편집 충실성 감사와 문학 번역 검토 레인으로 구현했다. FID-1~7과 LIT-1~3은
+자동 점수보다 사람 검토의 경계를 명시하고, 번역 서비스·모델 benchmark는 순위가 아니라 재현 가능한 비교 후보 목록으로
+정리되었다. 다만 v7의 번역 감사와 스미스 대비 기준은 문헌·구현 기반 확장이지 유형별 성능 또는 문학 번역 품질의 실증이
+아니다. 향후 연구는 독립 인간 평가로 모의 판정을 대체하고, 병렬 번역 말뭉치와 문학 번역 선호도 자료에서 FID/LIT 차원의
+재현율·과잉 경고율·검토자 일치도를 측정해야 한다. 그 결과가 추가되더라도 해당 수치는 특정 저장소 버전과 특정 자료 세트에
+한정해 해석되어야 한다.
 
 데이터·코드·윤리 진술
 
-분석 대상 저장소의 버전과 커밋은 본문에 명시했다. 본실험 원문은 KLUE 공개 자료(저장소 라이선스 CC BY-SA 4.0
+분석 대상 저장소의 버전과 커밋은 본문에 명시했다. 현재 설계 기준은 `main` 통합 커밋 `6dbcc92`이며, v7 구현 파일은
+`scripts/translation_audit.py`, `references/translation-fidelity.md`, `references/translation-benchmarks.md`,
+`tests/test_translation_audit.py`다. 본실험 원문은 KLUE 공개 자료(저장소 라이선스 CC BY-SA 4.0
 표시)에서 행 ID 기준으로 추출했으며, 실행 로그(korean-humanize\_run\_log.csv), 범주
 집계(korean-humanize\_results\_filled.csv), 실행
 요약(korean-humanize\_run\_summary.json), 실행 스크립트(run\_benchmark.py)를
@@ -705,6 +843,68 @@ Multilingual Robustness Evaluation Toolkit for Natural Language
 Processing. ACL System Demonstrations.
 https://aclanthology.org/2021.acl-demo.41/
 
+Alconost. (2026). AI Subtitle Translation Benchmark.
+https://alconost.com/en/blog/ai-subtitle-translation-benchmark
+
+Google. (2026). TranslateGemma: Translation models for 55 languages.
+https://blog.google/innovation-and-ai/technology/developers-tools/translategemma/
+
+Hunyuan. (2025). Hunyuan-MT. GitHub repository.
+https://github.com/Tencent-Hunyuan/Hunyuan-MT
+
+Korea JoongAng Daily. (2017). Debate erupts over accuracy of translations of
+*The Vegetarian*.
+https://www.koreajoongangdaily.com/lifestyle/debate-erupts-over-accuracy-of-translations-literary-experts-point-to-faults-in-english-version-of-the-vegetarian/11298727
+
+Port Magazine. (2016). 10,000 hours: Deborah Smith, literary translator.
+https://www.port-magazine.com/literature/10000-hours-deborah-smith-literary-translator/
+
+Lee, D., Sharma, H., Han, J., Jeong, S., Oh, A., & Shwartz, V. (2025).
+Team ACK at SemEval-2025 Task 2: Beyond Word-for-Word Machine Translation for
+English-Korean Pairs. *Proceedings of SemEval-2025*, 2376–2388.
+https://aclanthology.org/2025.semeval-1.309.pdf
+
+The Guardian. (2016). My writing day: Han Kang and Deborah Smith.
+https://www.theguardian.com/books/2016/may/21/my-writing-day-han-kang-deborah-smith
+
+Words Without Borders. (2016). Q&A with Deborah Smith.
+https://wordswithoutborders.org/read/article/2016-04/2016-man-booker-international-qa-deborah-smith/
+
+Kocmi, T., Artemova, E., Avramidis, E., et al. (2025). Findings of the WMT25
+General Machine Translation Shared Task: Time to Stop Evaluating on Easy Test
+Sets. *Proceedings of the Tenth Conference on Machine Translation*, 355–413.
+https://steinst.is/files/2025_wmt_sharedtask.pdf
+
+Yanolja. (2025). YanoljaNEXT-Rosetta-12B-2510.
+https://huggingface.co/yanolja/YanoljaNEXT-Rosetta-12B-2510
+
+Kim, J., et al. (2025). A Testset for Context-Aware LLM Translation in
+Korean-to-English Discourse Level Translation. *COLING 2025*.
+https://aclanthology.org/2025.coling-main.110.pdf
+
+deveworld. (2026). KorT: Korean Translation Benchmark. GitHub repository.
+https://github.com/deveworld/KorT
+
+davidkim205. (2026). Iris Translation. GitHub repository.
+https://github.com/davidkim205/translation
+
+lechmazur. (2026). Roundtrip Translation Benchmark. GitHub repository.
+https://github.com/lechmazur/translation
+
+Science Co., Ltd. (2024). DeepL independent machine translation evaluation for
+IT texts. https://www.science.co.jp/en/nmt/blog/33049/
+
+Naver. (2026). Papago. https://papago.naver.com/
+
+KCI article record. (2017). Reader orientation and accuracy in the translation of
+*The Vegetarian*. https://journal.kci.go.kr/kats/archive/articleView?artiId=ART002265294
+
+DBpia thesis record. (2022). Readability strategies in Deborah Smith's
+translation of *The Vegetarian*. https://www.dbpia.co.kr/journal/detail?nodeId=T16856966
+
+Earticle article record. (2017). Deletion and narrative clues in Deborah Smith's
+translation. https://www.earticle.net/Article/A323225
+
 부록 A. 평가 프로토콜 요약
 
 이 프로토콜은 Neosiki/korean-humanize의 보존 검사가 어떤 표면·구조·의미 변형을 포착하고, 어떤 변형을
@@ -734,7 +934,8 @@ https://aclanthology.org/2021.acl-demo.41/
 
 부록 B. 재현성 절차
 
-**B.1 버전 고정.** 분석 대상 저장소: Neosiki/korean-humanize. 분석 커밋: ce02da2. 데이터
+**B.1 버전 고정.** 기준선 실측 커밋은 `ce02da2`, v7 설계·구현 통합 커밋은 `6dbcc92`다. 분석 대상 저장소:
+Neosiki/korean-humanize. 데이터
 자료군: KLUE NLI v1.1, KLUE STS v1.1, KLUE YNAT v1.1. 데이터 행 매핑:
 korean-humanize\_verified\_anchor\_ids.csv. 변형 설계:
 korean-humanize\_benchmark\_manifest.csv. 변형 생성 시드: 20260717.
@@ -757,6 +958,10 @@ korean-humanize\_benchmark\_manifest.csv. 변형 생성 시드: 20260717.
 
 8\. 결과표 템플릿(korean-humanize\_results\_template.csv)에 유형별 집계값을 입력한다.
 
+9\. 원문–번역문 쌍을 검토하는 경우 `python scripts/krh.py translation-audit 원문.md 번역문.md --direction en-to-ko`
+를 실행하고, 문학 번역이면 `--literary`를 추가한다. `pass`는 자동 품질 인증이 아니며, `warn`·`hold`와 사람 검토
+항목을 함께 기록한다.
+
 **B.3 실행 전 검증.** 50개 앵커 ID가 모두 원자료에 존재하는가. 각 앵커의 지정 필드가 비어 있지 않은가. 중복
 텍스트가 제거되었는가. 변형문에 변형 대상 외의 변경이 들어가지 않았는가. 통제 사례에서 숫자·용어·인용·핵심 관계가
 유지되는가. 원자료 레이블을 의미 보존의 정답으로 사용하지 않았는가. 원문 전체를 결과 저장소에 불필요하게 복사하지 않았는가.
@@ -767,7 +972,8 @@ korean-humanize\_benchmark\_manifest.csv. 변형 생성 시드: 20260717.
 
 **B.5 보고 원칙.** 본 부록의 절차가 완료되기 전에는 파일럿 결과와 본실험 결과를 합산하지 않는다. 본실험의 수치가
 확보되더라도 결과는 특정 저장소 커밋과 특정 KLUE 기반 통제 변형 세트에 한정해 해석한다. 이는 한국어 윤문
-전체의 품질이나 생성형 AI 탐지 성능을 주장하는 실험이 아니다.
+전체의 품질이나 생성형 AI 탐지 성능을 주장하는 실험이 아니다. v7의 번역 서비스·모델 참고 지도 역시 순위표가 아니라
+후속 비교 후보 목록이며, 자동 점수와 사람 평가를 동일한 척도로 합산하지 않는다.
 
 부록 C. 검증된 앵커 ID 목록(50건)
 
@@ -1190,20 +1396,22 @@ raise SystemExit(main())
 
 부록 I. 연구 상태와 투고 전 점검표
 
-이 원고는 저장소 분석, 통제 변형 파일럿, 그리고 KLUE 기반 본실험 자동 검사 실측을 반영한 아티팩트 연구 원고다. 의미
+이 원고는 저장소 분석, 통제 변형 파일럿, KLUE 기반 본실험 자동 검사 실측, v7 번역 감사 구현 검증을 반영한 아티팩트 연구
+원고다. 의미
 변화 판정은 LLM 모의 판정이며 독립 인간 평가가 아니다.
 
-**완료 항목:** 제목·초록·주제어, 연구 질문과 연구 범위, 관련 연구, 유사 GitHub 프로젝트 비교, 저장소 버전·커밋
+**완료 항목:** 제목·초록·주제어, 연구 질문과 연구 범위, 관련 연구, 번역 서비스·모델 benchmark 참고 지도, 데보라 스미스
+대비 기준, 유사 GitHub 프로젝트 비교, 저장소 버전·커밋
 고정, 추적성 분석, 통제 변형 파일럿, 원자료 추출 실행(49개 앵커, A030 중복 제외), 변형 118건·통제 49건
 생성과 제외 132건 사유 기록, preserve 실행 로그와 결과 집계, LLM 모의 판정 2패스와 일치도 계산, 결과표
-실측치 반영, 데이터·코드·윤리 진술, 재현성 부록.
+실측치 반영, v7 `translation-audit`과 FID/LIT 매핑, 데이터·코드·윤리 진술, 재현성 부록.
 
 **실제 투고 전 필수:** 두 명 이상 독립 인간 평가자의 의미 판정으로 모의 판정 대체, 인간 평가자 간 일치도 계산, 변형문
 제3자 검수, 문서 단위 텍스트 벤치마크 추가(직접 인용·불릿 범주 포함), 투고 학술지 양식·분량·인용 스타일 적용, 저자
 정보와 연구비·이해상충 진술 입력.
 
-현재 상태는 자동 검사 실측과 모의 판정을 갖춘 시스템 사례 연구 원고다. 독립 인간 판정으로 모의 판정을 대체하면 일반 연구논문
-형식의 완결성을 갖춘다.
+현재 상태는 기존 KLUE 자동 검사 실측·모의 판정과 v7 구현 회귀 검증을 갖춘 시스템 사례 연구 원고다. 독립 인간 판정,
+병렬 번역 말뭉치 평가, 문학 번역 선호도 평가를 추가하면 일반 연구논문 형식의 실증 범위가 확장된다.
 
 부록 J. 본실험 실행 기록
 
@@ -1231,6 +1439,12 @@ API(klue/klue의 nli·sts·ynat train 분할)에서 행 ID 기준 추출. 변형
 korean-humanize\_run\_log.csv(167쌍 사례별 결과),
 korean-humanize\_results\_filled.csv(범주 집계),
 korean-humanize\_run\_summary.json(요약 통계).
+
+**J.6 v7 구현 검증.** 통합 커밋 `6dbcc92`에서 `python -B -m unittest discover -s tests -q`를
+실행해 기존 테스트와 `test_translation_audit.py`를 합친 20개 테스트가 통과했다. `python scripts/krh.py taxonomy --check`
+도 A–N 14개 macro, Sunny-7 7개, 정규식 컴파일 OK를 반환했다. 번역 감사 회귀 사례는 공유 토큰 유지의 pass, 숫자·약어
+누락의 FID-6 hold, 대명사·강도 부사의 FID-1/LIT-3 warn, 불릿 구조 변화의 FID-5 hold, 문학 모드의 LIT-1 사람 검토
+플래그를 확인했다. 이 검증은 번역 품질이나 서비스 순위를 측정한 것이 아니다.
 
 부록 K. 한국 번역학계 유형과 v6 PE 체크리스트의 전체 매핑
 
@@ -1269,3 +1483,24 @@ korean-humanize\_run\_summary.json(요약 통계).
 
 이 부록의 처방은 자동 삭제 목록이 아니다. 고유한 의미 기능, 장르, 화자–청자 관계, 전문 용어가 확인되면 유지하며,
 원문에 없는 사례·감정·근거를 새로 삽입하지 않는다. T4·T7·T8은 특히 문맥 검토를 우선한다.
+
+부록 L. v7 번역 충실성·문학 모드 매핑
+
+아래 차원은 v7의 `translation_audit.py`가 자동으로 표시하거나 사람 검토를 요구하는 감사 분류다. 기존 T1~T8·PE1~PE15와
+달리 번역문 후편집의 위험 차원과 문학적 판단 유보를 한눈에 기록하기 위한 것이다.
+
+| 차원 | 검토 대상 | 자동 동작 | 사람 검토 경계 |
+|---|---|---|---|
+| FID-1 | 한국어 영형 주어의 대명사 복원 | 영한 번역에서 반복 대명사 warn | 화자·시점·초점화 변화 |
+| FID-2 | 문장 분할·통합 | 문장 수 편차 warn | 누락·중복과 리듬 조정 구분 |
+| FID-3 | 인명·기관명·문화어·음역 | 자동 판정하지 않음 | 출처·작품 세계·관습 대조 |
+| FID-4 | 부정·양태·조건·인과·비교·범위 | 검토 목록으로 고정 | 명제와 화행의 동등성 판단 |
+| FID-5 | 제목·불릿·표·코드·링크 구조 | 구조 변화 hold | 의도된 편집인지 확인 |
+| FID-6 | 숫자·URL·코드·약어·링크 대상 | 누락 hold | 번역문 채택 전 복구 |
+| FID-7 | 한국어 번역투 | A-1~A-19 후보 warn | 합법적인 전문·인용 표현 보존 |
+| LIT-1 | 모호성·반복·정조·초점화 | 문학 모드 review | 장면·문단 단위 대조 |
+| LIT-2 | 리듬·화자 거리 | 자동 판정하지 않음 | 목소리 평준화 여부 검토 |
+| LIT-3 | 무근거 감정·강도 부사·설명 | 반복 강도 부사 warn | 원문 근거와 해석 개입 확인 |
+
+데보라 스미스 대비 기준은 LIT 차원의 판단 질문을 제공하지만, 번역가의 문체를 복제하거나 번역 결과의 우열을 판정하는
+척도가 아니다. v7의 문학 모드는 가독성·정조·리듬을 함께 읽되 사건·화자·단서·불확실성의 보존을 우선한다.
