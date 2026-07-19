@@ -11,6 +11,7 @@
   python3 krh.py consistency draft.md                 # 장편 절별 일관성
   python3 krh.py format    기본본.txt                  # SNS/카톡 평문 포맷 검사
   python3 krh.py taxonomy [--check]                   # patterns.json → 마크다운 표 / 무결성 검사
+  python3 krh.py translation-audit 원문.md 번역문.md   # v7 번역 충실성·문학 위험 감사
 
 규칙의 단일 원천은 같은 폴더의 patterns.json이다. 파일 인자를 생략하면 stdin을 읽는다.
 """
@@ -273,9 +274,13 @@ def cmd_taxonomy(args):
     for r in P["sunny"]:
         print(f"| {r['no']} | {r['name']} | {r['baseline']} | {r['keep']} |")
 
+def cmd_translation_audit(args):
+    from translation_audit import main
+    sys.exit(main(args))
+
 CMDS = {"diagnose": cmd_diagnose, "sunny": cmd_sunny, "preserve": cmd_preserve,
         "diffrate": cmd_diffrate, "consistency": cmd_consistency, "format": cmd_format,
-        "taxonomy": cmd_taxonomy}
+        "taxonomy": cmd_taxonomy, "translation-audit": cmd_translation_audit}
 
 if __name__ == "__main__":
     if len(sys.argv) < 2 or sys.argv[1] not in CMDS:
