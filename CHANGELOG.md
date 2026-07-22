@@ -1,5 +1,23 @@
 # Changelog: korean-humanize
 
+## 8.0.0 (2026-07-23) 8차 고도화: "4축 수렴 게이트·진단 슬림 인덱스·실측 승격강등"
+
+`epoko77-ai/im-not-ai`의 최근 업데이트(v2.2 route_hint 재편, v2.3 구조 수렴 게이트·슬림 진단·대조 코퍼스 실증 백포트)를 이식했다.
+
+**핵심 변경**
+
+- `scripts/verify_gates.py` 추가: 문자 변경률 단일 게이트를 4축(P0 문자율 / P1 진단 목표달성 z-score / P2 C-8 대구 전멸 방지 / P3 golden·수치 주입 차단)으로 확장, P4 문장 터치율은 보고 전용. `tests/golden/checks.py` 결정적 검사기 동반. `verify_change_rate.py`는 하위 호환 보존
+- `references/diagnosis-rules.md` 추가: 진단 전용 슬림 인덱스(71패턴 전수 × 2줄, ~13KB). 진단 시 taxonomy 전량(~75KB) 로드를 대체해 토큰 35~50% 절감. `scripts/build_diagnosis_rules.py`·`build_quick_rules.py`가 SSOT에서 결정적으로 생성하고 `--check`로 drift 차단
+- `references/empirical-validation.md` 추가 및 taxonomy 실측 백포트: C-8 부정 대구 S1 승격(AI 5.8 vs 인간 0.6, 9.2배 — 실측 최강 신호, 단 전멸 금지) / A-2 "~를 통해" S2 강등(비번역 한국어가 2배 더 씀, 문단 3회+만) / I-1 "~것이다" 완화(인간이 2배, 연속 3회+만) / A-16 대명사 직역 번역 맥락 전용화 / E-1 "장문 부재" 재정의(100자+ 문장 11배 차이)
+- `references/metrics_v2.py`에 `antithesis_count`(C-8 대구 카운터, 전멸 판정 전용) 추가
+- SKILL.md v8 갱신: light 조기 종료("이미 좋습니다"), 진단은 슬림 인덱스 우선, 수렴 판정 SSOT를 verify_gates 4축으로 교체, 자체검증 항목의 심각도 개편 반영
+
+**보존 원칙**
+
+- 실측 강등 규칙(A-2·I-1)은 과잉교정 가드다. 반복 남발이 아니면 보존이 기본값
+- C-8 전멸 게이트: 원문의 수사 구조(대구 5회 이상)를 윤문이 0으로 만들면 FAIL — 필자 목소리 보호
+- taxonomy는 SSOT 유지, 생성물(quick-rules·diagnosis-rules)은 직접 편집 금지
+
 ## 7.0.0 (2026-07-19) 7차 고도화: "번역 충실성·문학 번역 검토 레인"
 
 깃허브 benchmark, WMT·SemEval·COLING 논문, 한국어 번역 연구, 번역 서비스 평가와 데보라 스미스 인터뷰·비평을 v6 윤문 워크플로에 연결했다.

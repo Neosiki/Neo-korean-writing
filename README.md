@@ -6,7 +6,7 @@
 
 Claude Cowork, Claude Code, Codex에서 동작하는 Agent Skill이다. 별도 API 키나 외부 서비스가 필요 없고, 정량 도구는 Python 표준 라이브러리만 쓴다. 규칙의 단일 원천은 `scripts/patterns.json`이고 `tests/`의 회귀 테스트와 GitHub Actions가 규칙과 구현의 일치를 지킨다. 새 글을 처음부터 쓰는 write-content 스킬도 같은 저장소에 있다.
 
-현재 본체는 7차 고도화(v7)다. `SKILL.md`는 14개 거시 패턴과 Sunny-7, 한국어 번역투·학술 문체·AI 흔적 확장 taxonomy, span 단위 quick rules, 장문 무손실 청킹, 변경률·보존 게이트에 번역 충실성 감사와 문학 번역 검토 모드를 더한다. `references/`에는 번역 서비스·논문·GitHub benchmark와 데보라 스미스 대비 기준을, `scripts/`에는 번역 전후 구조·표면 잠금 검사 도구를 추가했다.
+현재 본체는 8차 고도화(v8)다. v7까지의 확장 taxonomy·quick rules·장문 무손실 청킹·번역 충실성 감사·문학 번역 검토 모드 위에, v8은 `epoko77-ai/im-not-ai` v2.2~v2.3을 이식해 세 가지를 더했다. 수렴 판정을 문자 변경률 하나에서 4축 구조 게이트(`scripts/verify_gates.py`: 문자율·진단 목표달성·C-8 대구 전멸 방지·golden 검사)로 넓혔고, 진단이 taxonomy 전량(~75KB) 대신 읽는 슬림 인덱스(`references/diagnosis-rules.md`, 71패턴 × 2줄, ~13KB)를 빌드 생성물로 추가했으며, 대조 코퍼스 실측(`references/empirical-validation.md`)으로 규칙 심각도를 승격·강등했다(C-8 부정 대구 S1 승격, A-2 "~를 통해"·I-1 "~것이다"는 반복 남발일 때만 수술).
 
 ## 설치
 
@@ -62,6 +62,10 @@ python3 scripts/krh.py consistency draft.md                    # 장편 절별 �
 python3 scripts/krh.py format    기본본.txt                     # SNS·카톡 평문 포맷 검사
 python3 scripts/krh.py taxonomy --check                        # 규칙 무결성 검사
 python3 scripts/krh.py translation-audit 원문.md 번역문.md --direction en-to-ko --literary --json
+
+python3 scripts/verify_gates.py --before 원문.md --after final.md --genre essay  # v8 4축 수렴 게이트
+python3 scripts/build_quick_rules.py --check                                    # 생성물 drift 검사
+python3 scripts/build_diagnosis_rules.py --check
 ```
 
 번역문 감수에서는 원문에 없는 주어·감정·강도 부사·설명을 넣지 않고, 숫자·약어·구조·부정·양태·인과를 따로 대조한다. 문학 모드는 데보라 스미스의 독자 지향성·맥락 재방문·분위기 중시를 대비 기준으로 참고하되, 그의 추가·삭제 논쟁이나 영어 문체를 모방하지 않는다.
@@ -88,15 +92,17 @@ AI 흔적 지수: 58.04 /1000자  등급 D(심함)  (신호 13개 / 224자)
 korean-humanize/
 ├── SKILL.md                 # 스킬 본체 (윤문 규칙과 워크플로 전체)
 ├── README.md                # 이 문서
-├── CHANGELOG.md             # 1~7차 고도화 이력
+├── CHANGELOG.md             # 1~8차 고도화 이력
 ├── ROADMAP.md               # 중장기 발전 방향
 ├── dist/
 │   └── korean-humanize.skill # Cowork 설치 파일
 ├── agents/
 │   └── openai.yaml          # Codex 표시명과 기본 프롬프트
 ├── references/
-│   ├── ai-tell-taxonomy.md  # AI 흔적·한국번역학계 유형 확장 분류
-│   ├── quick-rules.md       # span 단위 국소 수술 규칙
+│   ├── ai-tell-taxonomy.md  # AI 흔적·한국번역학계 유형 확장 분류 (SSOT)
+│   ├── quick-rules.md       # span 단위 국소 수술 규칙 (빌드 생성물)
+│   ├── diagnosis-rules.md   # v8 진단 전용 슬림 인덱스 (빌드 생성물, 71패턴)
+│   ├── empirical-validation.md # v8 대조 코퍼스 실증 결과 (심각도 승격·강등 근거)
 │   ├── rewriting-playbook.md # 장르·강도별 실행 플레이북
 │   ├── translation-fidelity.md # v7 FID/LIT 감사·데보라 스미스 대비 기준
 │   ├── translation-benchmarks.md # 서비스·논문·GitHub benchmark 지도
@@ -111,14 +117,18 @@ korean-humanize/
 │   ├── translation_audit.py # 번역 전후 표면·구조·위험 감사
 │   ├── prepare_monolith_input.py # 장문 입력·진단 준비
 │   ├── reassemble_chunks.py      # 장문 청크 무손실 재조립
-│   └── verify_change_rate.py     # 변경률 상한 게이트
+│   ├── verify_change_rate.py     # 변경률 상한 게이트 (하위 호환)
+│   ├── verify_gates.py           # v8 4축 구조 수렴 게이트
+│   ├── build_quick_rules.py      # quick-rules 생성기
+│   └── build_diagnosis_rules.py  # 진단 슬림 인덱스 생성기
 ├── tests/
 │   ├── test_krh.py          # 기존 회귀 테스트
-│   └── test_translation_audit.py # v7 번역 감사 회귀 테스트
+│   ├── test_translation_audit.py # v7 번역 감사 회귀 테스트
+│   └── golden/checks.py     # v8 결정적 golden 검사기 (수치 주입·구조 손실)
 └── write-content/
     └── SKILL.md             # 글쓰기 스킬 (5단계 워크플로우)
 ```
 
 ## 만든이
 
-NextAI 윤영식(osiki999@gmail.com)이 만들었다. 4차 고도화는 blader/humanizer, hardikpandya/stop-slop, stephenturner/skill-deslop, conorbronsdon/avoid-ai-writing, theclaymethod/unslop, jpeggdev/humanize-writing 여섯 저장소를 대조해 한국어에 맞게 이식했고, 5차 고도화는 외부 코드 리뷰를 반영해 규칙·구현·평가를 일치시키는 데 집중했다. 6차 고도화는 `epoko77-ai/im-not-ai`의 유형 분류와 윤문 스킬업 자료를 참고해 한국어 윤문 taxonomy, 장문 처리, 정량 게이트를 확장했다. 이 README도 스킬 자신의 기준으로 윤문했다.
+NextAI 윤영식(osiki999@gmail.com)이 만들었다. 4차 고도화는 blader/humanizer, hardikpandya/stop-slop, stephenturner/skill-deslop, conorbronsdon/avoid-ai-writing, theclaymethod/unslop, jpeggdev/humanize-writing 여섯 저장소를 대조해 한국어에 맞게 이식했고, 5차 고도화는 외부 코드 리뷰를 반영해 규칙·구현·평가를 일치시키는 데 집중했다. 6차 고도화는 `epoko77-ai/im-not-ai`의 유형 분류와 윤문 스킬업 자료를 참고해 한국어 윤문 taxonomy, 장문 처리, 정량 게이트를 확장했고, 7차는 번역 후편집 충실성 레인과 문학 번역 검토 모드를, 8차는 같은 저장소의 v2.2~v2.3(4축 구조 수렴 게이트, 진단 슬림 인덱스, 대조 코퍼스 실증 검증)을 이식했다. 이 README도 스킬 자신의 기준으로 윤문했다.
