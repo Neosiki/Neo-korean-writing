@@ -55,6 +55,7 @@ cp -r ~/.claude/skills/korean-humanize/write-content ~/.claude/skills/write-cont
 
 ```bash
 python3 scripts/krh.py diagnose  원문.md [--profile official]  # AI 흔적 지수, 등급 A~D, 리듬
+python3 scripts/krh.py diagnose  원문.md --heavy [--remove-redundant] [--json]  # 최강 윤문 통합 진단
 python3 scripts/krh.py sunny     원문.md                       # Sunny-7 밀도
 python3 scripts/krh.py preserve  원문.md 윤문본.md [--strict]   # 표면 잠금 + 의미 동등성 경고
 python3 scripts/krh.py diffrate  원문.md 윤문본.md              # 문자·문장 단위 변경률
@@ -70,6 +71,22 @@ python3 scripts/build_diagnosis_rules.py --check
 ```
 
 번역문 감수에서는 원문에 없는 주어·감정·강도 부사·설명을 넣지 않고, 숫자·약어·구조·부정·양태·인과를 따로 대조한다. 문학 모드는 데보라 스미스의 독자 지향성·맥락 재방문·분위기 중시를 대비 기준으로 참고하되, 그의 추가·삭제 논쟁이나 영어 문체를 모방하지 않는다.
+
+### 최강 윤문에서 한 번에 실행하기
+
+`최강 윤문`을 요청하거나 heavy 경로를 사용할 때는 별도의 접속 부사 명령을 따로 실행하지 않고 다음 한 번의 명령으로 기본 AI 흔적 진단과 접속 부사 진단을 함께 수행한다.
+
+```bash
+python3 scripts/krh.py diagnose 원문.md --heavy --json
+```
+
+JSON 결과에는 기존 `patterns`와 `rhythm`에 더해 `connectives`가 포함된다. 이 안에는 접속 부사별 횟수와 문장 시작 위치별 후보 및 유지 검토 상태가 들어간다. 선택적 축약 결과까지 같은 실행에서 계산하려면 다음과 같이 지정한다.
+
+```bash
+python3 scripts/krh.py diagnose 원문.md --heavy --remove-redundant --json
+```
+
+이 통합 경로는 진단·접속 부사 검토·선택적 축약 계산을 한 번에 수행하지만 결과를 자동으로 원문 파일에 덮어쓰지는 않는다. 최강 윤문의 다음 단계인 `preserve`와 `verify_gates.py`를 통과시키기 전에 사람이 의미를 확인한다.
 
 `connectives`는 후보만 제시하며 자동 삭제를 기본값으로 삼지 않는다. `--remove-redundant`를 지정하면 같은 접속 표지가 문장 시작에서 반복되는 경우에만 축약한 `rewritten` 결과를 함께 출력한다. 서로 다른 접속사는 대조·인과·추가처럼 서로 다른 관계를 표시할 수 있으므로 밀집했다는 이유만으로 함께 삭제하지 않는다. 결과를 채택하기 전에 반전·인과·양보·범위가 유지되는지 사람이 확인한다.
 
