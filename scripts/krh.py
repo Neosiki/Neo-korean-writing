@@ -3,7 +3,7 @@
 """krh.py v3 — korean-humanize 정량 도구 (6.1: 문장 단위 이진 가드·방향 표지·영문 2자 약어) (표준 라이브러리만, 탐지 전용·자동 수정 없음)
 
 사용법:
-  python3 krh.py diagnose  원문.md [--profile sns|official|technical] [--json]
+  python3 krh.py diagnose  원문.md [--profile sns|official|technical] [--heavy] [--remove-redundant] [--json]
   python3 krh.py sunny     원문.md [--json]           # 미시 Sunny-7 밀도
   python3 krh.py preserve  원문.md 윤문본.md [--strict] [--json]
                                                       # 표면 잠금(실패=exit 1) + 의미 동등성 경고
@@ -90,6 +90,11 @@ def cmd_diagnose(args):
     (t,) = read(args)
     profile = opt(args, "--profile", True)
     d = diagnose_data(t, profile)
+    heavy = bool(opt(args, "--heavy"))
+    if heavy:
+        d["connectives"] = connectives_data(t)
+        if opt(args, "--remove-redundant"):
+            d["connectives"]["rewritten"] = remove_redundant_connectives(t)
     if opt(args, "--json"):
         print(json.dumps(d, ensure_ascii=False, indent=1)); return
     g = {"A": "A(사람 결)", "B": "B(경미)", "C": "C(뚜렷)", "D": "D(심함)"}[d["grade"]]
@@ -98,6 +103,15 @@ def cmd_diagnose(args):
         print(f"  [{p['severity']}] {p['id']} {p['name']}: {p['count']}")
     for p in d["relaxed"]:
         print(f"  (프로파일 완화) {p['id']} {p['name']}: {p['count']}")
+    if heavy:
+        c = d["connectives"]
+        print("[접속 부사] 최강 윤문 통합 진단 — 자동 삭제하지 않고 후보만 제시")
+        print("  " + (", ".join(f"{k} {v}회" for k, v in c["counts"].items()) or "탐지 없음"))
+        for row in c["candidates"]:
+            label = "축약 후보" if row["candidate"] else "유지 검토"
+            print(f"  [{label}] {row['word']} {row['count']}회")
+        if "rewritten" in c:
+            print("  선택적 축약 결과가 함께 계산됨 — 의미 검토 후 채택")
     r = d["rhythm"]
     print(f"리듬: 문장 {r['sentences']}개, 평균 {r['mean_len']}자, 변동계수 {r['cv']}"
           + ("  ← 균일(단조 의심)" if r["monotone"] else ""))
