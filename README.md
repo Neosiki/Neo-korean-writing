@@ -45,7 +45,7 @@ cp -r ~/.claude/skills/korean-humanize/write-content ~/.claude/skills/write-cont
 
 거시 레이어는 번역투부터 신선함 인플레까지 14개 패턴(A~N)을 잡고, 패턴마다 유지 조건이 붙어 과잉교정을 막는다. 미시 레이어(Sunny-7)는 것, 의, 들, -적, 있다 계열 7개 규칙의 밀도를 점검한다. 구조 진단은 문단 셔플 테스트와 트레드밀 테스트로 글 전체를 보고, 구조 자체가 AI면 윤문 대신 재작성을 권고한다. 사람 결 레이어는 원문에 이미 있는 의견과 체험을 앞세우되 없는 감정이나 일화를 만들어 넣지 않는다.
 
-컨텍스트 프로파일(칼럼·에세이, 보도자료·기사, SNS, 기술문서, 공문서)이 장르별 강도를 조절한다. 이모지 제거나 목록 해체 같은 규칙은 SNS·기술문서에서 오판할 수 있어 프로파일별 완화가 코드에 반영돼 있다.
+컨텍스트 프로파일(칼럼·에세이, 보도자료·기사, SNS, 기술문서, 공문서)이 장르별 강도를 조절한다. 이모지 제거나 목록 해체 같은 규칙은 SNS·기술문서에서 오판할 수 있어 프로파일별 완화가 코드에 반영돼 있다. 접속 부사는 별도 진단기로 반복과 문장 위치를 확인한다. 한 번 등장한 `그러나`나 `따라서`를 AI 흔적으로 단정하지 않으며 실제 대조·인과·추가 관계가 필요하면 유지한다.
 
 이 모든 규칙의 정의, 정규식, 심각도, 유지 조건, 프로파일 완화는 `scripts/patterns.json` 한 파일에 있다. 문서 표는 `krh.py taxonomy`로 생성하고 `--check`로 무결성을 검사한다.
 
@@ -60,6 +60,7 @@ python3 scripts/krh.py preserve  원문.md 윤문본.md [--strict]   # 표면 �
 python3 scripts/krh.py diffrate  원문.md 윤문본.md              # 문자·문장 단위 변경률
 python3 scripts/krh.py consistency draft.md                    # 장편 절별 일관성
 python3 scripts/krh.py format    기본본.txt                     # SNS·카톡 평문 포맷 검사
+python3 scripts/krh.py connectives 원문.md [--remove-redundant]     # 접속 부사 후보 진단·선택적 축약
 python3 scripts/krh.py taxonomy --check                        # 규칙 무결성 검사
 python3 scripts/krh.py translation-audit 원문.md 번역문.md --direction en-to-ko --literary --json
 
@@ -69,6 +70,45 @@ python3 scripts/build_diagnosis_rules.py --check
 ```
 
 번역문 감수에서는 원문에 없는 주어·감정·강도 부사·설명을 넣지 않고, 숫자·약어·구조·부정·양태·인과를 따로 대조한다. 문학 모드는 데보라 스미스의 독자 지향성·맥락 재방문·분위기 중시를 대비 기준으로 참고하되, 그의 추가·삭제 논쟁이나 영어 문체를 모방하지 않는다.
+
+`connectives`는 후보만 제시하며 자동 삭제를 기본값으로 삼지 않는다. `--remove-redundant`를 지정하면 같은 접속 표지가 문장 시작에서 반복되는 경우에만 축약한 `rewritten` 결과를 함께 출력한다. 서로 다른 접속사는 대조·인과·추가처럼 서로 다른 관계를 표시할 수 있으므로 밀집했다는 이유만으로 함께 삭제하지 않는다. 결과를 채택하기 전에 반전·인과·양보·범위가 유지되는지 사람이 확인한다.
+
+예를 들어 `처음에는 별생각 없었다. 그러나 며칠 뒤 다시 읽었다.`의 `그러나`는 한 번 등장하고 대조 관계를 표시하므로 삭제 후보가 아니다. 반면 같은 접속 부사가 반복되면 문장을 나누거나 문맥이 이미 전달되는지 검토할 후보가 된다.
+
+### 재현 예시
+
+다음 파일을 저장한다.
+
+```text
+처음에는 자료가 충분하지 않았다. 그러나 팀은 조사를 계속했다.
+그러나 공개 데이터가 추가되면서 방향이 달라졌다. 또한 인터뷰 기록도 확인했다.
+따라서 초안은 다시 작성해야 했다. 그러므로 최종 문서에는 검증 과정을 넣었다.
+한편 독자는 모든 관계를 설명하지 않아도 앞뒤의 흐름을 따라갈 수 있다.
+```
+
+진단 명령은 다음과 같다.
+
+```bash
+python3 scripts/krh.py connectives examples/connectives-sample.md --json
+```
+
+실행 결과의 핵심은 다음과 같다.
+
+```json
+{
+  "counts": {"그러나": 2, "따라서": 1, "또한": 1, "그러므로": 1, "한편": 1},
+  "total": 6,
+  "candidate_words": ["그러나", "그러나"]
+}
+```
+
+선택적 축약 결과는 다음 명령으로 확인한다.
+
+```bash
+python3 scripts/krh.py connectives examples/connectives-sample.md --remove-redundant --json
+```
+
+이 경우 반복된 `그러나`만 축약 후보가 되고 `또한` `따라서` `그러므로` `한편`은 서로 다른 논리 관계를 보존하기 위해 유지된다. 도구는 의미 판단을 대신하지 않으므로 축약 결과를 최종 원고로 바로 덮어쓰지 않는다.
 
 diagnose 출력 예시:
 
@@ -80,7 +120,7 @@ AI 흔적 지수: 58.04 /1000자  등급 D(심함)  (신호 13개 / 224자)
 리듬: 문장 9개, 평균 23자, 변동계수 0.40
 ```
 
-회귀 테스트는 `python3 -m unittest discover -s tests`로 돌린다. push마다 GitHub Actions가 같은 테스트를 실행한다.
+회귀 테스트는 `python3 -m unittest discover -s tests`로 돌린다. push마다 GitHub Actions가 같은 테스트를 실행한다. 접속 부사 기능은 단일 표지 유지·반복 표지 후보·문장 시작 위치 보존을 별도로 검증한다.
 
 ## 한계
 
@@ -114,6 +154,7 @@ korean-humanize/
 ├── scripts/
 │   ├── patterns.json        # 규칙 단일 원천 (A~N + Sunny-7 + 의미 가드)
 │   ├── krh.py               # 정량 측정과 보존 검증 통합 도구
+│   │                         # connectives: 접속 부사 후보·선택적 축약
 │   ├── translation_audit.py # 번역 전후 표면·구조·위험 감사
 │   ├── prepare_monolith_input.py # 장문 입력·진단 준비
 │   ├── reassemble_chunks.py      # 장문 청크 무손실 재조립

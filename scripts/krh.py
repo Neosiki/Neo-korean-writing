@@ -10,6 +10,8 @@
   python3 krh.py diffrate  원문.md 윤문본.md [--json]  # 문자 변경률 + 문장 단위 변경률
   python3 krh.py consistency draft.md                 # 장편 절별 일관성
   python3 krh.py format    기본본.txt                  # SNS/카톡 평문 포맷 검사
+  python3 krh.py connectives 원문.md [--remove-redundant] [--json]
+                                                      # 접속 부사 후보 진단·선택적 축약
   python3 krh.py taxonomy [--check]                   # patterns.json → 마크다운 표 / 무결성 검사
   python3 krh.py translation-audit 원문.md 번역문.md   # v7 번역 충실성·문학 위험 감사
 
@@ -121,6 +123,50 @@ def cmd_sunny(args):
         flag = f"  ← 과다 후보(유지 조건: {r['keep']})" if r["over"] else ""
         print(f"  {r['no']} {r['name']}: {r['density']} (기준 {r['baseline']}){flag}")
     print("주의: 밀도는 후보 탐지일 뿐이다. 유지 조건에 해당하면 남긴다.")
+
+# ---------------- connectives (접속 부사 후보·선택적 축약) ----------------
+CONNECTIVES = ("그러나", "따라서", "또한", "그러므로", "한편", "아울러", "게다가", "더욱이", "즉")
+CONNECTIVE_RE = re.compile(r"(?m)(^|(?<=[.!?])\s+)(" + "|".join(CONNECTIVES) + r")(?:[,:，、]\s*)?")
+
+
+def connectives_data(t):
+    rows = []
+    counts = {word: len(re.findall(r"(?<![가-힣])" + re.escape(word) + r"(?![가-힣])", t)) for word in CONNECTIVES}
+    total = sum(counts.values())
+    for m in CONNECTIVE_RE.finditer(t):
+        word = m.group(2)
+        before = t[max(0, m.start() - 80):m.start()].strip().replace("\n", " ")
+        after = t[m.end():m.end() + 100].strip().replace("\n", " ")
+        # 서로 다른 접속사는 각각 다른 논리 관계를 가질 수 있으므로 동일 표지 반복만 후보로 삼는다.
+        redundant = counts[word] >= 2
+        rows.append({"word": word, "start": m.start(2), "count": counts[word],
+                     "candidate": redundant, "before": before[-60:], "after": after[:80]})
+    return {"counts": {k: v for k, v in counts.items() if v}, "total": total,
+            "candidates": rows, "policy": "필요한 대조·인과·추가 관계는 보존하고 반복되거나 문맥 없이 관계를 이름 붙이는 표지만 후보로 제시"}
+
+
+def remove_redundant_connectives(t):
+    d = connectives_data(t)
+    allowed = {r["start"] for r in d["candidates"] if r["candidate"]}
+    def repl(m):
+        return m.group(1) if m.start(2) in allowed else m.group(0)
+    return CONNECTIVE_RE.sub(repl, t)
+
+
+def cmd_connectives(args):
+    (t,) = read(args)
+    d = connectives_data(t)
+    if opt(args, "--remove-redundant"):
+        d["rewritten"] = remove_redundant_connectives(t)
+    if opt(args, "--json"):
+        print(json.dumps(d, ensure_ascii=False, indent=1)); return
+    print("접속 부사 진단: 무조건 삭제하지 않고 반복 후보만 제시")
+    print("  " + (", ".join(f"{k} {v}회" for k, v in d["counts"].items()) or "탐지 없음"))
+    for r in d["candidates"]:
+        flag = "후보" if r["candidate"] else "유지 검토"
+        print(f"  [{flag}] {r['word']} ({r['count']}회) ← 앞: {r['before'] or '문단 시작'}")
+    if opt(args, "--remove-redundant"):
+        print("선택적 축약 결과를 rewritten 필드로 출력했습니다.")
 
 # ---------------- preserve (표면 잠금 + 의미 동등성 경고) ----------------
 def _facts(t):
@@ -278,7 +324,7 @@ def cmd_translation_audit(args):
     from translation_audit import main
     sys.exit(main(args))
 
-CMDS = {"diagnose": cmd_diagnose, "sunny": cmd_sunny, "preserve": cmd_preserve,
+CMDS = {"diagnose": cmd_diagnose, "sunny": cmd_sunny, "connectives": cmd_connectives, "preserve": cmd_preserve,
         "diffrate": cmd_diffrate, "consistency": cmd_consistency, "format": cmd_format,
         "taxonomy": cmd_taxonomy, "translation-audit": cmd_translation_audit}
 

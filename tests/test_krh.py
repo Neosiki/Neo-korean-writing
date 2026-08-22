@@ -78,6 +78,29 @@ class TestSunny(unittest.TestCase):
             self.assertGreater(rows[no]["density"], 0, f"Sunny {no} 미탐지: {sample}")
 
 
+class TestConnectives(unittest.TestCase):
+    def test_single_connective_is_kept_for_review(self):
+        d = krh.connectives_data("처음에는 별생각 없었다. 그러나 며칠 뒤 다시 읽었다.")
+        self.assertEqual(d["counts"]["그러나"], 1)
+        self.assertFalse(d["candidates"][0]["candidate"])
+
+    def test_repeated_connectives_are_candidates(self):
+        text = "그러나 첫 장면은 달랐다. 그러나 결과는 같았다. 또한 기록도 남겼다."
+        d = krh.connectives_data(text)
+        self.assertEqual(d["total"], 3)
+        self.assertTrue(d["candidates"][0]["candidate"])
+        self.assertTrue(d["candidates"][1]["candidate"])
+        self.assertFalse(d["candidates"][2]["candidate"])
+
+    def test_remove_redundant_preserves_non_initial_connective(self):
+        text = "그러나 첫 문장이다. 결과는 다르다."
+        self.assertEqual(krh.remove_redundant_connectives(text), text)
+
+    def test_remove_redundant_strips_repeated_sentence_initial_marker(self):
+        text = "그러나 첫 장면은 달랐다. 그러나 결과는 같았다."
+        self.assertEqual(krh.remove_redundant_connectives(text), " 첫 장면은 달랐다.  결과는 같았다.")
+
+
 class TestPreserve(unittest.TestCase):
     A = '예산은 1,348억 원이며 "우리는 준비됐다"고 밝혔다. AI 도입은 실패할 수 있다. 효과가 없다.'
 
