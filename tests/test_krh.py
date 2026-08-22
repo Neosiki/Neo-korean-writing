@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """krh.py 회귀 테스트. 실행: python3 -m unittest discover -s tests -v (저장소 루트에서)"""
-import os, sys, unittest
+import os, sys, unittest, io, tempfile, contextlib
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "scripts"))
 import krh  # noqa: E402
@@ -79,6 +79,28 @@ class TestSunny(unittest.TestCase):
 
 
 class TestConnectives(unittest.TestCase):
+    def test_heavy_diagnosis_includes_connectives(self):
+        text = "처음에는 별생각 없었다. 그러나 다시 읽었다. 그러나 오래 기억에 남았다."
+        d = krh.diagnose_data(text)
+        self.assertIn("patterns", d)
+        c = krh.connectives_data(text)
+        self.assertIn("그러나", c["counts"])
+        self.assertEqual(c["counts"]["그러나"], 2)
+
+    def test_cmd_diagnose_heavy_prints_connective_section(self):
+        text = "처음에는 별생각 없었다. 그러나 다시 읽었다. 그러나 오래 기억에 남았다."
+        with tempfile.NamedTemporaryFile('w', encoding='utf-8', suffix='.txt', delete=False) as f:
+            f.write(text)
+            name = f.name
+        try:
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                krh.cmd_diagnose([name, '--heavy'])
+            self.assertIn('최강 윤문 통합 진단', out.getvalue())
+            self.assertIn('그러나', out.getvalue())
+        finally:
+            os.unlink(name)
+
     def test_single_connective_is_kept_for_review(self):
         d = krh.connectives_data("처음에는 별생각 없었다. 그러나 며칠 뒤 다시 읽었다.")
         self.assertEqual(d["counts"]["그러나"], 1)
