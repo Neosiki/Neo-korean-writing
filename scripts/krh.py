@@ -137,7 +137,8 @@ def connectives_data(t):
         word = m.group(2)
         before = t[max(0, m.start() - 80):m.start()].strip().replace("\n", " ")
         after = t[m.end():m.end() + 100].strip().replace("\n", " ")
-        redundant = counts[word] >= 2 or total >= 4
+        # 서로 다른 접속사는 각각 다른 논리 관계를 가질 수 있으므로 동일 표지 반복만 후보로 삼는다.
+        redundant = counts[word] >= 2
         rows.append({"word": word, "start": m.start(2), "count": counts[word],
                      "candidate": redundant, "before": before[-60:], "after": after[:80]})
     return {"counts": {k: v for k, v in counts.items() if v}, "total": total,
@@ -159,7 +160,7 @@ def cmd_connectives(args):
         d["rewritten"] = remove_redundant_connectives(t)
     if opt(args, "--json"):
         print(json.dumps(d, ensure_ascii=False, indent=1)); return
-    print("접속 부사 진단: 무조건 삭제하지 않고 후보만 제시")
+    print("접속 부사 진단: 무조건 삭제하지 않고 반복 후보만 제시")
     print("  " + (", ".join(f"{k} {v}회" for k, v in d["counts"].items()) or "탐지 없음"))
     for r in d["candidates"]:
         flag = "후보" if r["candidate"] else "유지 검토"
