@@ -51,6 +51,19 @@ Cowork용 패키지는 [`dist/neo-korean-writing.skill`](dist/neo-korean-writing
 "영문 원문과 번역문을 비교해 번역투와 의미 보존 위험을 검토해줘"
 ```
 
+## 윤문 프롬프트와 작업 템플릿
+
+반복 가능한 작업을 시작하려면 [`prompts/`](prompts/README.md)와 [`templates/`](templates/README.md)를 함께 사용합니다. 프롬프트는 원고를 어떻게 다룰지 지시하고, 템플릿은 목적·독자·LOCK 항목·변경 근거·최종 승인 상태를 기록합니다.
+
+| 필요 상황 | 추천 자산 |
+|---|---|
+| 일반 원고의 윤문 | [`prompts/standard-editing.md`](prompts/standard-editing.md) + [`templates/editing-brief.md`](templates/editing-brief.md) |
+| 보도자료·공식 안내문 | [`prompts/press-release-editing.md`](prompts/press-release-editing.md) |
+| 보고서·칼럼·강의 원고 | [`prompts/longform-editing.md`](prompts/longform-editing.md) |
+| 번역문 후편집 | [`prompts/translation-postediting.md`](prompts/translation-postediting.md) |
+| 사실·인용·수치 확인 | [`templates/lock-register.md`](templates/lock-register.md) |
+| 검토·승인 전달 | [`templates/editing-delivery.md`](templates/editing-delivery.md) |
+
 ## 작업 흐름
 
 ```text
@@ -111,6 +124,8 @@ neo-korean-writing/
 │   ├── translation_audit.py    # 번역문 표면·구조 감사
 │   └── verify_gates.py         # 4축 검증 게이트
 ├── references/                 # 규칙, 장르별 윤문 처방, 번역 충실성 자료
+├── prompts/                    # 상황별 윤문·후편집 프롬프트
+├── templates/                  # 의뢰·LOCK·결과 전달 템플릿
 ├── tests/                      # 회귀·golden 검사
 ├── paper/                      # 재현 가능한 연구·벤치마크 산출물
 └── dist/
@@ -123,4 +138,4 @@ neo-korean-writing/
 
 ## 자료와 이력
 
-정밀 규칙과 장르별 처방은 [`references/`](references/)에, 재현 가능한 연구 자료는 [`paper/`](paper/README.md)에, 변경 이력은 [`CHANGELOG.md`](CHANGELOG.md)에 정리했습니다. 프로젝트는 NextAI 윤영식이 개발·유지보수합니다.
+정밀 규칙과 장르별 처방은 [`references/`](references/)에, 바로 쓸 수 있는 프롬프트는 [`prompts/`](prompts/README.md)에, 작업 기록 템플릿은 [`templates/`](templates/README.md)에, 재현 가능한 연구 자료는 [`paper/`](paper/README.md)에, 변경 이력은 [`CHANGELOG.md`](CHANGELOG.md)에 정리했습니다. 프로젝트는 NextAI 윤영식이 개발·유지보수합니다.
