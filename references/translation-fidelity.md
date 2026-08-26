@@ -7,7 +7,7 @@ v6의 `preserve`는 숫자·인용·영문 용어를 잠그는 표면 게이트�
 ```bash
 python3 scripts/translation_audit.py 원문.md 번역문.md --direction en-to-ko --json
 python3 scripts/translation_audit.py 원문.md 번역문.md --direction en-to-ko --literary
-python3 scripts/krh.py translation-audit 원문.md 번역문.md --direction en-to-ko --strict
+python3 scripts/korean_writing.py translation-audit 원문.md 번역문.md --direction en-to-ko --strict
 ```
 
 `pass`는 표면·구조 위험이 발견되지 않았다는 뜻이지, 의미가 자동으로 확정됐다는 뜻이 아니다. `warn`은 사람이 대조해야 할 위험 신호, `hold`는 숫자·URL·코드·약어·링크 대상이나 문서 구조가 달라져 채택을 멈춰야 하는 상태다.

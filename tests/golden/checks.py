@@ -1,4 +1,4 @@
-"""Deterministic golden-fixture scorer for humanize-korean.
+"""Deterministic golden-fixture scorer for korean-writing-polishrean.
 
 LLM output is non-deterministic, so these checks are DIRECTIONAL GATES,
 never exact-string expectations. Each check asks "did a known failure mode
@@ -384,11 +384,11 @@ def check_quotes(original: str, output: str) -> list[Failure]:
 # Entry point
 # ===========================================================================
 
-_SUMMARY_BLOCK_RE = re.compile(r"<!--\s*HUMANIZE-SUMMARY\b.*", re.DOTALL)
+_SUMMARY_BLOCK_RE = re.compile(r"<!--\s*KOREAN-WRITING-SUMMARY\b.*", re.DOTALL)
 
 
 def strip_summary_block(text: str) -> str:
-    """final.md 끝의 <!-- HUMANIZE-SUMMARY --> 메타 블록을 제거한다.
+    """final.md 끝의 <!-- KOREAN-WRITING-SUMMARY --> 메타 블록을 제거한다.
 
     이 블록은 윤문 산출물이 아니라 메타데이터다. 자체검증 문구에 '하였- 무'
     같은 표현이 들어가 채점기가 본문 주입으로 오판하는 것을 막는다

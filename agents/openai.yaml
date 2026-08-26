@@ -1,4 +1,4 @@
 interface:
-  display_name: "한국어 최강 윤문 v8"
-  short_description: "AI 티·번역투와 번역 충실성·4축 수렴 게이트를 갖춘 8차 정밀 윤문 스킬"
-  default_prompt: "Use $korean-humanize to polish this Korean text with span-level rules, strict fact preservation, and change-rate gates."
+  display_name: "한글 글쓰기(윤문) v9"
+  short_description: "한글 글쓰기·정밀 윤문·번역 후편집·4축 보존 검증을 하나로 연결하는 스킬"
+  default_prompt: "Use $korean-writing-polish to write or polish this Korean text while preserving facts, quotations, numbers, voice, and document structure."

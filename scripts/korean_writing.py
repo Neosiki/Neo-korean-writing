@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""krh.py v3 — korean-humanize 정량 도구 (6.1: 문장 단위 이진 가드·방향 표지·영문 2자 약어) (표준 라이브러리만, 탐지 전용·자동 수정 없음)
+"""korean_writing.py v3 — korean-writing-polish 정량 도구 (6.1: 문장 단위 이진 가드·방향 표지·영문 2자 약어) (표준 라이브러리만, 탐지 전용·자동 수정 없음)
 
 사용법:
-  python3 krh.py diagnose  원문.md [--profile sns|official|technical] [--heavy] [--remove-redundant] [--json]
-  python3 krh.py sunny     원문.md [--json]           # 미시 Sunny-7 밀도
-  python3 krh.py preserve  원문.md 윤문본.md [--strict] [--json]
+  python3 korean_writing.py diagnose  원문.md [--profile sns|official|technical] [--heavy] [--remove-redundant] [--json]
+  python3 korean_writing.py sunny     원문.md [--json]           # 미시 Sunny-7 밀도
+  python3 korean_writing.py preserve  원문.md 윤문본.md [--strict] [--json]
                                                       # 표면 잠금(실패=exit 1) + 의미 동등성 경고
-  python3 krh.py diffrate  원문.md 윤문본.md [--json]  # 문자 변경률 + 문장 단위 변경률
-  python3 krh.py consistency draft.md                 # 장편 절별 일관성
-  python3 krh.py format    기본본.txt                  # SNS/카톡 평문 포맷 검사
-  python3 krh.py connectives 원문.md [--remove-redundant] [--json]
+  python3 korean_writing.py diffrate  원문.md 윤문본.md [--json]  # 문자 변경률 + 문장 단위 변경률
+  python3 korean_writing.py consistency draft.md                 # 장편 절별 일관성
+  python3 korean_writing.py format    기본본.txt                  # SNS/카톡 평문 포맷 검사
+  python3 korean_writing.py connectives 원문.md [--remove-redundant] [--json]
                                                       # 접속 부사 후보 진단·선택적 축약
-  python3 krh.py taxonomy [--check]                   # patterns.json → 마크다운 표 / 무결성 검사
-  python3 krh.py translation-audit 원문.md 번역문.md   # v7 번역 충실성·문학 위험 감사
+  python3 korean_writing.py taxonomy [--check]                   # patterns.json → 마크다운 표 / 무결성 검사
+  python3 korean_writing.py translation-audit 원문.md 번역문.md   # v7 번역 충실성·문학 위험 감사
 
 규칙의 단일 원천은 같은 폴더의 patterns.json이다. 파일 인자를 생략하면 stdin을 읽는다.
 """
@@ -35,7 +35,11 @@ def load_patterns():
 def read(args, n=1):
     files = [a for a in args if not a.startswith("--") and a not in ("sns","official","technical")]
     if len(files) >= n:
-        return [io.open(a, encoding="utf-8").read() for a in files[:n]]
+        contents = []
+        for path in files[:n]:
+            with io.open(path, encoding="utf-8") as stream:
+                contents.append(stream.read())
+        return contents
     if n == 1:
         return [sys.stdin.read()]
     sys.exit("파일 인자가 부족합니다")

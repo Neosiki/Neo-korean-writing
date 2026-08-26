@@ -6,7 +6,7 @@
 
 ## 진단 기준
 
-`python3 scripts/krh.py connectives 원문.md`는 문장이나 문단의 시작에 놓인 접속 부사를 찾아 위치와 반복 횟수를 보여 준다.
+`python3 scripts/korean_writing.py connectives 원문.md`는 문장이나 문단의 시작에 놓인 접속 부사를 찾아 위치와 반복 횟수를 보여 준다.
 
 | 상황 | 처리 |
 |---|---|
@@ -33,8 +33,8 @@
 ### 선택형 실행
 
 ```bash
-python3 scripts/krh.py connectives draft.md --json
-python3 scripts/krh.py connectives draft.md --remove-redundant --json
+python3 scripts/korean_writing.py connectives draft.md --json
+python3 scripts/korean_writing.py connectives draft.md --remove-redundant --json
 ```
 
 `--remove-redundant`는 자동 채택 명령이 아니다. 결과의 `rewritten`을 원문과 비교하고 대조·인과·양보·범위가 보존됐는지 확인한 뒤 사용한다.

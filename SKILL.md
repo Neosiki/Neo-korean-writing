@@ -1,17 +1,14 @@
 ---
-name: korean-humanize
+name: korean-writing-polish
 description: >-
-  한국어 글을 AI 티 없이 자연스럽게 윤문하되 사실·인용·숫자와 원문 화자를 보존하는 8차 고도화 윤문 스킬이다.
-  사용자가 "윤문해줘", "다듬어줘", "최강 윤문", "AI 티 없애줘", "번역투 고쳐줘", "사람 글처럼",
-  "진단만 해줘", "내 문체로 고쳐줘"라고 하거나 한국어 기사·칼럼·에세이·리뷰·보도자료·리포트·기술문서·원고를
-  고칠 때 사용한다. 14개 거시 패턴과 10대 분류 확장 taxonomy, quick-rules span 수술, post-editese 메트릭,
-  light/standard/heavy 경로, 장문 무손실 청킹, 4축 구조 수렴 게이트(문자율·목표달성·대구 전멸·golden), 진단 슬림 인덱스, 대조 코퍼스 실측 검증 규칙을 적용한다. 단순 번역·맞춤법만 교정하거나
-  원문에 없는 내용을 추가하는 작업에는 사용하지 않는다.
+  한글 글쓰기(윤문)를 위한 구조화된 작성·진단·윤문 스킬이다. 사용자가 "글을 써줘", "윤문해줘", "다듬어줘",
+  "최강 윤문", "번역투 고쳐줘", "진단만 해줘", "내 문체로 고쳐줘"라고 하거나 한국어 기사·칼럼·에세이·리뷰·보도자료·리포트·기술문서·원고를 작성하거나 고칠 때 사용한다.
+  새 글은 korean-writing 워크플로우로 연결하고, 기존 원고는 사실·인용·숫자·화자를 보존하면서 14개 거시 패턴, 장문 무손실 청킹, 4축 검증 게이트를 적용해 윤문한다. 단순 맞춤법 교정이나 원문에 없는 내용을 추가하는 작업에는 사용하지 않는다.
 ---
 
-# 한국어 최강 윤문 v8
+# 한글 글쓰기(윤문) — 정밀 윤문·검증 스킬 v9
 
-원칙은 **문체는 사람처럼, 사실은 원문 그대로**다. v7이 번역 후편집 충실성 레인과 문학 번역 검토 모드를 더했다면, v8은 `im-not-ai` v2.2~v2.3의 성과를 이식한다. 진단은 슬림 인덱스로 가볍게 하고, 수렴 판정은 문자 변경률 하나가 아니라 4축 구조 게이트로 하며, 규칙 심각도는 대조 코퍼스 실측으로 승격·강등한다.
+원칙은 **글은 더 분명하게, 문체는 더 자연스럽게, 사실은 원문 그대로**다. 새 글이 필요하면 `korean-writing/SKILL.md`의 목적 정의·구조 설계·초안 작성 흐름으로 연결한다. 기존 원고는 진단·국소 윤문·보존 검증을 적용하며, 수렴 판정은 문자 변경률 하나가 아니라 4축 구조 게이트로 한다. 규칙 심각도는 대조 코퍼스 실측을 바탕으로 승격·강등한다.
 
 ## 1. 네 가지 철칙
 
@@ -28,6 +25,7 @@ description: >-
 
 | 신호 | 모드 | 처리 |
 |---|---|---|
+| 글을 써줘·칼럼 작성·메모를 글로 | 글쓰기 | `korean-writing/SKILL.md`의 목적 정의 → 구조 설계 → 초안 작성 → 윤문 → 출력 |
 | 윤문해줘·다듬어줘·고쳐줘 | 윤문 | 진단 → span 수술 → 자체검증 → 출력 |
 | 진단만·AI 티 검사 | 진단 전용 | 재작성하지 않고 패턴·위치·심각도만 보고 |
 | 파일 직접 고쳐줘 | 파일 수정 | 진단 → diff 미리보기 → 승인 → `.bak` 백업 후 반영 |
@@ -59,7 +57,7 @@ description: >-
 - 출처·링크·각주·`<용어설명>` 블록
 - 표 행 수·불릿 항목 수·코드 블록 수
 
-LOCK은 탐지·윤문 대상에서 제외한다. 직접 인용이 비문이어도 고치지 않는다. 숫자·인용·영문 용어는 `scripts/krh.py preserve`로, 전체 의미는 주체·부정·가능성·인과·조건·비교·범위를 육안으로 확인한다.
+LOCK은 탐지·윤문 대상에서 제외한다. 직접 인용이 비문이어도 고치지 않는다. 숫자·인용·영문 용어는 `scripts/korean_writing.py preserve`로, 전체 의미는 주체·부정·가능성·인과·조건·비교·범위를 육안으로 확인한다.
 
 번역 후편집에서는 원문의 모든 단어를 기계적으로 잠그지 않는다. 번역되어야 할 산문은 열어 두고, 숫자·URL·코드·대문자 약어·링크 대상처럼 양쪽에 그대로 남아야 하는 공유 토큰만 `translation_audit.py`로 잠근다. 인명·기관명·문화어의 번역·음역은 FID-3 사람 검토 대상으로 둔다.
 
@@ -183,14 +181,14 @@ P0 → P1 → P2 순으로, 또는 확장 quick-rules 기준으로 D 관용구·
 운영 SSOT는 `scripts/patterns.json`이다. 참조 저장소의 확장 지표는 `references/metrics.py`와 `references/metrics_v2.py`에 있으며 모두 Python 표준 라이브러리만 사용한다.
 
 ```text
-python scripts/krh.py diagnose 원문.md [--profile sns|official|technical] [--json]
-python scripts/krh.py sunny 원문.md [--json]
-python scripts/krh.py preserve 원문.md 윤문본.md [--strict] [--json]
-python scripts/krh.py diffrate 원문.md 윤문본.md [--json]
-python scripts/krh.py consistency 장문.md
-python scripts/krh.py format 평문.txt
-python scripts/krh.py taxonomy --check
-python scripts/krh.py translation-audit 원문.md 번역문.md --direction en-to-ko --literary --json
+python scripts/korean_writing.py diagnose 원문.md [--profile sns|official|technical] [--json]
+python scripts/korean_writing.py sunny 원문.md [--json]
+python scripts/korean_writing.py preserve 원문.md 윤문본.md [--strict] [--json]
+python scripts/korean_writing.py diffrate 원문.md 윤문본.md [--json]
+python scripts/korean_writing.py consistency 장문.md
+python scripts/korean_writing.py format 평문.txt
+python scripts/korean_writing.py taxonomy --check
+python scripts/korean_writing.py translation-audit 원문.md 번역문.md --direction en-to-ko --literary --json
 
 python references/metrics_v2.py --input 원문.md --genre essay --output 00_metrics_v2.json
 python scripts/prepare_monolith_input.py --run-dir _workspace/2026-01-001
@@ -230,7 +228,7 @@ final.md                     최종 윤문본
 summary.md                   변경률·등급·핵심 변경 요약
 ```
 
-`final.md` 파일을 만들 때만 본문 끝에 `<!-- HUMANIZE-SUMMARY -->` 메타 블록을 추가한다. 메타 블록에는 원문/윤문 글자 수, 결정적 변경률, category별 before→after, 6항 통과 수, 등급, 핵심 하이라이트 3~5건을 넣는다. 메타 블록은 본문으로 취급하지 않으며 변경률 계산 전에 제거한다.
+`final.md` 파일을 만들 때만 본문 끝에 `<!-- KOREAN-WRITING-SUMMARY -->` 메타 블록을 추가한다. 메타 블록에는 원문/윤문 글자 수, 결정적 변경률, category별 before→after, 6항 통과 수, 등급, 핵심 하이라이트 3~5건을 넣는다. 메타 블록은 본문으로 취급하지 않으며 변경률 계산 전에 제거한다.
 
 대화형 요청에서는 윤문본과 함께 `완료. 변경률 X% / 등급 Y / 자체검증 N/6` 한 줄, 실제 수정한 category 3~6개, 핵심 변경 1개, 보류·경고를 간결하게 보고한다. 사용자가 요청하지 않은 SNS 요약·문서 변환·제목 후보는 만들지 않는다.
 
@@ -249,4 +247,4 @@ summary.md                   변경률·등급·핵심 변경 요약
 
 ## 출처와 적용 범위
 
-확장 taxonomy·quick-rules·rewriting-playbook·post-editese 지표의 설계 참고 출처는 [`epoko77-ai/im-not-ai`](https://github.com/epoko77-ai/im-not-ai)이며, 원본 MIT 라이선스의 파일을 이 스킬 구조에 맞게 배치했다. 이 스킬의 운영 taxonomy·LOCK·한국어 장르 프로파일·Codex 실행 규칙은 `Neosiki/korean-humanize`의 v5 설계를 계승해 v6으로 통합했고, v7에서 번역 충실성·문학 번역 참고선을 추가했으며, v8에서 im-not-ai v2.2~v2.3(단일 콜 우선 route 재편, 4축 구조 수렴 게이트, 진단 슬림 인덱스, 대조 코퍼스 실증 검증)을 이식했다. 번역·문학 판단의 외부 근거와 서비스 benchmark는 `references/translation-fidelity.md`와 `references/translation-benchmarks.md`에 기록한다.
+확장 taxonomy·quick-rules·rewriting-playbook·post-editese 지표의 설계 참고 출처는 [`epoko77-ai/im-not-ai`](https://github.com/epoko77-ai/im-not-ai)이며, 원본 MIT 라이선스의 파일을 이 스킬 구조에 맞게 배치했다. 이 스킬의 운영 taxonomy·LOCK·한국어 장르 프로파일·Codex 실행 규칙은 `Neosiki/korean-writing-polish`의 v5 설계를 계승해 v6으로 통합했고, v7에서 번역 충실성·문학 번역 참고선을 추가했으며, v8에서 im-not-ai v2.2~v2.3(단일 콜 우선 route 재편, 4축 구조 수렴 게이트, 진단 슬림 인덱스, 대조 코퍼스 실증 검증)을 이식했다. 번역·문학 판단의 외부 근거와 서비스 benchmark는 `references/translation-fidelity.md`와 `references/translation-benchmarks.md`에 기록한다.

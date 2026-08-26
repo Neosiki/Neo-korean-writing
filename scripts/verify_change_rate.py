@@ -8,7 +8,7 @@
 지금까지 통제 대상인 에이전트가 스스로 계산해 자가 보고했다. LLM 산수는
 부정확하므로 과윤문 가드 자체가 무른 상태였다. 이 스크립트가 SSOT다.
 
-final.md 본문 끝의 `<!-- HUMANIZE-SUMMARY -->` 주석 블록은 윤문 산출물이 아니라
+final.md 본문 끝의 `<!-- KOREAN-WRITING-SUMMARY -->` 주석 블록은 윤문 산출물이 아니라
 메타데이터이므로 비교 전에 제거한다. 제거하지 않으면 변경률이 부풀려진다.
 
 Exit code:
@@ -45,11 +45,11 @@ if _REFS not in sys.path:
 import metrics_v2 as _m  # noqa: E402  (sys.path mutation is intentional)
 
 # final.md 본문 끝의 메타데이터 주석 블록. 여는 마커부터 파일 끝까지.
-_SUMMARY_BLOCK_RE = re.compile(r"<!--\s*HUMANIZE-SUMMARY\b.*", re.DOTALL)
+_SUMMARY_BLOCK_RE = re.compile(r"<!--\s*KOREAN-WRITING-SUMMARY\b.*", re.DOTALL)
 
 
 def strip_summary_block(text: str) -> str:
-    """final.md에서 `<!-- HUMANIZE-SUMMARY -->` 메타 블록을 제거한다.
+    """final.md에서 `<!-- KOREAN-WRITING-SUMMARY -->` 메타 블록을 제거한다.
 
     블록이 없으면 원문 그대로 반환한다 (01_input.txt 등에 안전).
     """

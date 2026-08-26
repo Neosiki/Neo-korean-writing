@@ -1,8 +1,16 @@
-# Changelog: korean-humanize
+# Changelog: korean-writing-polish
 
 ## Unreleased
 
-- `krh.py connectives` 명령을 추가해 그러나·따라서·또한·그러므로·한편 등의 문장 시작 접속 부사를 반복량과 위치 기준으로 진단합니다.
+## 9.0.0 (2026-08-26) 한글 글쓰기(윤문) 전환
+
+- 프로젝트명과 공개 저장소 URL을 `korean-writing-polish`로 전환하고, 서비스 표기를 **한글 글쓰기(윤문)**로 통일했습니다.
+- 새 글 작성 경로를 `korean-writing/`으로 정리하고, 루트 윤문 스킬에서 주제·메모 기반 요청을 이 워크플로우로 연결했습니다.
+- 통합 정량 도구를 `scripts/korean_writing.py`로, 회귀 테스트를 `tests/test_korean_writing.py`로 바꿨습니다.
+- Cowork 패키지, 연구 산출물, 문서, 자동화 워크플로우의 경로·설치 안내·식별자를 새 이름으로 갱신했습니다.
+- 최종 윤문본 메타 블록 식별자를 `KOREAN-WRITING-SUMMARY`로 변경해 새 프로젝트의 산출물 계약을 명확히 했습니다.
+
+- `korean_writing.py connectives` 명령을 추가해 그러나·따라서·또한·그러므로·한편 등의 문장 시작 접속 부사를 반복량과 위치 기준으로 진단합니다.
 - 접속 부사를 AI 글의 확정 증거로 취급하지 않고 실제 대조·인과·양보 관계가 필요한 경우 유지하도록 후보와 유지 검토를 구분합니다.
 - `--remove-redundant` 선택형 축약 옵션과 `references/connective-adverbs.md` 실전 가이드를 추가했습니다.
 - 단일 표지 유지·반복 표지 후보·문장 시작 위치 보존 회귀 테스트를 추가했습니다.
@@ -33,7 +41,7 @@
 **핵심 변경**
 
 - `scripts/translation_audit.py` 추가: 원문–번역문 사이의 숫자·URL·코드·약어·링크 대상 표면 잠금, 제목·불릿·표·코드 구조 대조, 번역투·주어 복원·강도 부사 위험 플래그
-- `krh.py translation-audit` 명령 추가 및 `tests/test_translation_audit.py` 회귀 테스트 추가
+- `korean_writing.py translation-audit` 명령 추가 및 `tests/test_translation_audit.py` 회귀 테스트 추가
 - `references/translation-fidelity.md` 추가: FID-1~7·LIT-1~3 감사 차원, 번역 후편집 절차, 문학 모드와 데보라 스미스의 기법·방법·문체·주요 판단 어휘·비평 쟁점
 - `references/translation-benchmarks.md` 추가: DeepL·Papago·Google Translate·ChatGPT·Gemini·Claude·TranslateGemma·Hunyuan-MT·Yanolja Rosetta·Microsoft Translator와 GitHub·논문·보고서 근거 지도
 - SKILL.md·README·에이전트 메타데이터를 v7로 갱신. 문학 모드는 데보라 스미스의 문체를 복제하지 않고 대비 기준으로만 사용
@@ -55,7 +63,7 @@
 - `references/metrics_v2.py`와 기준선 JSON 추가: 진단·장문 청크·경로 판정의 재현성 강화
 - `scripts/prepare_monolith_input.py`, `reassemble_chunks.py`, `verify_change_rate.py` 추가: 장문 입력 준비, 무손실 재조립, 변경률 상한 검증
 - `agents/openai.yaml` 추가: Codex에서 v6 스킬을 표시하고 호출하는 메타데이터 제공
-- 기존 `krh.py`, `patterns.json`, `examples.md`를 v6 규칙과 맞춤
+- 기존 `korean_writing.py`, `patterns.json`, `examples.md`를 v6 규칙과 맞춤
 
 **보존 원칙**
 
@@ -70,7 +78,7 @@
 
 - README가 중간에 잘린 채 배포되던 문제 수정(파일 동기화 사고), 설치 안내를 실제 배포 파일(dist/)과 일치시킴
 - Sunny-7이 코드에는 6규칙만 구현돼 있던 불일치 해소: 7번(어색한 있다) 분리 구현
-- SKILL.md의 A~N 14패턴과 탐지 코드의 불일치 해소: scripts/patterns.json을 단일 원천으로 통합, `krh.py taxonomy --check`로 무결성 검사
+- SKILL.md의 A~N 14패턴과 탐지 코드의 불일치 해소: scripts/patterns.json을 단일 원천으로 통합, `korean_writing.py taxonomy --check`로 무결성 검사
 - references/examples.md의 M 예시가 원문에 없던 사실("3년 뒤 재정 부담")을 추가하던 LOCK 위반 교체
 
 **신규**
@@ -82,13 +90,13 @@
 - diffrate에 문장 단위 변경률 추가(재배열·재작성 감지 보강)
 - 전 명령 `--json` 출력 지원
 - tests/ 회귀 테스트 15건 + GitHub Actions CI
-- ROADMAP.md: 말뭉치 보정, 구조 기반 장문 분할, 형태소 분석 선택 의존성, write-content 분리, 배포 체계
-- dist/korean-humanize.skill을 저장소에 동봉
+- ROADMAP.md: 말뭉치 보정, 구조 기반 장문 분할, 형태소 분석 선택 의존성, korean-writing 분리, 배포 체계
+- dist/korean-writing-polish.skill을 저장소에 동봉
 
 ## 4.0.1 (2026-07-10)
 
 - README 전면 윤문: em-dash·볼드 라벨 등 부호·서식 티를 스킬 자신의 기준(거시 D·E 패턴)으로 걷어내고 산문 중심으로 재작성
-- write-content 5단계 글쓰기 스킬 동봉 (write-content/SKILL.md)
+- korean-writing 5단계 글쓰기 스킬 동봉 (korean-writing/SKILL.md)
 
 ## 4.0.0 (2026-07-10) 4차 고도화: "사람이 처음부터 끝까지 쓴 글처럼"
 
@@ -113,7 +121,7 @@ GitHub 윤문 스킬 6종(blader/humanizer, stop-slop, skill-deslop, avoid-ai-wr
 
 **복원·통합**
 
-- scripts/ 7개 스크립트가 배포본에서 유실돼 정량 게이트가 전부 건너뛰기로 동작하던 문제를 krh.py 단일 도구(diagnose/sunny/preserve/diffrate/consistency/format)로 복원. 표준 라이브러리만 사용
+- scripts/ 7개 스크립트가 배포본에서 유실돼 정량 게이트가 전부 건너뛰기로 동작하던 문제를 korean_writing.py 단일 도구(diagnose/sunny/preserve/diffrate/consistency/format)로 복원. 표준 라이브러리만 사용
 - 검증: AI 티 샘플 지수 58.0(D) → 윤문 후 0.0(A), 숫자 변조 시 보존 게이트 exit 1 확인
 
 ## 3.x — 3차 고도화

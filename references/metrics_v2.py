@@ -1,4 +1,4 @@
-"""Humanize KR v2.0 quantitative metrics calculator.
+"""Korean Writing Polish v2.0 quantitative metrics calculator.
 
 Extends v1.6 metrics.py with post-editese 3축 (simplification·normalisation·
 interference) and 8 translation-type detection signals from the Korean
@@ -18,7 +18,7 @@ Versioning:
   plus `change_rate()` — the SSOT for 철칙 #4 change-rate gating.
 
 This file ships next to metrics.py at
-`.claude/skills/humanize-korean/references/`.
+`.claude/skills/korean-writing-polishrean/references/`.
 
 CLI:
     python metrics_v2.py --input run/01_input.txt \
@@ -789,7 +789,7 @@ def compute_all_v2(
 
 
 def _main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Humanize KR v2.0 metric runner")
+    parser = argparse.ArgumentParser(description="Korean Writing Polish v2.0 metric runner")
     parser.add_argument("--input", required=True, help="Input text file path")
     parser.add_argument("--genre", default="essay", help="essay/news/blog/qa/dialogue")
     parser.add_argument("--output", default=None, help="Output JSON path (optional)")

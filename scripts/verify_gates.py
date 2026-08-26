@@ -52,7 +52,7 @@ import checks as _checks  # noqa: E402  (sys.path mutation is intentional)
 import metrics_v2 as _m  # noqa: E402
 
 # final.md 본문 끝의 메타데이터 주석 블록. 여는 마커부터 파일 끝까지.
-_SUMMARY_BLOCK_RE = re.compile(r"<!--\s*HUMANIZE-SUMMARY\b.*", re.DOTALL)
+_SUMMARY_BLOCK_RE = re.compile(r"<!--\s*KOREAN-WRITING-SUMMARY\b.*", re.DOTALL)
 
 # P1 목표 달성 축의 어휘 S1 후보 지표. lexical_diversity는 제외 —
 # 높을수록 사람 글이라 감축 대상이 아니다.
@@ -77,7 +77,7 @@ _WS_RE = re.compile(r"\s+")
 
 
 def strip_summary_block(text: str) -> str:
-    """final.md에서 `<!-- HUMANIZE-SUMMARY -->` 메타 블록을 제거한다."""
+    """final.md에서 `<!-- KOREAN-WRITING-SUMMARY -->` 메타 블록을 제거한다."""
     return _SUMMARY_BLOCK_RE.sub("", text).strip()
 
 
