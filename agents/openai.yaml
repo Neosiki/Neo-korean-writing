@@ -1,4 +1,4 @@
 interface:
   display_name: "한글 글쓰기(윤문) v9"
   short_description: "한글 글쓰기·정밀 윤문·번역 후편집·4축 보존 검증을 하나로 연결하는 스킬"
-  default_prompt: "Use $korean-writing-polish to write or polish this Korean text while preserving facts, quotations, numbers, voice, and document structure."
+  default_prompt: "Use $neo-korean-writing to write or edit this Korean text while preserving facts, quotations, numbers, voice, and document structure."

@@ -36,11 +36,11 @@ Claude Code, Codex 등에서 저장소 전체를 스킬 경로로 연결합니�
 
 ```bash
 mkdir -p ~/.claude/skills
-git clone https://github.com/Neosiki/korean-writing-polish.git \
-  ~/.claude/skills/korean-writing-polish
+git clone https://github.com/Neosiki/neo-korean-writing.git \
+  ~/.claude/skills/neo-korean-writing
 ```
 
-Cowork용 패키지는 [`dist/korean-writing-polish.skill`](dist/korean-writing-polish.skill)입니다. 새 글을 처음부터 작성하는 보조 워크플로우는 [`korean-writing/`](korean-writing/SKILL.md)에 포함되어 있습니다.
+Cowork용 패키지는 [`dist/neo-korean-writing.skill`](dist/neo-korean-writing.skill)입니다. 새 글을 처음부터 작성하는 보조 워크플로우는 [`korean-writing/`](korean-writing/SKILL.md)에 포함되어 있습니다.
 
 ### 요청 예시
 
@@ -102,7 +102,7 @@ python3 -m unittest discover -s tests -v
 ## 디렉터리 구조
 
 ```text
-korean-writing-polish/
+neo-korean-writing/
 ├── SKILL.md                    # 한글 윤문·진단·번역 후편집 스킬
 ├── korean-writing/
 │   └── SKILL.md                # 주제·메모에서 시작하는 한글 글쓰기 워크플로우
@@ -114,7 +114,7 @@ korean-writing-polish/
 ├── tests/                      # 회귀·golden 검사
 ├── paper/                      # 재현 가능한 연구·벤치마크 산출물
 └── dist/
-    └── korean-writing-polish.skill
+    └── neo-korean-writing.skill
 ```
 
 ## 한계와 책임 있는 사용

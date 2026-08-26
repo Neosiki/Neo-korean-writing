@@ -1,10 +1,10 @@
-# Changelog: korean-writing-polish
+# Changelog: neo-korean-writing
 
 ## Unreleased
 
 ## 9.0.0 (2026-08-26) 한글 글쓰기(윤문) 전환
 
-- 프로젝트명과 공개 저장소 URL을 `korean-writing-polish`로 전환하고, 서비스 표기를 **한글 글쓰기(윤문)**로 통일했습니다.
+- 프로젝트명과 공개 저장소 URL을 `neo-korean-writing`로 전환하고, 서비스 표기를 **한글 글쓰기(윤문)**로 통일했습니다.
 - 새 글 작성 경로를 `korean-writing/`으로 정리하고, 루트 윤문 스킬에서 주제·메모 기반 요청을 이 워크플로우로 연결했습니다.
 - 통합 정량 도구를 `scripts/korean_writing.py`로, 회귀 테스트를 `tests/test_korean_writing.py`로 바꿨습니다.
 - Cowork 패키지, 연구 산출물, 문서, 자동화 워크플로우의 경로·설치 안내·식별자를 새 이름으로 갱신했습니다.
@@ -91,7 +91,7 @@
 - 전 명령 `--json` 출력 지원
 - tests/ 회귀 테스트 15건 + GitHub Actions CI
 - ROADMAP.md: 말뭉치 보정, 구조 기반 장문 분할, 형태소 분석 선택 의존성, korean-writing 분리, 배포 체계
-- dist/korean-writing-polish.skill을 저장소에 동봉
+- dist/neo-korean-writing.skill을 저장소에 동봉
 
 ## 4.0.1 (2026-07-10)
 

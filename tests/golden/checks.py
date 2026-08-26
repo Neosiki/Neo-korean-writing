@@ -1,4 +1,4 @@
-"""Deterministic golden-fixture scorer for korean-writing-polishrean.
+"""Deterministic golden-fixture scorer for neo-korean-writingrean.
 
 LLM output is non-deterministic, so these checks are DIRECTIONAL GATES,
 never exact-string expectations. Each check asks "did a known failure mode

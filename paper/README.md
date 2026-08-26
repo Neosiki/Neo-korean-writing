@@ -1,18 +1,18 @@
-# korean-writing-polish 아티팩트 연구 논문
+# neo-korean-writing 아티팩트 연구 논문
 
 **한글 글쓰기(윤문) 프로젝트의 규칙 추적성과 의미 보존 검증**
-— Neosiki/korean-writing-polish v5.0.0에 대한 아티팩트 연구 (작성 기준일 2026-07-17)
+— Neosiki/neo-korean-writing v5.0.0에 대한 아티팩트 연구 (작성 기준일 2026-07-17)
 
 ## 파일 구성
 
 | 파일 | 내용 |
 |---|---|
-| `korean-writing-polish_paper.md` | 논문 전문(마크다운, 부록 A~J 포함) |
-| `korean-writing-polish_최종논문_본실험실행본.docx` | 논문 전문(Word) |
+| `neo-korean-writing_paper.md` | 논문 전문(마크다운, 부록 A~J 포함) |
+| `neo-korean-writing_최종논문_본실험실행본.docx` | 논문 전문(Word) |
 | `benchmark/run_benchmark.py` | 본실험 실행 스크립트(앵커·변형·통제문 전체 수록) |
-| `benchmark/korean-writing-polish_run_log.csv` | 167쌍 사례별 실행 로그 |
-| `benchmark/korean-writing-polish_results_filled.csv` | 변형 유형별 집계 |
-| `benchmark/korean-writing-polish_run_summary.json` | 실행 요약 통계 |
+| `benchmark/neo-korean-writing_run_log.csv` | 167쌍 사례별 실행 로그 |
+| `benchmark/neo-korean-writing_results_filled.csv` | 변형 유형별 집계 |
+| `benchmark/neo-korean-writing_run_summary.json` | 실행 요약 통계 |
 
 ## 핵심 결과 (커밋 ce02da2, 실행일 2026-07-17)
 
@@ -40,6 +40,6 @@ python benchmark/run_benchmark.py   # korean_writing.py(ce02da2) 경로를 scrip
 - 직함·소속: NextAI 대표 · 아이피플래닛 대표
 - 이메일: osiki999@gmail.com
 - 교신저자: 해당 없음
-- 영문 제목: *Verifying Rule Traceability and Meaning Preservation in a Korean Writing and Polishing Skill: An Exploratory Artifact Study of Neosiki/korean-writing-polish v5.0.0*
+- 영문 제목: *Verifying Rule Traceability and Meaning Preservation in a Neo Korean Writing Skill: An Exploratory Artifact Study of Neosiki/neo-korean-writing v5.0.0*
 
-저자는 `korean-writing-polish`의 개발·유지보수자다. 따라서 본 연구는 독립적인 제3자 성능평가가 아니라 개발자 연구자가 수행한 탐색적 아티팩트 연구로 해석해야 한다. LLM 모의 판정은 독립 인간 평가 결과가 아니며, 투고 전 독립 평가자 판정으로 대체해야 한다. 자세한 경력과 연구자 위치는 [저자 약력](author_bio.md)을 참조한다.
+저자는 `neo-korean-writing`의 개발·유지보수자다. 따라서 본 연구는 독립적인 제3자 성능평가가 아니라 개발자 연구자가 수행한 탐색적 아티팩트 연구로 해석해야 한다. LLM 모의 판정은 독립 인간 평가 결과가 아니며, 투고 전 독립 평가자 판정으로 대체해야 한다. 자세한 경력과 연구자 위치는 [저자 약력](author_bio.md)을 참조한다.

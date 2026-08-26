@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""korean_writing.py v3 — korean-writing-polish 정량 도구 (6.1: 문장 단위 이진 가드·방향 표지·영문 2자 약어) (표준 라이브러리만, 탐지 전용·자동 수정 없음)
+"""korean_writing.py v3 — neo-korean-writing 정량 도구 (6.1: 문장 단위 이진 가드·방향 표지·영문 2자 약어) (표준 라이브러리만, 탐지 전용·자동 수정 없음)
 
 사용법:
   python3 korean_writing.py diagnose  원문.md [--profile sns|official|technical] [--heavy] [--remove-redundant] [--json]

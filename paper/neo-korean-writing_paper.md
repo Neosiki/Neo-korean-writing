@@ -1,6 +1,6 @@
 **한국어 윤문 스킬의 규칙 추적성과 의미 보존 검증**
 
-Neosiki/korean-writing-polish v8 설계 확장과 v5.0.0 기준선 실증에 대한 탐색적 아티팩트 연구
+Neosiki/neo-korean-writing v8 설계 확장과 v5.0.0 기준선 실증에 대한 탐색적 아티팩트 연구
 
 **저자:** 윤영식 (尹永植, Young-Shig Yoon)  
 **직함·소속:** NextAI 대표 · 아이피플래닛 대표  
@@ -8,12 +8,12 @@ Neosiki/korean-writing-polish v8 설계 확장과 v5.0.0 기준선 실증에 대
 **교신저자:** 해당 없음  
 **영문 제목:** *Verifying Rule Traceability and Meaning Preservation in a Korean Text Humanization Skill: A v8 Design Extension and v5.0.0 Baseline Artifact Study*
 
-**저자 위치 및 이해상충 진술:** 저자는 분석 대상인 `Neosiki/korean-writing-polish`의 개발·유지보수자다. 따라서 본 연구는 독립적인 제3자 성능평가가 아니라, 개발자가 자신의 소프트웨어 아티팩트를 대상으로 수행한 탐색적 사례 연구로 해석해야 한다. 자동 검사 결과와 LLM 모의 판정 결과를 구분해 제시했으며, 독립 인간 평가가 완료되기 전까지 의미 보존 성능에 대한 일반화 주장을 하지 않는다.
+**저자 위치 및 이해상충 진술:** 저자는 분석 대상인 `Neosiki/neo-korean-writing`의 개발·유지보수자다. 따라서 본 연구는 독립적인 제3자 성능평가가 아니라, 개발자가 자신의 소프트웨어 아티팩트를 대상으로 수행한 탐색적 사례 연구로 해석해야 한다. 자동 검사 결과와 LLM 모의 판정 결과를 구분해 제시했으며, 독립 인간 평가가 완료되기 전까지 의미 보존 성능에 대한 일반화 주장을 하지 않는다.
 
 문서 유형: 최종 논문 원고(본실험 자동 검사 실행본) | 작성 기준일: 2026-07-23 | 연구 상태: v8 구현·결정적 게이트 검증 반영
 완료·독립 인간 평가 미수행
 
-**버전 범위 주의:** 본문 4장의 KLUE 자동 검사 수치는 `Neosiki/korean-writing-polish` v5.0.0 커밋 `ce02da2`에서 실행한 기준선이다. v6은
+**버전 범위 주의:** 본문 4장의 KLUE 자동 검사 수치는 `Neosiki/neo-korean-writing` v5.0.0 커밋 `ce02da2`에서 실행한 기준선이다. v6은
 `epoko77-ai/im-not-ai`의 한국어 번역투 유형과 PE 체크리스트를 설계에 통합한 확장판이며, 이 원고에서는 v6의 분류·추적성
 확장을 보고하되 v5 기준선 수치를 v6 또는 v7의 성능 결과로 재해석하지 않는다. v7은 번역 후편집 충실성 레인,
 문학 번역 검토 모드, benchmark 참고 지도와 이를 실행하는 `translation_audit.py`를 추가한 구현 확장이다. v7 구현 커밋은
@@ -33,7 +33,7 @@ preserve 검사를 실제로 실행한 실측치다. 반면 의미 변화 판정
 초록
 
 생성형 인공지능을 이용한 한국어 윤문에서는 문장을 자연스럽게 바꾸는 능력만큼 원문의 사실과 주장 구조를 보존하는 능력이 중요하다.
-본 연구는 공개 저장소 Neosiki/korean-writing-polish v5.0.0을 기준선 아티팩트로 보고
+본 연구는 공개 저장소 Neosiki/neo-korean-writing v5.0.0을 기준선 아티팩트로 보고
 문서–규칙–구현–테스트의 추적성을 분석한다. 이어 v6 설계 확장에서
 `epoko77-ai/im-not-ai`가 정리한 한국어 번역학계의 8대 번역투 유형과 15항
 후편집(post-editing, PE) 체크리스트를 기존 A–N·Sunny-7 taxonomy에 어떻게 연결했는지 추적한다. 또한 KLUE NLI·STS·YNAT 공개
@@ -71,7 +71,7 @@ v8에서는 수렴 판정을 문자 변경률 단일 게이트에서 4축 구조
 확인해야 한다. 특히 '의미 보존'이라는 표현은 범위가 넓기 때문에, 자동 검사가 실제로 다루는 단서와 다루지 않는
 관계 구조를 구분해 보고해야 한다.
 
-본 연구는 공개 저장소 Neosiki/korean-writing-polish를 사례로 삼는다. 이 저장소는 한국어 윤문을 위한 작업 모드와
+본 연구는 공개 저장소 Neosiki/neo-korean-writing를 사례로 삼는다. 이 저장소는 한국어 윤문을 위한 작업 모드와
 문체 패턴, 의미 보존 규칙, 실행 스크립트, 회귀 테스트를 함께 제공한다. 따라서 프롬프트나 사용 설명서만 분석하는 대신,
 윤문 스킬을 여러 설계 층이 결합된 아티팩트로 검토할 수 있다. 분석 대상은 2026년 7월에 확인한 v5.0.0 기준선 스냅샷,
 v6 설계 확장 스냅샷, v7 구현 스냅샷이며, 기준선 실측 커밋은 `ce02da2`, v6 설계 커밋은 `d1f4cbf`, v7 통합 커밋은
@@ -85,7 +85,7 @@ v6 설계 확장 스냅샷, v7 구현 스냅샷이며, 기준선 실측 커밋�
 
 연구 질문은 다음과 같다.
 
-1\. korean-writing-polish v5.0.0의 문서, 규칙, 구현, 테스트는 어떤 추적성 관계를 갖는가?
+1\. neo-korean-writing v5.0.0의 문서, 규칙, 구현, 테스트는 어떤 추적성 관계를 갖는가?
 
 2\. 보존 검사는 숫자·인용·용어·구조·일부 의미 단서의 통제 변형을 어느 범위에서 포착하는가?
 
@@ -243,14 +243,14 @@ TextFlint(https://github.com/textflint/textflint)는
 한국어 처리 인프라로는 Korector(https://github.com/movemin03/korector)와
 Kiwi(https://github.com/bab2min/kiwi)를 확인했다. Korector는 외부 한국어 맞춤법 검사기를
 호출하면서 긴 텍스트 청킹, 병렬 처리, 오류 통계와 CLI를 제공한다. Kiwi는 한국어 형태소 분석, 문장 분리, 오타
-교정과 평가 실행기를 제공한다. 이들은 korean-writing-polish와 동일 목적의 윤문 스킬이라기보다, 향후 형태·논항·문장 경계
+교정과 평가 실행기를 제공한다. 이들은 neo-korean-writing와 동일 목적의 윤문 스킬이라기보다, 향후 형태·논항·문장 경계
 기반 보존 게이트를 확장할 수 있는 기반 계층이다.
 LanguageTool(https://github.com/languagetool-org/languagetool)은 다국어
 문법·스타일 검사와 규칙 개발 체계를 제공하는 대규모 비교 배경이다.
 
 이 비교에서 중요한 점은 외부 프로젝트의 규모나 별점이 성능 우위를 뜻하지 않는다는 것이다. 프로젝트마다 입력 단위, 언어, 모델
 의존성, 라이선스, 평가 목적이 다르다. 따라서 본 연구는 프로젝트 간 정확도 순위를 만들지 않고, 재작성형 스킬–규칙형
-린터–변형 기반 평가–한국어 분석 인프라라는 설계 계열을 구분해 korean-writing-polish의 위치를 설명한다.
+린터–변형 기반 평가–한국어 분석 인프라라는 설계 계열을 구분해 neo-korean-writing의 위치를 설명한다.
 세부 비교표와 라이선스 기록은 부록 G에 수록했다.
 
 3.3 추적성 분석
@@ -357,7 +357,7 @@ SSOT인 `ai-tell-taxonomy.md`에서 71개 패턴 전수를 패턴당 2줄(ID·�
 | KLUE STS v1.1  | sentence1, sentence2 중 독립 문장 | 20        | 의미 관계·비교·양태 변형 후보    |
 | KLUE YNAT v1.1 | title                        | 10        | 숫자·영문 용어·표면 구조 변형 후보 |
 
-행 ID 매핑은 korean-writing-polish\_verified\_anchor\_ids.csv에 기록했으며 전체 목록은 부록 C에
+행 ID 매핑은 neo-korean-writing\_verified\_anchor\_ids.csv에 기록했으며 전체 목록은 부록 C에
 수록했다. 원문 전체를 논문 부록에 복사하지 않고 실행 시 원자료 ID로 추출하도록 설계했다. 본실험 실행에서는 2026년
 7월 17일 Hugging Face 공개 데이터 뷰어 API에서 50개 앵커의 원문을 추출했다. 이 과정에서
 A030(klue-nli-v1\_train\_00071)은 A029와 premise 텍스트가 동일해 중복 제거 규칙에 따라
@@ -702,7 +702,7 @@ ce02da2에 대한 커버리지이며, 실제 사용 문서나 모든 한국어 �
 셋째, 변형 생성이 수작업 단일 위험 편집이라는 점도 한계다. 변형은 연구자(모델)가 작성하고 실행 로그로 공개하지만, 편집
 과정에서 의도하지 않은 부수 변화가 남아 있을 가능성을 배제하려면 제3자의 변형 검수 절차가 필요하다.
 
-넷째, 실제 생성형 AI 모델을 사용한 윤문 산출물 간 비교도 수행하지 않았다. korean-writing-polish는 호스트 모델과 실행
+넷째, 실제 생성형 AI 모델을 사용한 윤문 산출물 간 비교도 수행하지 않았다. neo-korean-writing는 호스트 모델과 실행
 환경에 의존하므로, 모델·프롬프트·temperature·반복 횟수를 고정하지 않은 상태에서 모델 성능을 비교하면 재현성이
 떨어진다. 이 비교는 본 연구의 핵심 질문을 넘어서는 후속 실험으로 남긴다.
 
@@ -735,7 +735,7 @@ ce02da2에 대한 커버리지이며, 실제 사용 문서나 모든 한국어 �
 
 7\. 결론
 
-본 연구는 Neosiki/korean-writing-polish v5.0.0을 한국어 윤문을 위한 기준선 소프트웨어 아티팩트로 보고
+본 연구는 Neosiki/neo-korean-writing v5.0.0을 한국어 윤문을 위한 기준선 소프트웨어 아티팩트로 보고
 문서·규칙·구현·테스트의 추적성을 분석하고, KLUE 기반 통제 변형 벤치마크의 자동 검사를 실제로
 실행했다. 핵심 규칙 분류와 실행·회귀 검증은 연결되어 있었고, 문장 단위 실측에서 보존 게이트는 숫자 변형을 전부, 영문
 용어 변형을 대부분 포착했으며 문체 통제에는 과잉 경고를 내지 않았다. 그러나 부정·양태·인과·논항·비교·조건 변형은 전부
@@ -760,9 +760,9 @@ ce02da2에 대한 커버리지이며, 실제 사용 문서나 모든 한국어 �
 `tests/test_translation_audit.py`, v8 구현 파일은 `scripts/verify_gates.py`, `scripts/build_quick_rules.py`,
 `scripts/build_diagnosis_rules.py`, `references/diagnosis-rules.md`, `references/empirical-validation.md`,
 `tests/golden/checks.py`다. 본실험 원문은 KLUE 공개 자료(저장소 라이선스 CC BY-SA 4.0
-표시)에서 행 ID 기준으로 추출했으며, 실행 로그(korean-writing-polish\_run\_log.csv), 범주
-집계(korean-writing-polish\_results\_filled.csv), 실행
-요약(korean-writing-polish\_run\_summary.json), 실행 스크립트(run\_benchmark.py)를
+표시)에서 행 ID 기준으로 추출했으며, 실행 로그(neo-korean-writing\_run\_log.csv), 범주
+집계(neo-korean-writing\_results\_filled.csv), 실행
+요약(neo-korean-writing\_run\_summary.json), 실행 스크립트(run\_benchmark.py)를
 함께 보관·공개한다. 결과물을 재배포할 때는 저장소 라이선스와 원자료 제공자의 개별 조건을 확인하고 원문 공개 범위를 별도로
 판단한다. 의미 변화 판정은 LLM 모의 판정이며 독립 인간 평가가 아님을 거듭 명시한다. 향후 인간 평가를 수행할 경우
 평가자 동의, 보상, 자료 보안, 연구윤리 심의 또는 면제 여부를 별도로 기록한다. 본 연구는 사람의 글과 AI 글을
@@ -901,8 +901,8 @@ https://github.com/movemin03/korector
 National Institute of Korean Language. (2026). 모두의 말뭉치.
 https://kli.korean.go.kr/corpus/main/requestMain.do?lang=en
 
-Neosiki. (2026). korean-writing-polish. GitHub repository.
-https://github.com/Neosiki/korean-writing-polish
+Neosiki. (2026). neo-korean-writing. GitHub repository.
+https://github.com/Neosiki/neo-korean-writing
 
 Park, S., Kim, S., Kim, D.-K., & Han, Y.-S. (2025). KatFishNet:
 Detecting LLM-Generated Korean Text through Linguistic Feature Analysis.
@@ -980,7 +980,7 @@ translation. https://www.earticle.net/Article/A323225
 
 부록 A. 평가 프로토콜 요약
 
-이 프로토콜은 Neosiki/korean-writing-polish의 보존 검사가 어떤 표면·구조·의미 변형을 포착하고, 어떤 변형을
+이 프로토콜은 Neosiki/neo-korean-writing의 보존 검사가 어떤 표면·구조·의미 변형을 포착하고, 어떤 변형을
 통과시키는지 재현 가능하게 측정하기 위한 것이다. 측정 대상은 윤문 결과의 '자연스러움'이나 AI 생성 여부가
 아니라, 지정된 보존 위험에 대한 통제 변형 커버리지다. 본실험은 공개·합법적으로 사용할 수 있는 한국어 자료 또는
 연구자가 직접 작성한 자료만 사용하며, 개인정보, 비공개 과제물, 출처를 확인할 수 없는 인터넷 복사문은 제외한다.
@@ -1008,10 +1008,10 @@ translation. https://www.earticle.net/Article/A323225
 부록 B. 재현성 절차
 
 **B.1 버전 고정.** 기준선 실측 커밋은 `ce02da2`, v7 설계·구현 통합 커밋은 `6dbcc92`다. 분석 대상 저장소:
-Neosiki/korean-writing-polish. 데이터
+Neosiki/neo-korean-writing. 데이터
 자료군: KLUE NLI v1.1, KLUE STS v1.1, KLUE YNAT v1.1. 데이터 행 매핑:
-korean-writing-polish\_verified\_anchor\_ids.csv. 변형 설계:
-korean-writing-polish\_benchmark\_manifest.csv. 변형 생성 시드: 20260717.
+neo-korean-writing\_verified\_anchor\_ids.csv. 변형 설계:
+neo-korean-writing\_benchmark\_manifest.csv. 변형 생성 시드: 20260717.
 
 **B.2 실행 순서.**
 
@@ -1029,7 +1029,7 @@ korean-writing-polish\_benchmark\_manifest.csv. 변형 생성 시드: 20260717.
 
 7\. 인간 평가자가 자동 결과를 보지 않은 상태에서 의미 유지·의미 변경·판정 유보를 판정한다.
 
-8\. 결과표 템플릿(korean-writing-polish\_results\_template.csv)에 유형별 집계값을 입력한다.
+8\. 결과표 템플릿(neo-korean-writing\_results\_template.csv)에 유형별 집계값을 입력한다.
 
 9\. 원문–번역문 쌍을 검토하는 경우 `python scripts/korean_writing.py translation-audit 원문.md 번역문.md --direction en-to-ko`
 를 실행하고, 문학 번역이면 `--literary`를 추가한다. `pass`는 자동 품질 인증이 아니며, `warn`·`hold`와 사람 검토
@@ -1219,7 +1219,7 @@ A030은 원문 중복으로 제외되었고, 계획 변형 중 118건이 적용�
 |                                |               |                                                             |                                               |                   |
 | ------------------------------ | ------------- | ----------------------------------------------------------- | --------------------------------------------- | ----------------- |
 | **프로젝트**                       | **주된 목적**     | **관찰된 설계**                                                  | **보존·평가 관점**                                  | **라이선스**          |
-| Neosiki/korean-writing-polish        | 한국어 윤문 스킬     | 문체 패턴, 작업 모드, 의미·구조 보존 게이트, 회귀 테스트                          | 표면 사실·일부 의미 표지·구조를 검사하고 인간 검토 경계를 명시          | 저장소 기준 확인 필요      |
+| Neosiki/neo-korean-writing        | 한국어 윤문 스킬     | 문체 패턴, 작업 모드, 의미·구조 보존 게이트, 회귀 테스트                          | 표면 사실·일부 의미 표지·구조를 검사하고 인간 검토 경계를 명시          | 저장소 기준 확인 필요      |
 | blader/humanizer               | AI 문체 흔적 제거   | 33개 패턴, 음성·문체 조정, 2차 감사와 재작성                                | 의미 보존을 지침으로 두지만, 공개 README의 중심은 패턴 기반 재작성과 감사 | MIT               |
 | conorbronsdon/avoid-ai-writing | AI 문체 감사·재작성  | Rewrite·Detect·Edit 모드, 음성 프로필, 2단계 탐지, detector·scripts 폴더 | 구조화된 감사와 변경 보고에 강점. 한국어 사실 보존 게이트와는 평가 목표가 다름 | MIT               |
 | textlint/textlint              | 자연어 린팅 프레임워크  | 플러그인·규칙·포맷터 구조, --fix, dry-run                              | 생성형 재작성보다 규칙 실행·수정 가능성·리포팅에 강점                | MIT               |
@@ -1245,7 +1245,7 @@ python extract\_klue\_anchors.py \\
 
 \--ynat path/to/ynat-v1.1\_train.json \\
 
-\--out korean-writing-polish\_anchors.jsonl
+\--out neo-korean-writing\_anchors.jsonl
 
 """
 
@@ -1350,7 +1350,7 @@ parser.add\_argument(
 
 type=Path,
 
-default=Path("korean-writing-polish\_verified\_anchor\_ids.csv"),
+default=Path("neo-korean-writing\_verified\_anchor\_ids.csv"),
 
 )
 
@@ -1360,7 +1360,7 @@ parser.add\_argument(
 
 type=Path,
 
-default=Path("korean-writing-polish\_benchmark\_manifest.csv"),
+default=Path("neo-korean-writing\_benchmark\_manifest.csv"),
 
 )
 
@@ -1509,9 +1509,9 @@ API(klue/klue의 nli·sts·ynat train 분할)에서 행 ID 기준 추출. 변형
 2종이며 독립 인간 평가가 아님을 기록한다.
 
 **J.5 산출물 파일.** run\_benchmark.py(실행 스크립트·전체 변형문 수록),
-korean-writing-polish\_run\_log.csv(167쌍 사례별 결과),
-korean-writing-polish\_results\_filled.csv(범주 집계),
-korean-writing-polish\_run\_summary.json(요약 통계).
+neo-korean-writing\_run\_log.csv(167쌍 사례별 결과),
+neo-korean-writing\_results\_filled.csv(범주 집계),
+neo-korean-writing\_run\_summary.json(요약 통계).
 
 **J.6 v7 구현 검증.** 통합 커밋 `6dbcc92`에서 `python -B -m unittest discover -s tests -q`를
 실행해 기존 테스트와 `test_translation_audit.py`를 합친 20개 테스트가 통과했다. `python scripts/korean_writing.py taxonomy --check`

@@ -1,4 +1,4 @@
-"""Korean Writing Polish v1.6 quantitative metrics calculator.
+"""Neo Korean Writing v1.6 quantitative metrics calculator.
 
 External pre-processor for the monolith fast path. Run BEFORE the monolith
 agent — its output (prepended to the input text) gives the LLM a numerical
@@ -382,7 +382,7 @@ def compute_all(
 
 
 def _main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Korean Writing Polish v1.6 metric runner")
+    parser = argparse.ArgumentParser(description="Neo Korean Writing v1.6 metric runner")
     parser.add_argument("--input", required=True, help="Input text file path")
     parser.add_argument("--genre", default="essay", help="essay/poetry/abstract/...")
     parser.add_argument("--output", default=None, help="Output JSON path (optional)")

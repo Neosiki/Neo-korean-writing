@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Korean Writing Polish v2.0 — monolith input shim.
+"""Neo Korean Writing v2.0 — monolith input shim.
 
 Pre-processes user input by computing quantitative metrics (v1.6 8지표 +
 v2.0 카운트형 지표) and prepending the result to the text the monolith
@@ -757,7 +757,7 @@ def run_chunk_mode(args: argparse.Namespace, diagnosis: str | None) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(description="Korean Writing Polish v2.0 monolith input shim")
+    p = argparse.ArgumentParser(description="Neo Korean Writing v2.0 monolith input shim")
     p.add_argument("--run-dir", help="Existing run directory (relative ok)")
     p.add_argument("--text", help="Inline text input (creates new run dir)")
     p.add_argument("--genre", default="essay", help="Genre hint (default: essay)")

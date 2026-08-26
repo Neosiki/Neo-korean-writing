@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-"""korean-writing-polish 본실험 실행기 (커밋 ce02da2 로컬 스냅샷, 시드 20260717)
+"""neo-korean-writing 본실험 실행기 (커밋 ce02da2 로컬 스냅샷, 시드 20260717)
 - 원문: KLUE NLI/STS/YNAT (HF datasets-server, 2026-07-17 확인)
 - 변형: 연구자(모델) 작성 단일 위험 변형. 원문에 없는 단서는 적용하지 않고 제외 기록.
 - 판정: LLM 모의 판정 2패스(번역 전문가 페르소나 R1 엄격 / R2 관대). 독립 인간 평가 아님.
 """
 import csv, json, sys, collections
-sys.path.insert(0, "/sessions/cool-fervent-hamilton/mnt/.claude/skills/korean-writing-polish/scripts")
+sys.path.insert(0, "/sessions/cool-fervent-hamilton/mnt/.claude/skills/neo-korean-writing/scripts")
 from krh import preserve_data
 
 A = {  # anchor_id: (group, source_id, field, text)
@@ -273,7 +273,7 @@ for j,(anchor,ctrl) in enumerate(sorted(C.items()),1):
         auto=auto,missing="; ".join(f"{m['type']}:{m['value']}" for m in d["missing"]),
         warnings="; ".join(w["type"] for w in d["meaning_warnings"]),r1=r1,r2=r2,final=fin))
 
-with open("korean-writing-polish_run_log.csv","w",newline="",encoding="utf-8-sig") as f:
+with open("neo-korean-writing_run_log.csv","w",newline="",encoding="utf-8-sig") as f:
     w = csv.DictWriter(f, fieldnames=list(rows[0].keys())); w.writeheader(); w.writerows(rows)
 
 # ---- 집계 ----
@@ -296,7 +296,7 @@ ctrl_warn = sum(1 for r in ctrl if r["auto"]!="silent")
 agg.append(dict(category="style_only_control",applied=len(ctrl),auto_signal=ctrl_warn,
                 changed=0,silent_changed=0,coverage="NA",
                 silent_rate="NA"))
-with open("korean-writing-polish_results_filled.csv","w",newline="",encoding="utf-8-sig") as f:
+with open("neo-korean-writing_results_filled.csv","w",newline="",encoding="utf-8-sig") as f:
     w = csv.DictWriter(f, fieldnames=list(agg[0].keys())); w.writeheader(); w.writerows(agg)
 
 # ---- 일치도 ----
@@ -323,7 +323,7 @@ summary = dict(
     agreement_mut=round(po_m,4), kappa_mut=round(k_m,4),
     agreement_all=round(po_a,4), kappa_all=round(k_a,4),
     disagreements=dis)
-with open("korean-writing-polish_run_summary.json","w",encoding="utf-8") as f:
+with open("neo-korean-writing_run_summary.json","w",encoding="utf-8") as f:
     json.dump(summary,f,ensure_ascii=False,indent=1)
 print(json.dumps(summary,ensure_ascii=False,indent=1))
 print("\nCATEGORY TABLE")

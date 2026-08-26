@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Korean Writing Polish v2.0.1 — 청크 윤문 결과 재조립기.
+"""Neo Korean Writing v2.0.1 — 청크 윤문 결과 재조립기.
 
 `prepare_monolith_input.py --chunk` 가 만든 chunk_manifest.json 순서대로
 청크별 윤문 결과(02_chunk_{NN}_rewritten.txt)를 병합해 03_reassembled.md 를
@@ -44,7 +44,7 @@ def _trailing_ws(s: str) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(description="Korean Writing Polish chunk reassembler")
+    p = argparse.ArgumentParser(description="Neo Korean Writing chunk reassembler")
     p.add_argument("--run-dir", required=True, help="chunk_manifest.json 이 있는 런 디렉토리")
     p.add_argument("--output", default="03_reassembled.md", help="병합 결과 파일명")
     p.add_argument(

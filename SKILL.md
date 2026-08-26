@@ -1,5 +1,5 @@
 ---
-name: korean-writing-polish
+name: neo-korean-writing
 description: >-
   한글 글쓰기(윤문)를 위한 구조화된 작성·진단·윤문 스킬이다. 사용자가 "글을 써줘", "윤문해줘", "다듬어줘",
   "최강 윤문", "번역투 고쳐줘", "진단만 해줘", "내 문체로 고쳐줘"라고 하거나 한국어 기사·칼럼·에세이·리뷰·보도자료·리포트·기술문서·원고를 작성하거나 고칠 때 사용한다.
@@ -247,4 +247,4 @@ summary.md                   변경률·등급·핵심 변경 요약
 
 ## 출처와 적용 범위
 
-확장 taxonomy·quick-rules·rewriting-playbook·post-editese 지표의 설계 참고 출처는 [`epoko77-ai/im-not-ai`](https://github.com/epoko77-ai/im-not-ai)이며, 원본 MIT 라이선스의 파일을 이 스킬 구조에 맞게 배치했다. 이 스킬의 운영 taxonomy·LOCK·한국어 장르 프로파일·Codex 실행 규칙은 `Neosiki/korean-writing-polish`의 v5 설계를 계승해 v6으로 통합했고, v7에서 번역 충실성·문학 번역 참고선을 추가했으며, v8에서 im-not-ai v2.2~v2.3(단일 콜 우선 route 재편, 4축 구조 수렴 게이트, 진단 슬림 인덱스, 대조 코퍼스 실증 검증)을 이식했다. 번역·문학 판단의 외부 근거와 서비스 benchmark는 `references/translation-fidelity.md`와 `references/translation-benchmarks.md`에 기록한다.
+확장 taxonomy·quick-rules·rewriting-playbook·post-editese 지표의 설계 참고 출처는 [`epoko77-ai/im-not-ai`](https://github.com/epoko77-ai/im-not-ai)이며, 원본 MIT 라이선스의 파일을 이 스킬 구조에 맞게 배치했다. 이 스킬의 운영 taxonomy·LOCK·한국어 장르 프로파일·Codex 실행 규칙은 `Neosiki/neo-korean-writing`의 v5 설계를 계승해 v6으로 통합했고, v7에서 번역 충실성·문학 번역 참고선을 추가했으며, v8에서 im-not-ai v2.2~v2.3(단일 콜 우선 route 재편, 4축 구조 수렴 게이트, 진단 슬림 인덱스, 대조 코퍼스 실증 검증)을 이식했다. 번역·문학 판단의 외부 근거와 서비스 benchmark는 `references/translation-fidelity.md`와 `references/translation-benchmarks.md`에 기록한다.
