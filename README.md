@@ -64,6 +64,20 @@ Cowork용 패키지는 [`dist/neo-korean-writing.skill`](dist/neo-korean-writing
 | 사실·인용·수치 확인 | [`templates/lock-register.md`](templates/lock-register.md) |
 | 검토·승인 전달 | [`templates/editing-delivery.md`](templates/editing-delivery.md) |
 
+## 설치형 CLI
+
+프롬프트·템플릿을 작업 폴더로 복사하고, 원고의 진단·보존 대조를 명령으로 수행하려면 CLI를 설치합니다.
+
+```bash
+python3 -m pip install .
+neo-korean-writing assets
+neo-korean-writing init writing-workspace --profile general
+neo-korean-writing diagnose 원문.md --profile official --json
+neo-korean-writing verify 원문.md 수정본.md --strict
+```
+
+`init`은 선택한 장르의 프롬프트와 공통 작업 의뢰서·LOCK 대조표·결과 전달서를 생성합니다. 설치, 모든 명령, 배포본 빌드 절차는 [`docs/cli.md`](docs/cli.md)를 참고하세요.
+
 ## 작업 흐름
 
 ```text
@@ -123,6 +137,9 @@ neo-korean-writing/
 │   ├── korean_writing.py       # 진단·보존·변경률·일관성 통합 도구
 │   ├── translation_audit.py    # 번역문 표면·구조 감사
 │   └── verify_gates.py         # 4축 검증 게이트
+├── src/neo_korean_writing/     # 설치형 CLI 패키지와 내장 자산
+├── pyproject.toml              # Python 패키지·명령 메타데이터
+├── docs/cli.md                 # CLI 설치·사용·배포 가이드
 ├── references/                 # 규칙, 장르별 윤문 처방, 번역 충실성 자료
 ├── prompts/                    # 상황별 윤문·후편집 프롬프트
 ├── templates/                  # 의뢰·LOCK·결과 전달 템플릿
@@ -138,4 +155,4 @@ neo-korean-writing/
 
 ## 자료와 이력
 
-정밀 규칙과 장르별 처방은 [`references/`](references/)에, 바로 쓸 수 있는 프롬프트는 [`prompts/`](prompts/README.md)에, 작업 기록 템플릿은 [`templates/`](templates/README.md)에, 재현 가능한 연구 자료는 [`paper/`](paper/README.md)에, 변경 이력은 [`CHANGELOG.md`](CHANGELOG.md)에 정리했습니다. 프로젝트는 NextAI 윤영식이 개발·유지보수합니다.
+정밀 규칙과 장르별 처방은 [`references/`](references/)에, 바로 쓸 수 있는 프롬프트는 [`prompts/`](prompts/README.md)에, 작업 기록 템플릿은 [`templates/`](templates/README.md)에, 설치형 CLI 안내는 [`docs/cli.md`](docs/cli.md)에, 재현 가능한 연구 자료는 [`paper/`](paper/README.md)에, 변경 이력은 [`CHANGELOG.md`](CHANGELOG.md)에 정리했습니다. 프로젝트는 NextAI 윤영식이 개발·유지보수합니다.

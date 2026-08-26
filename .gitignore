@@ -1,1 +1,6 @@
 __pycache__/
+build/
+dist/*.whl
+dist/*.tar.gz
+*.egg-info/
+.venv/

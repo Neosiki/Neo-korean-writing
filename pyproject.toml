@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "neo-korean-writing"
+version = "0.1.0"
+description = "한글 글쓰기(윤문) 프롬프트·템플릿·보존 검증 CLI"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+  { name = "NextAI" },
+]
+keywords = ["korean-writing", "korean-editing", "proofreading", "prompt", "writing-tools"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: End Users/Desktop",
+  "Natural Language :: Korean",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Text Processing",
+]
+
+[project.urls]
+Homepage = "https://neosiki.github.io/"
+Repository = "https://github.com/Neosiki/Neo-korean-writing"
+Issues = "https://github.com/Neosiki/Neo-korean-writing/issues"
+
+[project.scripts]
+neo-korean-writing = "neo_korean_writing.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+neo_korean_writing = [
+  "assets/prompts/*.md",
+  "assets/templates/*.md",
+  "engine/*.json",
+]

@@ -22,6 +22,31 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: CLI 패키지 빌드·격리 설치
+        run: |
+          package_dir="$(mktemp -d)"
+          venv_dir="$(mktemp -d)"
+          workspace="$(mktemp -d)"
+          trap 'rm -rf "$package_dir" "$venv_dir" "$workspace"' EXIT
+          python3 -m pip install --upgrade build twine
+          python3 -m build --outdir "$package_dir"
+          python3 -m twine check "$package_dir"/*
+          python3 -m venv "$venv_dir"
+          "$venv_dir/bin/pip" install "$package_dir"/*.whl
+          "$venv_dir/bin/neo-korean-writing" assets
+          "$venv_dir/bin/neo-korean-writing" init "$workspace" --profile press-release
+          test -s "$workspace/prompts/press-release-editing.md"
+          test -s "$workspace/templates/editing-brief.md"
+          "$venv_dir/bin/neo-korean-writing" verify "$workspace/README.md" "$workspace/README.md" --strict
+          mkdir -p "$RUNNER_TEMP/neo-korean-writing-package"
+          cp "$package_dir"/* "$RUNNER_TEMP/neo-korean-writing-package/"
+      - name: CLI 배포본 아티팩트 보관
+        uses: actions/upload-artifact@v4
+        with:
+          name: neo-korean-writing-python-package
+          path: ${{ runner.temp }}/neo-korean-writing-package
+          if-no-files-found: error
+          retention-days: 14
       - name: taxonomy 무결성
         run: python3 scripts/korean_writing.py taxonomy --check
       - name: 회귀 테스트
