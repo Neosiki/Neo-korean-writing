@@ -1,0 +1,11 @@
+{
+  "cases": [
+    {"path": "false_positive/official.txt", "profile": "official", "forbid_active": ["B"]},
+    {"path": "false_positive/technical.md", "profile": "technical", "forbid_active": ["E"]},
+    {"path": "false_positive/sns.txt", "profile": "sns", "forbid_active": ["I"]},
+    {"path": "false_positive/column.txt", "profile": "column", "forbid_active": ["A", "C", "G", "L"]},
+    {"path": "true_positive/chatbot.txt", "profile": "blog", "expect_active": ["L"]},
+    {"path": "true_positive/overclaim.txt", "profile": "column", "expect_active": ["G"]},
+    {"path": "true_positive/template.md", "profile": "blog", "expect_structure": ["S-2", "S-4"]}
+  ]
+}

@@ -6,9 +6,16 @@ description: >-
   새 글은 korean-writing 워크플로우로 연결하고, 기존 원고는 사실·인용·숫자·화자를 보존하면서 14개 거시 패턴, 장문 무손실 청킹, 4축 검증 게이트를 적용해 윤문한다. 단순 맞춤법 교정이나 원문에 없는 내용을 추가하는 작업에는 사용하지 않는다.
 ---
 
-# 한글 글쓰기(윤문) — 정밀 윤문·검증 스킬 v9
+# 한글 글쓰기(윤문) — 진단 증거·작성 의도·보존 계약 스킬 v10
 
-원칙은 **글은 더 분명하게, 문체는 더 자연스럽게, 사실은 원문 그대로**다. 새 글이 필요하면 `korean-writing/SKILL.md`의 목적 정의·구조 설계·초안 작성 흐름으로 연결한다. 기존 원고는 진단·국소 윤문·보존 검증을 적용하며, 수렴 판정은 문자 변경률 하나가 아니라 4축 구조 게이트로 한다. 규칙 심각도는 대조 코퍼스 실측을 바탕으로 승격·강등한다.
+원칙은 **글은 더 분명하게, 문체는 더 자연스럽게, 사실은 원문 그대로**다. 새 글은 `korean-writing/SKILL.md`로 연결하고, 초안에서 윤문으로 넘어갈 때 작성 의도·출처·LOCK·변경 예산을 Writer–Editor 계약으로 전달한다. 기존 원고는 위치 기반 진단·국소 윤문·보호 구간 검증을 적용한다. 진단 신호는 편집 후보이며 AI 작성 여부의 판정이 아니다.
+
+모드별 상세 계약은 필요할 때만 읽는다.
+
+- 진단 결과를 만들 때는 [`references/detect-output-contract.md`](references/detect-output-contract.md)를 읽는다.
+- 원문과 수정본을 대조할 때는 [`references/protected-spans.md`](references/protected-spans.md)를 읽는다.
+- 장르와 문체를 정할 때는 [`references/context-voice-matrix.md`](references/context-voice-matrix.md)를 읽는다.
+- 새 글을 윤문 단계로 넘길 때는 [`references/writer-editor-handoff.md`](references/writer-editor-handoff.md)를 읽는다.
 
 ## 1. 네 가지 철칙
 
@@ -31,7 +38,7 @@ description: >-
 |---|---|---|
 | 글을 써줘·칼럼 작성·메모를 글로 | 글쓰기 | `korean-writing/SKILL.md`의 목적 정의 → 구조 설계 → 초안 작성 → 윤문 → 출력 |
 | 윤문해줘·다듬어줘·고쳐줘 | 윤문 | 진단 → span 수술 → 자체검증 → 출력 |
-| 진단만·AI 티 검사 | 진단 전용 | 재작성하지 않고 패턴·위치·심각도만 보고 |
+| 진단만·AI 티 검사 | 진단 전용 | 재작성하지 않고 문구·위치·이유·유지 조건·심각도를 보고. 저자 판정 금지 |
 | 파일 직접 고쳐줘 | 파일 수정 | 진단 → diff 미리보기 → 승인 → `.bak` 백업 후 반영 |
 | 최강 윤문·가장 세게 | heavy 강제 | 확장 taxonomy + 전후 메트릭 + fidelity/naturalness 감사 |
 | 번역문 감수·번역투·문학 번역 | 번역 검토 | 원문–번역문 대조 → 표면 잠금·구조 감사 → FID/LIT 위험 검토 |
@@ -88,7 +95,7 @@ strict/heavy이거나 원문이 한국어 번역투·AI 슬롭으로 의심될 �
 
 운영 SSOT와 확장 taxonomy가 같은 구간을 잡으면 중복 플래그하지 않는다. 최종 보고에는 운영 코드와 확장 ID를 병기할 수 있지만, 한 문장에 겹친 신호는 하나의 수술 대상으로 합친다.
 
-### 실측 검증 반영 (v8)
+### 실측 검증 반영
 
 대조 코퍼스 실증(`references/empirical-validation.md`)으로 통념 규칙을 승격·강등했다. 과잉교정을 막는 가드이므로 반드시 지킨다.
 
@@ -186,6 +193,9 @@ P0 → P1 → P2 순으로, 또는 확장 quick-rules 기준으로 D 관용구·
 
 ```text
 python scripts/korean_writing.py diagnose 원문.md [--profile sns|official|technical] [--json]
+python scripts/korean_writing.py structure 원문.md [--json]
+python scripts/korean_writing.py morphology 원문.md [--json]   # kiwipiepy 선택 설치 시
+python scripts/korean_writing.py handoff-validate templates/writer-editor-handoff.json [--json]
 python scripts/korean_writing.py sunny 원문.md [--json]
 python scripts/korean_writing.py preserve 원문.md 윤문본.md [--strict] [--json]
 python scripts/korean_writing.py diffrate 원문.md 윤문본.md [--json]
@@ -251,4 +261,4 @@ summary.md                   변경률·등급·핵심 변경 요약
 
 ## 출처와 적용 범위
 
-확장 taxonomy·quick-rules·rewriting-playbook·post-editese 지표의 설계 참고 출처는 [`epoko77-ai/im-not-ai`](https://github.com/epoko77-ai/im-not-ai)이며, 원본 MIT 라이선스의 파일을 이 스킬 구조에 맞게 배치했다. 이 스킬의 운영 taxonomy·LOCK·한국어 장르 프로파일·Codex 실행 규칙은 `Neosiki/neo-korean-writing`의 v5 설계를 계승해 v6으로 통합했고, v7에서 번역 충실성·문학 번역 참고선을 추가했으며, v8에서 im-not-ai v2.2~v2.3(단일 콜 우선 route 재편, 4축 구조 수렴 게이트, 진단 슬림 인덱스, 대조 코퍼스 실증 검증)을 이식했다. 번역·문학 판단의 외부 근거와 서비스 benchmark는 `references/translation-fidelity.md`와 `references/translation-benchmarks.md`에 기록한다.
+확장 taxonomy·quick-rules·rewriting-playbook·post-editese 지표는 윤기자의 설계를 바탕으로 구성했다. 이 스킬의 운영 taxonomy·LOCK·한국어 장르 프로파일·Codex 실행 규칙은 `Neosiki/neo-korean-writing`의 v5 설계를 계승해 v6으로 통합했고, v7에서 번역 충실성·문학 번역 참고선을 추가했으며, v8에서 윤기자 설계의 v2.2~v2.3 개선 사항(단일 콜 우선 route 재편, 4축 구조 수렴 게이트, 진단 슬림 인덱스, 대조 코퍼스 실증 검증)을 반영했다. 번역·문학 판단의 외부 근거와 서비스 benchmark는 `references/translation-fidelity.md`와 `references/translation-benchmarks.md`에 기록한다.

@@ -15,17 +15,20 @@ PROMPTS = {
     "press-release-editing": "press-release-editing.md",
     "longform-editing": "longform-editing.md",
     "translation-postediting": "translation-postediting.md",
+    "detect-only": "detect-only.md",
 }
 TEMPLATES = {
     "editing-brief": "editing-brief.md",
     "lock-register": "lock-register.md",
     "editing-delivery": "editing-delivery.md",
+    "writer-editor-handoff": "writer-editor-handoff.json",
 }
 PROFILES = {
     "general": ("standard-editing",),
     "press-release": ("press-release-editing",),
     "longform": ("longform-editing",),
     "translation": ("translation-postediting",),
+    "detect": ("detect-only",),
 }
 
 
@@ -148,6 +151,27 @@ def cmd_translation_audit(args: argparse.Namespace) -> int:
     return _engine_call("translation-audit", arguments)
 
 
+def cmd_structure(args: argparse.Namespace) -> int:
+    arguments = [args.file]
+    if args.json:
+        arguments.append("--json")
+    return _engine_call("structure", arguments)
+
+
+def cmd_morphology(args: argparse.Namespace) -> int:
+    arguments = [args.file]
+    if args.json:
+        arguments.append("--json")
+    return _engine_call("morphology", arguments)
+
+
+def cmd_handoff_validate(args: argparse.Namespace) -> int:
+    arguments = [args.file]
+    if args.json:
+        arguments.append("--json")
+    return _engine_call("handoff-validate", arguments)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="neo-korean-writing",
@@ -188,6 +212,21 @@ def build_parser() -> argparse.ArgumentParser:
     audit.add_argument("--literary", action="store_true")
     audit.add_argument("--json", action="store_true")
     audit.set_defaults(handler=cmd_translation_audit)
+
+    structure = subparsers.add_parser("structure", help="공식적 골격·과도한 구조 후보 진단")
+    structure.add_argument("file")
+    structure.add_argument("--json", action="store_true")
+    structure.set_defaults(handler=cmd_structure)
+
+    morphology = subparsers.add_parser("morphology", help="선택형 Kiwi 형태소 보조 진단")
+    morphology.add_argument("file")
+    morphology.add_argument("--json", action="store_true")
+    morphology.set_defaults(handler=cmd_morphology)
+
+    handoff = subparsers.add_parser("handoff-validate", help="Writer–Editor JSON 인계 계약 검사")
+    handoff.add_argument("file")
+    handoff.add_argument("--json", action="store_true")
+    handoff.set_defaults(handler=cmd_handoff_validate)
     return parser
 
 

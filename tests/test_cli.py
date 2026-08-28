@@ -34,7 +34,9 @@ class NeoKoreanWritingCliTests(unittest.TestCase):
             code = cli.main(["assets"])
         self.assertEqual(code, 0)
         self.assertIn("standard-editing", output.getvalue())
+        self.assertIn("detect-only", output.getvalue())
         self.assertIn("editing-brief", output.getvalue())
+        self.assertIn("writer-editor-handoff", output.getvalue())
 
     def test_show_prints_standard_prompt(self):
         output = io.StringIO()
@@ -53,6 +55,7 @@ class NeoKoreanWritingCliTests(unittest.TestCase):
             self.assertTrue((workspace / "templates" / "editing-brief.md").is_file())
             self.assertTrue((workspace / "templates" / "lock-register.md").is_file())
             self.assertTrue((workspace / "templates" / "editing-delivery.md").is_file())
+            self.assertTrue((workspace / "templates" / "writer-editor-handoff.json").is_file())
             self.assertTrue((workspace / "README.md").is_file())
 
     def test_init_stops_before_partial_copy_when_workspace_exists(self):
@@ -74,6 +77,20 @@ class NeoKoreanWritingCliTests(unittest.TestCase):
             revised.write_text(content, encoding="utf-8")
             code = cli.main(["verify", str(original), str(revised), "--strict"])
         self.assertEqual(code, 0)
+
+    def test_structure_and_handoff_commands(self):
+        with tempfile.TemporaryDirectory() as directory:
+            draft = Path(directory) / "draft.md"
+            draft.write_text("[도입]\n내용이다.", encoding="utf-8")
+            handoff = ROOT / "templates" / "writer-editor-handoff.json"
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                code_structure = cli.main(["structure", str(draft), "--json"])
+                code_handoff = cli.main(["handoff-validate", str(handoff), "--json"])
+        self.assertEqual(code_structure, 0)
+        self.assertEqual(code_handoff, 0)
+        self.assertIn('"S-2"', out.getvalue())
+        self.assertIn('"pass": true', out.getvalue())
 
 
 if __name__ == "__main__":

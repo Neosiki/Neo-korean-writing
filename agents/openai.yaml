@@ -1,4 +1,4 @@
 interface:
-  display_name: "한글 글쓰기(윤문) v9"
-  short_description: "한글 글쓰기·정밀 윤문·번역 후편집·4축 보존 검증을 하나로 연결하는 스킬"
-  default_prompt: "Use $neo-korean-writing to write or edit this Korean text while preserving facts, quotations, numbers, voice, and document structure."
+  display_name: "한글 글쓰기(윤문) v10"
+  short_description: "위치 기반 진단·의도 인계·정밀 보존 검증을 갖춘 한국어 글쓰기·윤문 스킬"
+  default_prompt: "Use $neo-korean-writing to write, diagnose, or edit this Korean text while preserving sourced claims, protected spans, author voice, and document structure."

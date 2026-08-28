@@ -27,6 +27,9 @@ python3 -m pip install -e .
 | `neo-korean-writing init 경로 --profile general` | 프롬프트·LOCK·결과 전달 템플릿이 포함된 작업공간을 만듭니다. |
 | `neo-korean-writing diagnose 원문.md --profile official --json` | 문체·리듬·반복 후보를 진단합니다. |
 | `neo-korean-writing verify 원문.md 수정본.md --strict` | 숫자·직접 인용·영문 용어·구조 변화와 의미 경고를 대조합니다. |
+| `neo-korean-writing structure 원문.md --json` | 고정 슬롯 누출·과도한 헤딩·공식적 도입과 결론을 진단합니다. |
+| `neo-korean-writing handoff-validate 인계.json --json` | 작성 의도·출처·LOCK·변경 예산 인계 계약을 검사합니다. |
+| `neo-korean-writing morphology 원문.md --json` | `kiwipiepy` 설치 시 형태소·종결·조사 분포를 보조 진단합니다. |
 | `neo-korean-writing translation-audit 원문.md 번역문.md --direction en-to-ko --literary --json` | 번역문 충실성·문학적 위험을 확인합니다. |
 
 ## 작업공간 시작 예시
@@ -65,8 +68,10 @@ python3 -m twine check /tmp/neo-korean-writing-dist/*
 생성된 wheel은 네트워크 없이 설치해 검증할 수 있습니다.
 
 ```bash
-python3 -m pip install /tmp/neo-korean-writing-dist/neo_korean_writing-0.1.0-py3-none-any.whl
+python3 -m pip install /tmp/neo-korean-writing-dist/neo_korean_writing-10.0.0-py3-none-any.whl
 neo-korean-writing assets
 ```
+
+선택형 형태소 계층은 `python3 -m pip install '.[morphology]'`로 설치합니다. 설치하지 않아도 기본 진단·보존 결과는 동일하게 작동합니다.
 
 패키지 공개 배포 전에는 빌드본의 메타데이터, 자산 포함 여부, 격리 환경에서의 `init`·`diagnose`·`verify` 동작을 확인해야 합니다. PyPI 등 외부 패키지 저장소에 실제로 게시하는 작업은 별도의 계정·권한·버전 승인 절차가 필요합니다.

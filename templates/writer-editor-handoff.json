@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0",
+  "context": {
+    "genre": "column",
+    "channel": "blog",
+    "audience": "미정",
+    "purpose": "이 글이 바꾸려는 독자의 판단"
+  },
+  "voice": {
+    "profile": "preserve",
+    "sample": "",
+    "intentional_devices": []
+  },
+  "provenance": {
+    "sourced_claims": [],
+    "author_interpretations": [],
+    "unresolved": []
+  },
+  "locks": {
+    "numbers": [],
+    "names": [],
+    "quotes": [],
+    "urls": [],
+    "terms": [],
+    "structures": []
+  },
+  "editorial": {
+    "structure_change": "suggest_only",
+    "change_budget_pct": 25,
+    "human_approval_required": true
+  }
+}

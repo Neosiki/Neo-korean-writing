@@ -6,6 +6,14 @@
 
 이 프로젝트는 특정 탐지기의 판정을 목표로 하지 않습니다. 문장의 번역투·반복·관공서식 표현·과장·리듬 문제를 진단하되, 원문에 없던 경험·감정·주장·근거를 만들어 내지 않는 것을 가장 중요한 원칙으로 둡니다.
 
+## v10 핵심
+
+- **Detect 2.0:** 범주 횟수뿐 아니라 실제 원문 문구, 행·문단 위치, 이유, 유지 조건과 조치를 JSON과 평문으로 제공합니다.
+- **문맥·문체 분리:** 장르별 허용도(context)와 필자 voice를 독립 적용하며 기본 voice는 `preserve`입니다.
+- **Writer–Editor 인계:** 작성 의도, 출처가 있는 주장, 작성자 해석, 미확인 항목, LOCK과 변경 예산을 JSON 계약으로 전달합니다.
+- **정밀 보호 검증:** 숫자·인용 외에도 코드, YAML, 표, URL, 각주를 대조하고 수정 후 새 P0/P1 패턴 증가를 막습니다.
+- **구조·오탐 검증:** 고정 슬롯 누출과 공식적인 골격을 진단하고 장르별 false-positive fixture, 자체 문서 self-scan, 배포 무결성 CI를 제공합니다.
+
 ## 제공 기능
 
 | 작업 | 시작점 | 결과 |
@@ -74,6 +82,9 @@ neo-korean-writing assets
 neo-korean-writing init writing-workspace --profile general
 neo-korean-writing diagnose 원문.md --profile official --json
 neo-korean-writing verify 원문.md 수정본.md --strict
+neo-korean-writing structure 원문.md --json
+neo-korean-writing handoff-validate templates/writer-editor-handoff.json
+neo-korean-writing morphology 원문.md --json  # 선택형 kiwipiepy
 ```
 
 `init`은 선택한 장르의 프롬프트와 공통 작업 의뢰서·LOCK 대조표·결과 전달서를 생성합니다. 설치, 모든 명령, 배포본 빌드 절차는 [`docs/cli.md`](docs/cli.md)를 참고하세요.
@@ -103,6 +114,10 @@ neo-korean-writing verify 원문.md 수정본.md --strict
 ```bash
 # 문체·리듬·AI식 표현 후보 진단
 python3 scripts/korean_writing.py diagnose 원문.md --profile official --json
+
+# 공식적 골격·슬롯 누출과 Writer–Editor 계약 검사
+python3 scripts/korean_writing.py structure 원문.md --json
+python3 scripts/korean_writing.py handoff-validate templates/writer-editor-handoff.json --json
 
 # 미시 표현 밀도 확인
 python3 scripts/korean_writing.py sunny 원문.md
@@ -135,6 +150,9 @@ neo-korean-writing/
 │   └── SKILL.md                # 주제·메모에서 시작하는 한글 글쓰기 워크플로우
 ├── scripts/
 │   ├── korean_writing.py       # 진단·보존·변경률·일관성 통합 도구
+│   ├── validate_repo.py        # 버전·참조·배포 자산 drift 차단
+│   ├── self_scan.py            # 저장소 자체 문체 회귀 검사
+│   ├── build_skill_package.py  # 검증 후 .skill 재현 빌드
 │   ├── translation_audit.py    # 번역문 표면·구조 감사
 │   └── verify_gates.py         # 4축 검증 게이트
 ├── src/neo_korean_writing/     # 설치형 CLI 패키지와 내장 자산
@@ -143,7 +161,7 @@ neo-korean-writing/
 ├── references/                 # 규칙, 장르별 윤문 처방, 번역 충실성 자료
 ├── prompts/                    # 상황별 윤문·후편집 프롬프트
 ├── templates/                  # 의뢰·LOCK·결과 전달 템플릿
-├── tests/                      # 회귀·golden 검사
+├── tests/                      # 회귀·golden·장르별 오탐 fixture
 ├── paper/                      # 재현 가능한 연구·벤치마크 산출물
 └── dist/
     └── neo-korean-writing.skill
