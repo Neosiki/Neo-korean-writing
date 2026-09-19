@@ -53,7 +53,7 @@ LAYER_BY_ID = {
     "A": "clarity", "B": "context", "C": "clarity", "D": "style",
     "E": "structure", "F": "rhythm", "G": "clarity", "H": "clarity",
     "I": "context", "J": "structure", "K": "clarity",
-    "L": "authorship_signal", "M": "reasoning", "N": "structure",
+    "L": "authorship_signal", "M": "reasoning", "N": "structure", "O": "style",
 }
 
 PROTECTED_REGEX = {
@@ -624,7 +624,7 @@ def cmd_taxonomy(args):
     P = load_patterns()
     if opt(args, "--check"):
         ids = [p["id"] for p in P["macro"]]
-        ok = ids == [chr(c) for c in range(ord("A"), ord("N") + 1)] and len(P["sunny"]) == 7
+        ok = ids == [chr(c) for c in range(ord("A"), ord("O") + 1)] and len(P["sunny"]) == 7
         for p in P["macro"]:
             for rx in p["regex"]: re.compile(rx)
         for r in P["sunny"]: re.compile(r["regex"])

@@ -33,10 +33,18 @@ SUNNY_SAMPLES = {
 
 
 class TestTaxonomy(unittest.TestCase):
-    def test_macro_ids_A_to_N(self):
+    def test_macro_ids_A_to_O(self):
         P = korean_writing.load_patterns()
         self.assertEqual([p["id"] for p in P["macro"]],
-                         [chr(c) for c in range(ord("A"), ord("N") + 1)])
+                         [chr(c) for c in range(ord("A"), ord("O") + 1)])
+
+    def test_banned_vocab_galrae(self):
+        import re
+        P = korean_writing.load_patterns()
+        rx = [re.compile(r) for p in P["macro"] if p["id"] == "O" for r in p["regex"]]
+        hits = lambda t: sum(len(r.findall(t)) for r in rx)
+        self.assertEqual(hits("여섯 사례는 세 갈래로 나뉜다. 첫 갈래는 기억이다. 두 번째 갈래는 권한이다."), 3)
+        self.assertEqual(hits("오늘 집에 갈래? 나도 갈래."), 0)
 
     def test_sunny_has_seven_rules(self):
         self.assertEqual(len(korean_writing.load_patterns()["sunny"]), 7)
