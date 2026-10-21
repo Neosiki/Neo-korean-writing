@@ -138,6 +138,10 @@ python3 scripts/korean_writing.py translation-audit 원문.md 번역문.md \
 python3 scripts/korean_writing.py translation-audit 원문.md 번역문.md \
   --direction en-to-ko --glossary templates/translation-glossary.tsv --strict
 
+# 번역투 유형 진단 + 초벌 대비 후편집 범위·과편집 경고(v9)
+python3 scripts/korean_writing.py translation-audit 원문.md 후편집본.md \
+  --direction en-to-ko --baseline 초벌번역.md --intensity 기본
+
 # 문단 군집·윤문 경로 확인(hot 문단, 단독 신호) / 분량 변화 포함 게이트
 python3 scripts/korean_writing.py diagnose 원문.md
 python3 scripts/verify_gates.py --before 원문.md --after 윤문본.md
