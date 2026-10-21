@@ -79,6 +79,12 @@ neo-korean-writing assets
 패키지 공개 배포 전에는 빌드본의 메타데이터, 자산 포함 여부, 격리 환경에서의 `init`·`diagnose`·`verify` 동작을 확인해야 합니다. PyPI 등 외부 패키지 저장소에 실제로 게시하는 작업은 별도의 계정·권한·버전 승인 절차가 필요합니다.
 # 문서 맥락 감사와 번역 v8 옵션
 
+Claude 설정에 올릴 때는 단일 `SKILL.md` 형식으로 패키징한다. 하위 글쓰기 경로는 참고 문서로 보존된다.
+
+```text
+python scripts/build_skill_package.py --target claude --output dist/neo-korean-writing-claude.skill
+```
+
 ```text
 neo-korean-writing translation-audit source.md target.md --glossary glossary.tsv --strict --json
 neo-korean-writing context-audit context-manifest.json --strict --json
