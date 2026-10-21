@@ -337,5 +337,68 @@ class TestV91ReceiveCodexResearch(unittest.TestCase):
         self.assertTrue(data["baseline_delta"]["surface_lock"]["introduced_missing"])
 
 
+class TestV92NumericUnitPreservation(unittest.TestCase):
+    """Avoid unit-translation false positives without losing numeric safeguards."""
+
+    def test_equivalent_unit_aliases_and_thousands_grouping(self):
+        pairs = [
+            ("Budget is 1,348 won.", "예산은 1,348원이다."),
+            ("Budget is 1348 KRW.", "예산은 1,348 원이다."),
+            ("Growth is 2.5 percent.", "성장률은 2.5퍼센트다."),
+            ("Growth is 2.5 per cent.", "성장률은 2.5%다."),
+            ("Length is 10 meters.", "길이는 10미터다."),
+            ("Weight is 0.5 kilograms.", "무게는 0.5킬로그램이다."),
+            ("손실은 −5%다.", "손실은 -5퍼센트다."),
+        ]
+        for source, target in pairs:
+            with self.subTest(source=source):
+                data = translation_audit.audit_data(source, target, "en-to-ko")
+                self.assertTrue(data["surface_lock"]["pass"], data["surface_lock"])
+                self.assertEqual(data["surface_lock"]["extra"], [])
+
+    def test_changed_value_or_unit_still_holds(self):
+        pairs = [
+            ("Budget is 1,348 won.", "예산은 1,300원이다."),
+            ("Length is 10 m.", "길이는 10cm다."),
+            ("Growth is 5 percent.", "성장률은 5다."),
+            ("Loss is -5%.", "손실은 5%다."),
+            ("예산은 2억 원이다.", "예산은 2만 원이다."),
+        ]
+        for source, target in pairs:
+            with self.subTest(source=source):
+                data = translation_audit.audit_data(source, target, "en-to-ko")
+                self.assertFalse(data["surface_lock"]["pass"])
+                self.assertTrue(any(r["id"] == "FID-6" for r in data["risks"]))
+
+    def test_repeated_amount_omission_is_not_hidden_by_normalization(self):
+        data = translation_audit.audit_data("Pay 1,348 won twice: 1,348 won.", "1,348원을 내세요.", "en-to-ko")
+        missing = [m for m in data["surface_lock"]["missing"] if m["kind"] == "number"]
+        self.assertEqual(missing, [{"kind": "number", "value": "1348원", "count": 1}])
+
+    def test_no_automatic_amount_or_decimal_locale_conversion(self):
+        for source, target in [("10 km", "10000 m"), ("1,5", "1.5"), ("1,000", "1.000")]:
+            with self.subTest(source=source):
+                self.assertNotEqual(translation_audit.shared_locks(source)["number"],
+                                    translation_audit.shared_locks(target)["number"])
+
+    def test_sentence_punctuation_is_not_part_of_number(self):
+        self.assertEqual(translation_audit.shared_locks("It is 12. Next is 0.5.")["number"], ["12", "0.5"])
+
+    def test_unit_name_must_not_match_prefix_of_other_english_word(self):
+        self.assertEqual(translation_audit.shared_locks("10 models and 5 growth events")["number"], ["10", "5"])
+
+    def test_numeric_unit_does_not_erase_standalone_acronyms(self):
+        self.assertEqual(translation_audit.shared_locks("1348 KRW; KRW and BERT use API")["acronym"],
+                         ["KRW", "BERT", "API"])
+
+    def test_baseline_delta_distinguishes_alias_change_from_numeric_regression(self):
+        source = "Budget is 1,348 won."
+        baseline = "예산은 1,348원이다."
+        same = translation_audit.audit_data(source, "예산은 1348 원이다.", "en-to-ko", baseline=baseline)
+        changed = translation_audit.audit_data(source, "예산은 1,300원이다.", "en-to-ko", baseline=baseline)
+        self.assertEqual(same["baseline_delta"]["surface_lock"]["introduced_missing"], [])
+        self.assertTrue(changed["baseline_delta"]["surface_lock"]["introduced_missing"])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -25,6 +25,9 @@ v9.1 보강(2026-10): 용어집에 권장어·허용 변형·고정 모드(stric
 후보/사람 검토)와 `state`(검토 후보)를 붙여, 기계적 차단(critical)이 MQM Critical 확정이
 아님을 출력에서 구분한다.
 
+v9.2 보강(2026-10): 숫자에 붙은 명시적 단위 별칭(won/원 등)과 천 단위 쉼표를
+정규화한다. 값·부호·단위·반복 횟수는 보존하며 통화·배율·소수점 로캘 환산은 하지 않는다.
+
 사용법:
   python3 translation_audit.py 원문.md 번역문.md
   python3 translation_audit.py 원문.md 번역문.md --baseline 초벌번역.md --intensity 기본
@@ -39,7 +42,7 @@ import statistics
 import sys
 from collections import Counter
 
-VERSION = "9.1.0"
+VERSION = "9.2.0"
 SEVERITY_RANK = {"critical": 0, "major": 1, "minor": 2, "review": 3}
 MQM_WEIGHT = {"critical": 25, "major": 5, "minor": 1, "review": 0}
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -47,8 +50,25 @@ if HERE not in sys.path:
     sys.path.insert(0, HERE)
 
 URL_RE = re.compile(r"https?://[^\s)>'\"]+")
+# Canonicalize only explicit unit aliases; never erase units or convert amounts.
+# Decimal commas and dates are not interpreted as locale-specific numbers.
+UNIT_ALIASES = {
+    "won": "원", "KRW": "원", "원": "원",
+    "percent": "%", "per cent": "%", "퍼센트": "%", "%": "%",
+    "kilometers": "km", "kilometres": "km", "kilometer": "km", "kilometre": "km", "킬로미터": "km", "km": "km",
+    "centimeters": "cm", "centimetres": "cm", "centimeter": "cm", "centimetre": "cm", "센티미터": "cm", "cm": "cm",
+    "meters": "m", "metres": "m", "meter": "m", "metre": "m", "미터": "m", "m": "m",
+    "kilograms": "kg", "kilogram": "kg", "킬로그램": "kg", "kg": "kg",
+    "grams": "g", "gram": "g", "그램": "g", "g": "g",
+}
+_UNIT_PATTERN = "|".join(
+    re.escape(unit) + (r"(?![A-Za-z])" if unit.isascii() and unit[-1].isalpha() else "")
+    for unit in sorted(UNIT_ALIASES, key=len, reverse=True)
+)
 NUMBER_RE = re.compile(
-    r"(?<![A-Za-z])\d[\d,.]*(?:\s*(?:%|퍼센트|억|만|천|원|명|개|년|월|일|시|분|배|건|회|km|m|cm|kg|g))?"
+    r"(?<![A-Za-z0-9_])[-+−]?\d+(?:[,.]\d+)*"
+    r"(?:[ \t]*(?:(?:억|만|천)(?:[ \t]*(?:원|명|개|건|회))?|"
+    + _UNIT_PATTERN + r"|명|개|년|월|일|시|분|배|건|회))?"
 )
 CODE_RE = re.compile(r"`([^`\n]+)`")
 ACRONYM_RE = re.compile(r"(?<![A-Za-z0-9])(?:[A-Z]{2,}(?:[-_][A-Z0-9]+)*|GPT-\d+(?:\.\d+)?|BERT|NLLB)(?![A-Za-z0-9])")
@@ -81,16 +101,28 @@ def _counts(pattern, text):
 
 
 def _normalized_number(value):
-    return re.sub(r"\s+", "", value)
+    match = re.fullmatch(r"([-+−]?\d+(?:[,.]\d+)*)(.*)", value)
+    number, unit = match.groups()
+    # A comma is removed only for an unambiguous three-digit grouping.
+    if re.fullmatch(r"[-+−]?\d{1,3}(?:,\d{3})+(?:\.\d+)?", number):
+        number = number.replace(",", "")
+    number = number.replace("−", "-")
+    unit = unit.strip()
+    canonical_unit = UNIT_ALIASES.get(unit, re.sub(r"\s+", "", unit))
+    return number + canonical_unit
 
 
 def shared_locks(text):
     """번역되어도 그대로 남아야 하는 표면 토큰만 추출한다."""
     out = {}
     out["url"] = list(URL_RE.findall(text))
-    out["number"] = [_normalized_number(x) for x in NUMBER_RE.findall(text)]
+    number_matches = list(NUMBER_RE.finditer(text))
+    out["number"] = [_normalized_number(m.group()) for m in number_matches]
     out["code"] = CODE_RE.findall(text)
-    out["acronym"] = ACRONYM_RE.findall(text)
+    # A recognized numeric unit such as KRW is already protected with its amount.
+    # A standalone KRW or an acronym spanning beyond a number stays locked.
+    out["acronym"] = [m.group() for m in ACRONYM_RE.finditer(text)
+                      if not any(n.start() <= m.start() and m.end() <= n.end() for n in number_matches)]
     out["link_target"] = MARKDOWN_LINK_RE.findall(text)
     out["placeholder"] = PLACEHOLDER_RE.findall(text)
     return out
@@ -840,6 +872,7 @@ def audit_data(source, target, direction="auto", literary=False, glossary=None,
             "pass": not missing,
             "missing": missing,
             "extra": extra,
+            "number_policy": "명시된 단위 별칭과 천 단위 쉼표만 정규화한다. 값·부호·단위·횟수는 보존하며 통화·배율·소수점 로캘은 변환하지 않는다",
         },
         "placeholders": {"pass": not (ph_missing or ph_extra), "missing": ph_missing, "extra": ph_extra},
         "structure": {

@@ -19,6 +19,8 @@ python3 -m pip install -e .
 
 ## 핵심 명령
 
+번역 프로필에는 `translation-craft-review` 프롬프트와 `translation-review-brief` 인계서가 포함된다. `show prompt translation-craft-review`로 확인할 수 있다. 문체 판단·자료 조사·정보 공개 순서를 검토할 때만 추가로 사용한다. 번역 감사 v9.2는 `1,348 won`과 `1,348원` 같은 명시된 단위 별칭을 대조하되 값·부호·단위 변화는 계속 알린다. 환산이나 번역 의미 전체의 동등성을 판정하지 않는다.
+
 | 명령 | 용도 |
 |---|---|
 | `neo-korean-writing assets` | 내장 프롬프트·템플릿과 작업공간 프로필을 확인합니다. |

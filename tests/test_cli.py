@@ -48,6 +48,20 @@ class NeoKoreanWritingCliTests(unittest.TestCase):
         self.assertIn("범용 한글 윤문 프롬프트", output.getvalue())
         self.assertIn("LOCK 항목", output.getvalue())
 
+    def test_translation_profile_delivers_craft_review_and_brief(self):
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory) / "translation"
+            self.assertEqual(cli.main(["init", str(workspace), "--profile", "translation"]), 0)
+            prompt = workspace / "prompts" / "translation-craft-review.md"
+            brief = workspace / "templates" / "translation-review-brief.md"
+            self.assertTrue(prompt.is_file())
+            self.assertTrue(brief.is_file())
+            self.assertIn("조사 종료·보류 이유", brief.read_text(encoding="utf-8"))
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                self.assertEqual(cli.main(["show", "prompt", "translation-craft-review"]), 0)
+            self.assertEqual(output.getvalue().strip(), prompt.read_text(encoding="utf-8").strip())
+
     def test_init_creates_selected_profile_and_common_templates(self):
         with tempfile.TemporaryDirectory() as directory:
             workspace = Path(directory) / "workspace"

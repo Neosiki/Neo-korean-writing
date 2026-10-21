@@ -16,6 +16,7 @@ PROMPTS = {
     "longform-editing": "longform-editing.md",
     "translation-postediting": "translation-postediting.md",
     "translation-draft-critique-edit": "translation-draft-critique-edit.md",
+    "translation-craft-review": "translation-craft-review.md",
     "cross-document-editing": "cross-document-editing.md",
     "detect-only": "detect-only.md",
 }
@@ -25,13 +26,14 @@ TEMPLATES = {
     "editing-delivery": "editing-delivery.md",
     "writer-editor-handoff": "writer-editor-handoff.json",
     "translation-glossary": "translation-glossary.tsv",
+    "translation-review-brief": "translation-review-brief.md",
     "context-manifest": "context-manifest.json",
 }
 PROFILES = {
     "general": ("standard-editing",),
     "press-release": ("press-release-editing",),
     "longform": ("longform-editing",),
-    "translation": ("translation-postediting", "translation-draft-critique-edit"),
+    "translation": ("translation-postediting", "translation-draft-critique-edit", "translation-craft-review"),
     "context": ("cross-document-editing",),
     "detect": ("detect-only",),
 }

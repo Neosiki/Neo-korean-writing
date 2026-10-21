@@ -14,6 +14,9 @@
 
 ## Unreleased
 
+- **번역 레인 v9.2 (2026-10-21):** v9.1 기준 커밋 `1f80391`을 유지하며 `won↔원` 등 명시된 숫자 단위 별칭을 정규화했다. 값·부호·단위·횟수 변경은 계속 검출하며 환산은 하지 않는다. 문장 끝 마침표와 영어 단어의 단위 접두부 오인도 보완했다. 원본과 설치형 엔진에 함께 반영했다.
+- **번역가 외부 자료 3선:** Saldanha의 문체 비교, Gough의 전문 번역가 조사 행동 연구, Briggs의 저서·인터뷰를 출처·관심도 종류·열람 한계와 함께 기록했다. 문체 근거·조사 종료/보류·정보 공개 순서를 검토하는 선택형 프롬프트와 인계 항목을 추가했다. CLI 번역 프로필이 새 프롬프트와 검토 인계서를 실제로 제공한다. 원문 전문 수록·작가 문체 복제·자동 점수 임계값 변경은 하지 않았다.
+
 - **번역 레인 v9.1: 외부 조사 반영(2026-10):** `translation_audit.py`를 9.1.0으로 올렸다. 용어집에 **권장어(첫 역어)·허용 변형·`mode`(strict/flex)·`context`** 열을 두어, 타당한 약칭·동의 표현을 오류로 몰지 않고 고정(strict) 용어의 변형 혼용만 TERM-3(경미)로 알린다. 용어집 보고에 `usage`와 `variations`를 넣어 어떤 용어가 어떤 형태로 쓰였는지 보인다. 모든 위험에 `basis`(mechanical-check·heuristic-candidate·human-review)와 `state: 검토 후보`를 붙이고 `severity_note`로 기계적 차단(critical)이 사람이 확정하는 MQM Critical과 다름을 밝힌다. `--baseline`에서는 `baseline_delta`로 초벌 대비 **사라진/새로 생긴/남은 번역투**, 어체·높임말 변화(EDIT-3), 후편집으로 새로 생긴 번역투(EDIT-4), 새 표면 잠금 누락을 따로 보고한다. 근거: `references/translation-external-research-20261021.md`(R01~R15)의 MQM 심각도 분리, 용어 변형 허용(Variation Matters·CoTERM), 후편집이 오류를 만들 수 있다는 점, 경어·말투 보존(Kosmic).
 
 - **번역 레인 v9: 번역투 고도화(2026-10):** `translation_audit.py`를 9.0.0으로 올렸다. 번역투를 유형(T1~T7·P1~P4·J1)별로 세고 빈도로 경미/주요를 가른다(1~2회짜리 `~를 통해`는 보고하지 않음). 한 문단에 유형이 몰리면 hot 문단으로 묶어 문단 단위 윤문을 권하고, 영어·일본어 계통 신호로 교정 시작점 힌트(`source_influence`)를 낸다. 서술 어체 혼용(FID-11), 목록 마침표 불일치(FID-12), 원문에 없는 완충 표현 증가(FID-13)를 추가했다. `--baseline`으로 초벌 대비 후편집 범위(가벼움·보통·많음)를 보고하고 `--intensity 보수|기본|적극`에 따라 과편집 경고·채택 중단(EDIT-1), 분량 변화(EDIT-2)를 낸다. `references/translationese-guide.md`(유형 표, 교정 순서, 교정 쌍, 오탐 가드)를 새로 두고 후편집 프롬프트에 오역 표시 원칙·교정 순서·범위 보고를 넣었다. 근거: amondnet/yoonmoon translate-polish, braindetox, pebblous 분해 보고서, arXiv 2601.19410, Toral(2019) post-editese.
