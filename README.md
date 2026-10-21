@@ -134,6 +134,10 @@ python3 scripts/korean_writing.py format 게시용.txt
 python3 scripts/korean_writing.py translation-audit 원문.md 번역문.md \
   --direction en-to-ko --literary --json
 
+# 용어집 일관성 + 치명·주요 위험에서 멈추기(v8)
+python3 scripts/korean_writing.py translation-audit 원문.md 번역문.md \
+  --direction en-to-ko --glossary templates/translation-glossary.tsv --strict
+
 # 규칙과 테스트 무결성
 python3 scripts/korean_writing.py taxonomy --check
 python3 -m unittest discover -s tests -v
@@ -153,7 +157,7 @@ neo-korean-writing/
 │   ├── validate_repo.py        # 버전·참조·배포 자산 drift 차단
 │   ├── self_scan.py            # 저장소 자체 문체 회귀 검사
 │   ├── build_skill_package.py  # 검증 후 .skill 재현 빌드
-│   ├── translation_audit.py    # 번역문 표면·구조 감사
+│   ├── translation_audit.py    # 번역문 표면·구조·용어집·심각도 감사
 │   └── verify_gates.py         # 4축 검증 게이트
 ├── src/neo_korean_writing/     # 설치형 CLI 패키지와 내장 자산
 ├── pyproject.toml              # Python 패키지·명령 메타데이터

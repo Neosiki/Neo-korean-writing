@@ -1,0 +1,6 @@
+# 번역 용어집 템플릿 — 열은 탭으로 구분합니다.
+# 원어	허용 역어(여러 개는 | 로 구분)	금지 역어(선택, | 로 구분)
+source	target	forbid
+large language model	대규모 언어 모델	거대 언어 모델
+prompt	프롬프트|지시문	명령어
+token	토큰
