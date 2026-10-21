@@ -8,9 +8,61 @@ v6의 `preserve`는 숫자·인용·영문 용어를 잠그는 표면 게이트�
 python3 scripts/translation_audit.py 원문.md 번역문.md --direction en-to-ko --json
 python3 scripts/translation_audit.py 원문.md 번역문.md --direction en-to-ko --literary
 python3 scripts/korean_writing.py translation-audit 원문.md 번역문.md --direction en-to-ko --strict
+python3 scripts/korean_writing.py translation-audit 원문.md 번역문.md --direction en-to-ko --glossary 용어집.tsv --json
 ```
 
 `pass`는 표면·구조 위험이 발견되지 않았다는 뜻이지, 의미가 자동으로 확정됐다는 뜻이 아니다. `warn`은 사람이 대조해야 할 위험 신호, `hold`는 숫자·URL·코드·약어·링크 대상이나 문서 구조가 달라져 채택을 멈춰야 하는 상태다.
+
+## v8 번역 레인 고도화 (2026-10)
+
+GitHub의 번역 스킬과 논문에서 가져온 구조를 한국어 윤문 계약에 맞춰 넣었다.
+
+| 출처 | 가져온 것 | 반영 위치 |
+|---|---|---|
+| andrewyng/translation-agent | 번역 → 성찰 → 개선 3단계, 지역·어휘 기준, 용어집 입력 | `prompts/translation-draft-critique-edit.md` |
+| MAATS (arXiv 2505.14848) | MQM 범주별로 따로 평가하고 심각도 순으로 수정 | 위험별 `severity`·`mqm`·`fix_order` |
+| agent-almanac translate-content | 용어집 일관성, i18n 자리표시자·코드·MDX 형식별 규칙 | `--glossary`, FID-10, 구조 대조 |
+| ko-en-translator / translator 계열 스킬 | 번역 전 원문 분석, 문체·존대 고정 | 프롬프트의 작업 정보·문체 고정 항목 |
+
+### 심각도 기준
+
+| 심각도 | 의미 | 예 | 처리 |
+|---|---|---|---|
+| 치명 critical | 사실·수치·구조·자리표시자가 깨져 그대로 쓰면 사고가 나는 오류 | 숫자 변경, `{name}` 번역, URL 누락 | 채택 중단(`hold`), 가장 먼저 수정 |
+| 주요 major | 뜻이 달라지거나 용어·문단이 어긋나는 오류 | 금지 역어, 문단 누락 후보, 강도 부사 삽입 | 수정 후 재감사 |
+| 경미 minor | 읽기 불편하지만 뜻은 같은 문제 | 번역투, 문장 수 편차 | 국소 수술 |
+| 사람 검토 review | 자동 판정 불가 | 문학적 정조 | 장면 단위로 사람이 읽기 |
+
+MQM 점수는 치명 25·주요 5·경미 1의 가중 합계이며 참고용 휴리스틱이다. 번역 품질을 자동으로 확정하는 값이 아니다.
+
+### v8 감사 차원 추가
+
+| 코드 | 확인할 것 | 기본 조치 |
+|---|---|---|
+| FID-8 | 문단 수 불일치, 문단별 길이비가 중앙값에서 크게 벗어난 누락·추가 후보 | 해당 문단을 원문과 나란히 읽기 |
+| FID-9 | 한국어 번역문에 번역되지 않고 남은 3단어 이상의 영어 구절 | 의도적 병기·고유명사인지 확인 |
+| FID-10 | `{name}`, `%s`, `{{x}}`, `${x}`, HTML/MDX 태그의 개수·형태 손상 | 원문과 같은 개수로 복구(치명) |
+| TERM-1 | 용어집에 있는 원어가 나왔는데 지정 역어가 없거나 원어가 그대로 남음 | 지정 역어로 통일, 모호하면 원어 병기 |
+| TERM-2 | 용어집의 금지 역어가 쓰임 | 지정 역어로 교체 |
+
+### 용어집 형식
+
+`templates/translation-glossary.tsv`를 복사해 쓴다. 한 줄에 `원어 ⇥ 허용 역어(|로 여러 개) ⇥ 금지 역어(선택)`를 적는다. JSON(`{"원어": ["역어"]}` 또는 `[{"source","target","forbid"}]`)도 읽는다. 용어집 검사는 원어가 원문에 있을 때만 적용된다.
+
+### LLM 심사 점수를 합격 근거로 쓰지 않는다
+
+EAMT 2026의 「Creativity Bias」 연구(Gerrits·van Noord·Guerberof Arenas)는 문학 번역 데이터를 전문 번역가가 창의성 기준으로 주석한 뒤 자동 지표와 LLM 심사 점수를 비교했다. 두 방식 모두 전문가 판단과 상관이 낮았고, LLM 심사는 기계번역 쪽을 선호하며 창의적이고 문화적으로 적절한 선택에 낮은 점수를 줬으며, 시처럼 문학성이 짙을수록 더 나빠졌다. 이 레인에서 쓰는 규칙은 다음과 같다.
+
+1. `--literary` 번역의 최종 판단은 LLM 점수가 아니라 장면 단위 사람 검토로 한다.
+2. 비평 단계에서 LLM이 "더 매끄럽다"는 이유로 낸 수정은 창의적 선택(creative shift)을 오류로 오인한 것일 수 있다. 원문에 근거가 없는 평탄화는 롤백한다.
+3. 자동 지표·MQM 휴리스틱 점수는 후보 정렬용이다. 문학 문서에서는 점수가 낮은 번역이 더 나쁜 번역이라는 뜻이 아니다.
+
+출처: https://aclanthology.org/2026.eamt-1.43/
+
+### 아직 넣지 않은 것
+
+- 역번역 자동 비교: 번역 호출이 필요해 스크립트가 아닌 프롬프트의 선택 단계로만 둔다(비용과 오탐 때문).
+- 용어 일관성의 자동 추출: 용어집 없이 같은 원어가 여러 역어로 번역됐는지 찾는 기능은 형태소 분석이 필요해 이후로 미룬다.
 
 ## 감사 차원
 

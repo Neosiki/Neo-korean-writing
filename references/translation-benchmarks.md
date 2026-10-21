@@ -29,9 +29,12 @@
 - [Hunyuan-MT GitHub](https://github.com/Tencent-Hunyuan/Hunyuan-MT), [Shy-Hunyuan 논문](https://aclanthology.org/2025.wmt-1.36/).
 - [YanoljaNEXT-Rosetta-12B](https://huggingface.co/yanolja/YanoljaNEXT-Rosetta-12B-2510): 구조화 관광 도메인 특화 설명과 제한.
 
+- [Creativity Bias: How Machine Evaluation Struggles with Creativity in Literary Translations (EAMT 2026)](https://aclanthology.org/2026.eamt-1.43/): 자동 지표와 LLM 심사가 문학 번역의 창의성 판단에서 전문가와 어긋남. 기계번역 선호, 창의적 선택 감점.
+
 ## 스킬에 반영한 결론
 
 1. 자동 BLEU·COMET·유창성 점수는 후보 선별용으로만 사용한다.
 2. 번역문에는 `FID-1~7`을 적용해 주체·부정·양태·인과·구조·숫자·번역투를 분리 검토한다.
 3. 문학 번역에는 `LIT-1~3`을 추가해 정조·모호성·반복·감정 부사 삽입을 확인한다.
-4. 서비스 간 “Top” 비교는 원문·장르·언어 방향·평가자·날짜를 함께 기록한다.
+4. 문학 번역에서는 LLM 심사 점수를 합격 근거로 쓰지 않는다(EAMT 2026).
+5. 서비스 간 “Top” 비교는 원문·장르·언어 방향·평가자·날짜를 함께 기록한다.
