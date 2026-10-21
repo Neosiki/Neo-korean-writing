@@ -267,5 +267,75 @@ class TestV9PostEditScope(unittest.TestCase):
         self.assertEqual(bad, 3)
 
 
+class TestV91ReceiveCodexResearch(unittest.TestCase):
+    """v9.1: 용어집 권장어·허용어·고정 모드, 위험 근거 표기, 초벌 대비 변화."""
+
+    SRC = "We use a large language model. The prompt matters."
+
+    def _glossary(self, mode):
+        return [{"source": "large language model", "targets": ["대규모 언어 모델", "LLM"], "forbid": [],
+                 "mode": mode, "context": "", "preferred": "대규모 언어 모델"},
+                {"source": "prompt", "targets": ["프롬프트"], "forbid": [], "mode": "flex", "context": "",
+                 "preferred": "프롬프트"}]
+
+    def test_allowed_variant_is_not_an_error(self):
+        tgt = "우리는 LLM을 쓴다. 프롬프트가 중요하다."
+        data = translation_audit.audit_data(self.SRC, tgt, "en-to-ko", glossary=self._glossary("flex"))
+        self.assertFalse(any(r["id"].startswith("TERM") for r in data["risks"]))
+
+    def test_strict_mixed_variants_warn_but_flex_does_not(self):
+        tgt = "우리는 대규모 언어 모델을 쓴다. LLM은 빠르다. 프롬프트가 중요하다."
+        strict = translation_audit.audit_data(self.SRC, tgt, "en-to-ko", glossary=self._glossary("strict"))
+        flex = translation_audit.audit_data(self.SRC, tgt, "en-to-ko", glossary=self._glossary("flex"))
+        self.assertTrue(any(r["id"] == "TERM-3" and r["severity"] == "minor" for r in strict["risks"]))
+        self.assertFalse(any(r["id"] == "TERM-3" for r in flex["risks"]))
+        self.assertEqual(len(flex["glossary"]["variations"]), 1)
+
+    def test_glossary_tsv_reads_mode_and_context(self):
+        import tempfile
+        with tempfile.NamedTemporaryFile("w", suffix=".tsv", delete=False, encoding="utf-8") as f:
+            f.write("source\ttarget\tforbid\tmode\tcontext\nprompt\t프롬프트|질문문\t\tstrict\t본문\n")
+            path = f.name
+        try:
+            entries = translation_audit.load_glossary(path)
+        finally:
+            os.unlink(path)
+        self.assertEqual(entries[0]["mode"], "strict")
+        self.assertEqual(entries[0]["preferred"], "프롬프트")
+        self.assertEqual(entries[0]["context"], "본문")
+
+    def test_risks_carry_basis_and_state(self):
+        data = translation_audit.audit_data("예산은 1,348억 원이다.", "예산은 1,300억 원이다.", direction="same")
+        for r in data["risks"]:
+            self.assertEqual(r["state"], "검토 후보")
+        self.assertEqual([r["basis"] for r in data["risks"] if r["id"] == "FID-6"], ["mechanical-check"])
+        self.assertIn("MQM", data["severity_note"])
+
+    def test_baseline_delta_fixed_and_introduced(self):
+        src = "The user opened the file."
+        bad = "파일이 사용자에 의해 열려졌다."
+        good = "사용자가 파일을 열었다."
+        fixed = translation_audit.audit_data(src, good, "en-to-ko", baseline=bad)
+        self.assertTrue(fixed["baseline_delta"]["translationese"]["fixed"])
+        self.assertFalse(any(r["id"] == "EDIT-4" for r in fixed["risks"]))
+        worse = translation_audit.audit_data(src, bad, "en-to-ko", baseline=good)
+        self.assertTrue(worse["baseline_delta"]["translationese"]["introduced"])
+        self.assertTrue(any(r["id"] == "EDIT-4" for r in worse["risks"]))
+
+    def test_baseline_register_change_flags_edit3(self):
+        src = "Please confirm the items. Please check the file. Please send the report."
+        base = "항목을 확인해 주세요. 파일을 점검해 주세요. 보고서를 보내 주세요."
+        final = "항목을 확인해. 파일을 점검해. 보고서를 보내."
+        data = translation_audit.audit_data(src, final, "en-to-ko", baseline=base)
+        self.assertTrue(any(r["id"] == "EDIT-3" for r in data["risks"]))
+
+    def test_baseline_surface_lock_regression(self):
+        src = "요금은 1,348원이다."
+        base = "요금은 1,348원이다."
+        final = "요금은 1,300원이다."
+        data = translation_audit.audit_data(src, final, "same", baseline=base)
+        self.assertTrue(data["baseline_delta"]["surface_lock"]["introduced_missing"])
+
+
 if __name__ == "__main__":
     unittest.main()
