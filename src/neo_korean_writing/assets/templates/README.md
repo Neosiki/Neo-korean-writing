@@ -6,6 +6,7 @@
 |---|---|---|
 | 시작 | [`editing-brief.md`](editing-brief.md) | 목적·독자·장르·허용 변경 범위·원하는 납품물을 정리합니다. |
 | 윤문 전후 검수 | [`lock-register.md`](lock-register.md) | 사실·수치·인용·링크·표 등 바뀌면 안 되는 정보를 LOCK으로 관리합니다. |
+| 번역 용어집 | [`translation-glossary.tsv`](translation-glossary.tsv) | 번역 감사의 `--glossary`에 넣는 원어·역어·금지 역어 목록입니다. |
 | 결과 검토 | [`editing-delivery.md`](editing-delivery.md) | 윤문본, 변경 근거, 보존 확인, 미확정 항목과 승인 상태를 함께 전달합니다. |
 
 ## 권장 순서
