@@ -49,6 +49,9 @@ CONTEXT_RELAXED = {
     "email": {"B"},
 }
 
+NEWS_COMMA_PROFILES = {"article", "translation"}
+NEWS_COMMA_DENSITY = 3.0
+
 LAYER_BY_ID = {
     "A": "clarity", "B": "context", "C": "clarity", "D": "style",
     "E": "structure", "F": "rhythm", "G": "clarity", "H": "clarity",
@@ -155,11 +158,18 @@ def _apply_empirical_guards(pid, matches, scan, profile):
     connective_counts = {w: len(re.findall(rf"(?<![가-힣]){w}(?![가-힣])", scan))
                          for w in ("또한", "아울러", "한편")}
     connective_total = sum(connective_counts.values())
+    # Grok 제안의 선택형 기사·번역 쉼표 휴리스틱. 외부 코퍼스 수치는 독립 재현하지 않았다.
+    # 희소한 연결어미 뒤 쉼표만 완화하고 줄표(—)는 밀도와 무관하게 남긴다.
+    comma_spans = [m for m in matches if pid == "D" and m.group(0) != "—"]
+    comma_density = len(comma_spans) * 1000 / max(len(scan), 1)
     for match in matches:
         span = match.group(0)
         if pid == "A" and re.fullmatch(r"[를을]\s*통해", span) and through_count < 3:
             continue
         if pid == "A" and span in {"그것은", "이들은", "그들은"} and profile != "translation":
+            continue
+        if (pid == "D" and span != "—" and profile in NEWS_COMMA_PROFILES
+                and comma_density < NEWS_COMMA_DENSITY):
             continue
         if pid == "C" and span.startswith("것이다") and geosida_count < 3:
             continue

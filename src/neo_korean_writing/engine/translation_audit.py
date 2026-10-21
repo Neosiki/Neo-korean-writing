@@ -31,6 +31,10 @@ v9.2 보강(2026-10): 숫자에 붙은 명시적 단위 별칭(won/원 등)과 �
 v9.3 보강(2026-10): 기사 회귀로 확인한 연도형 년 접미 오탐을 보완하고,
 percentage points/%포인트/%p를 대조한다. %와 %p, 바뀐 연도는 구분한다.
 
+v9.5 보강(2026-10): 외부 작업본의 제안을 자체 예문으로 검증해 현지화 약어와 시각 표기를
+보완했다. 현지화 조정에는 근거를 남기며 괄호 안 수치 생략은 자동 면제하지 않는다.
+범위 하이픈(4.5%-5%)의 음수 오추출도 고쳤다. 외부 기사 집계는 독립 재현 결과가 아니다.
+
 v9.4 보강(2026-10): 값이 같은 표기(날짜, 천·만·억↔thousand·million·billion, 기간 단위, 범위,
 영하)를 같은 토큰으로 맞춘다. 마일·파운드 등은 번역문이 환산했을 때 계산이 맞으면 review로
 알리고 어긋나면 hold한다. 통화·소수점 로캘은 변환하지 않는다.
@@ -51,7 +55,7 @@ from collections import Counter
 from datetime import date
 from decimal import Decimal, InvalidOperation
 
-VERSION = "9.4.1"
+VERSION = "9.5.0"
 SEVERITY_RANK = {"critical": 0, "major": 1, "minor": 2, "review": 3}
 MQM_WEIGHT = {"critical": 25, "major": 5, "minor": 1, "review": 0}
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -105,7 +109,7 @@ _UNIT_PATTERN = "|".join(
     for unit in sorted(UNIT_ALIASES, key=len, reverse=True)
 )
 NUMBER_RE = re.compile(
-    r"(?<![A-Za-z0-9_])[-+−]?\d+(?:[,.]\d+)*"
+    r"(?:(?<![A-Za-z0-9_%])[-+−])?(?<![A-Za-z0-9_])\d+(?:[,.]\d+)*"
     r"(?:[ \t]*(?:(?:억|만|천)(?:[ \t]*(?:원|명|개|건|회))?|"
     + _UNIT_PATTERN + r"|명|개|년|월|일|시|분|배|건|회))?"
 )
@@ -304,6 +308,20 @@ def _hyphen_range_sub(m):
     return f"{m.group('a')}{ub} {m.group('b')}{ub}"
 
 
+_CLOCK_COLON_RE = re.compile(r"(?<![\d:.])(?P<h>[01]?\d|2[0-3]):(?P<m>[0-5]\d)(?![\d:]|\s*[AP]M\b)", re.I)
+_CLOCK_KO_RE = re.compile(r"(?<![가-힣])(?P<period>오전|오후)\s*(?P<h>\d{1,2})\s*시(?:\s*(?P<m>\d{1,2})\s*분)?")
+
+
+def _clock_token(match):
+    hour, minute = int(match.group("h")), int(match.group("m") or 0)
+    period = match.groupdict().get("period")
+    if period:
+        if not 1 <= hour <= 12 or minute > 59:
+            return None
+        hour = hour % 12 + (12 if period == "오후" else 0)
+    return f"time:{hour:02d}:{minute:02d}"
+
+
 def number_tokens(text):
     """값이 같은 표기 차이를 같은 토큰으로 맞춘 숫자 토큰 목록.
 
@@ -315,6 +333,10 @@ def number_tokens(text):
     text = _RANGE_RE.sub(_range_sub, text)
     text = _HYPHEN_RANGE_RE.sub(_hyphen_range_sub, text)
     items = []
+    # Keep each clock as one value: do not pair an hour with another clock's
+    # minutes or accept a missing/reversed 오전/오후 marker.
+    text = _mask(text, _CLOCK_KO_RE, _clock_token, items)
+    text = _mask(text, _CLOCK_COLON_RE, _clock_token, items)
     for _name, regex in _DATE_PATTERNS:
         text = _mask(text, regex, _date_token, items)
     text = _mask(text, _EN_MAG_RE, _en_magnitude_token, items)
@@ -420,6 +442,77 @@ def _missing_counts(before, after):
         for value, count in (b - a).items():
             missing.append({"kind": kind, "value": value, "count": count})
     return missing
+
+
+# Grok v10.2 handoff: proposed exceptions, checked with synthetic regressions.
+# The article corpus and its aggregate measurements were not independently reproduced.
+KOREAN_COUNTERS = ("명", "년", "개", "건", "회", "월", "일")
+LOCALIZED_ACRONYMS = {
+    "US": ("미국", r"(?<![가-힣])미(?= ?(?:정부|당국|관리|특사|대통령|국무부|국방부|연준|의회|중간선거))"), "UK": ("영국",), "EU": ("유럽연합",), "UN": ("유엔", "국제연합"),
+    "MP": ("의원",), "PM": ("총리",), "NATO": ("나토", "북대서양조약기구"),
+}
+
+
+def _korean_scale(number_text):
+    """정수를 '55만'·'3억' 같은 한국어 만/억 표기로 바꾼 후보를 만든다(정확히 나누어떨어질 때만)."""
+    if not re.fullmatch(r"\d+", number_text):
+        return []
+    n = int(number_text)
+    out = []
+    for unit, size in (("억", 10 ** 8), ("만", 10 ** 4)):
+        if n >= size and n % size == 0:
+            out.append(f"{n // size}{unit}")
+    return out
+
+
+def _acronym_context(acronym, source):
+    if acronym == "PM":
+        return len(re.findall(r"\b(?:UK|British|Australian|Canadian|Japanese|Indian)\s+PM\b|\bprime minister\s*\(PM\)", source, re.I))
+    if acronym == "MP":
+        return len(re.findall(r"\b(?:UK|British|Australian|Canadian|independent|Labour|Conservative)\s+MP\b|\bmember of parliament\s*\(MP\)", source, re.I))
+    return None
+
+
+def reconcile_locks(missing, extra, target, source=""):
+    """수량 표기와 문맥이 있는 약어 대응만 분리한다. 괄호 생략은 면제하지 않는다."""
+    pool = Counter()
+    for m in extra:
+        if m["kind"] == "number":
+            pool[m["value"]] += m["count"]
+    kept, reconciled = [], []
+    for m in missing:
+        left = m["count"]
+        reason = None
+        if m["kind"] == "number":
+            value = m["value"]
+            candidates = [value + c for c in KOREAN_COUNTERS]
+            for scaled in _korean_scale(value):
+                candidates += [scaled] + [scaled + c for c in KOREAN_COUNTERS]
+            for cand in candidates:
+                take = min(left, pool[cand])
+                if take:
+                    pool[cand] -= take
+                    left -= take
+                    reason = f"한국어 단위·만 단위 표기 {cand}"
+        elif m["kind"] == "acronym" and m["value"] in LOCALIZED_ACRONYMS:
+            hits = sum(len(re.findall(k, target)) for k in LOCALIZED_ACRONYMS[m["value"]])
+            context_count = _acronym_context(m["value"], source)
+            if context_count is not None:
+                hits = min(hits, context_count)
+            take = min(left, hits)
+            if take:
+                left -= take
+                reason = "현지화 역어 " + LOCALIZED_ACRONYMS[m["value"]][0]
+        if left < m["count"]:
+            reconciled.append({**m, "count": m["count"] - left, "reason": reason,
+                               "basis": "heuristic-candidate", "state": "검토 후보"})
+        if left:
+            kept.append({**m, "count": left})
+    remaining_extra = [
+        {**m, "count": pool[m["value"]]} if m["kind"] == "number" else m
+        for m in extra if m["kind"] != "number" or pool[m["value"]] > 0
+    ]
+    return kept, reconciled, remaining_extra
 
 
 def _extra_counts(before, after):
@@ -881,8 +974,12 @@ def baseline_delta(source, baseline, target, direction="en-to-ko"):
                        "dominant_changed": bool(dom(reg_b) and dom(reg_a) and dom(reg_b) != dom(reg_a)),
                        "honorific_markers": {"baseline": hon_b, "final": hon_a}}
     src_locks = shared_locks(source)
-    miss_b = {(m["kind"], m["value"]) for m in surface_diff(src_locks, shared_locks(baseline))[0]}
-    miss_a = {(m["kind"], m["value"]) for m in surface_diff(src_locks, shared_locks(target))[0]}
+    def missing_keys(text):
+        missing, extra, _ = surface_diff(src_locks, shared_locks(text))
+        if direction == "en-to-ko":
+            missing, _, _ = reconcile_locks(missing, extra, text, source)
+        return {(m["kind"], m["value"]) for m in missing}
+    miss_b, miss_a = missing_keys(baseline), missing_keys(target)
     out["surface_lock"] = {"introduced_missing": sorted(miss_a - miss_b), "fixed": sorted(miss_b - miss_a)}
     return out
 
@@ -911,6 +1008,9 @@ def audit_data(source, target, direction="auto", literary=False, glossary=None,
     extra = [m for m in extra_all if m["kind"] != "placeholder"]
     ph_missing = [m for m in missing_all if m["kind"] == "placeholder"]
     ph_extra = [m for m in extra_all if m["kind"] == "placeholder"]
+    reconciled = []
+    if direction == "en-to-ko":
+        missing, reconciled, extra = reconcile_locks(missing, extra, target, source)
     source_structure = structure_data(source)
     target_structure = structure_data(target)
     structure_warnings = []
@@ -1113,6 +1213,12 @@ def audit_data(source, target, direction="auto", literary=False, glossary=None,
             "야드파운드법 값을 미터법으로 환산한 번역이다. 환산 값은 계산으로 맞았지만 원문 병기 여부는 편집 방침으로 정한다",
             severity="review", mqm="Locale convention", count=len(converted),
         ))
+    if reconciled:
+        risks.append(_risk(
+            "FID-14", "review", "현지화 대응 확인", reconciled,
+            "약어의 역어와 수량 표기가 같은 대상을 가리키는지 원문 문맥과 대조한다. 괄호 안 수치 생략은 자동 면제하지 않는다",
+            severity="review", mqm="Locale convention", count=len(reconciled),
+        ))
     if structure_warnings:
         risks.append(_risk(
             "FID-5", "hold", "문서 구조 변화", structure_warnings,
@@ -1164,7 +1270,8 @@ def audit_data(source, target, direction="auto", literary=False, glossary=None,
             "missing": missing,
             "extra": extra,
             "verified_conversions": converted,
-            "number_policy": "값이 같은 표기만 같은 토큰으로 본다(단위 별칭, 천 단위 쉼표, 연도형 년 접미, %와 %p 구분, 날짜, 천·만·억·million·billion, 기간 단위, 범위, 영하). 통화·소수점 로캘은 변환하지 않는다. 마일·파운드·피트·인치·온스·화씨는 계산이 맞을 때만 환산 확인(review)으로 두고, 값이 어긋나면 FID-6 hold로 둔다",
+            "reconciled": reconciled,
+            "number_policy": "값이 같은 표기만 같은 토큰으로 본다(단위 별칭, 천 단위 쉼표, 연도형 년 접미, %와 %p 구분, 날짜, 천·만·억·million·billion, 기간 단위, 범위, 영하, 명시적인 오전·오후 시각). 괄호 수치 생략은 면제하지 않는다. 통화·소수점 로캘은 변환하지 않는다. 마일·파운드·피트·인치·온스·화씨는 계산이 맞을 때만 환산 확인(review)으로 두고, 값이 어긋나면 FID-6 hold로 둔다",
         },
         "placeholders": {"pass": not (ph_missing or ph_extra), "missing": ph_missing, "extra": ph_extra},
         "structure": {

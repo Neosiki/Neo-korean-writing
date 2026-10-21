@@ -21,7 +21,7 @@ python3 -m pip install -e .
 
 해외 기사 번역은 `init 경로 --profile news-translation`으로 시작한다. 기사 검토 프롬프트와 인계서에서 발행·수정·사건 날짜, 발언자·반박, 여론조사의 대상·시점을 대조한다. `python scripts/evaluate_news_fixtures.py --json`은 공개 기사 6구간과 시험용 변형 12개의 표면 검사·의미 사각지대를 분리해 보고한다. 개발용 회귀 검사이며 독립 번역 품질 점수가 아니다.
 
-번역 프로필에는 `translation-craft-review` 프롬프트와 `translation-review-brief` 인계서가 포함된다. `show prompt translation-craft-review`로 확인할 수 있다. 문체 판단·자료 조사·정보 공개 순서를 검토할 때만 추가로 사용한다. 번역 감사 v9.4.1은 `1,348 won`과 `1,348원`, `October 15, 2026`과 `2026년 10월 15일`, `1.5 billion`과 `15억`처럼 값이 같은 표기를 같은 숫자로 대조하고, 값·부호·단위가 달라지면 계속 알린다. 마일·파운드 등은 번역문의 표시 자릿수에 따른 반올림 범위만 인정하고 `verified_conversions`에 계산값·차이·허용 오차를 남긴다. 5% 허용 오차는 사용하지 않는다. 번역 의미 전체의 동등성은 판정하지 않는다.
+번역 프로필에는 `translation-craft-review` 프롬프트와 `translation-review-brief` 인계서가 포함된다. `show prompt translation-craft-review`로 확인할 수 있다. 문체 판단·자료 조사·정보 공개 순서를 검토할 때만 추가로 사용한다. 번역 감사 v9.5는 `1,348 won`과 `1,348원`, `October 15, 2026`과 `2026년 10월 15일`, `1.5 billion`과 `15억`처럼 값이 같은 표기를 같은 숫자로 대조하고, 값·부호·단위가 달라지면 계속 알린다. 마일·파운드 등은 번역문의 표시 자릿수에 따른 반올림 범위만 인정하고 `verified_conversions`에 계산값·차이·허용 오차를 남긴다. 5% 허용 오차는 사용하지 않는다. 번역 의미 전체의 동등성은 판정하지 않는다.
 
 | 명령 | 용도 |
 |---|---|

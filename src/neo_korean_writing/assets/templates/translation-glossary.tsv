@@ -1,4 +1,20 @@
 source	target	forbid	mode	context
 large language model	대규모 언어 모델|LLM	거대언어모델	strict	본문 첫 등장은 풀어쓰기, 이후 LLM 허용
-prompt	프롬프트|질문문		flex	
-token	토큰		flex	
+prompt	프롬프트|질문문		flex
+token	토큰		flex
+artificial intelligence	인공지능(AI)|AI|인공지능		flex	기사 문체 예시: 첫 등장 '인공지능(AI)', 이후 'AI'
+tariff	관세		strict	관세 문맥의 예시
+gross domestic product	국내총생산(GDP)|GDP		flex	경제 기사에서는 'GDP' 단독도 관례
+inflation	인플레이션|물가 상승		flex	물가 상승 현상. inflation rate의 물가상승률과 구분한다
+midterm elections	중간선거		strict
+envoy	특사		strict	예: 스티브 위트코프 미국 특사
+curfew	통행금지령|통행금지|통금		flex
+trade surplus	무역 흑자|무역흑자		flex
+interior minister	내무장관|내무부 장관		flex	한 기사 안에서는 하나로 통일 권장(편집 방침으로 정한다)
+independent MP	무소속 의원|무소속 하원의원		flex
+electorate office	선거구 사무실|지역구 사무실		flex
+looting	약탈		strict
+sabotage	사보타주|파괴 공작|공작		flex
+National Bureau of Statistics	국가통계국		strict	중국 공식 기관명
+Victoria	빅토리아주|빅토리아 주		flex	호주 행정구역 문맥에서만 적용하는 예시. 인명·다른 지역에는 그대로 쓰지 않는다
+Helen Haines	헬렌 헤인스|헤인스	헤인즈	flex	예시: 인명 표기 통일, 성만 쓰는 약칭은 허용(기사 문맥에서 확인)
