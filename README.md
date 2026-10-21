@@ -139,6 +139,7 @@ python3 scripts/korean_writing.py translation-audit 원문.md 번역문.md \
   --direction en-to-ko --glossary templates/translation-glossary.tsv --strict
 
 # 번역투 유형 진단 + 초벌 대비 후편집 범위·과편집 경고(v9)
+# v9.1: baseline_delta로 사라진/새로 생긴 번역투, 어체·높임말 변화(EDIT-3·EDIT-4)도 보고
 python3 scripts/korean_writing.py translation-audit 원문.md 후편집본.md \
   --direction en-to-ko --baseline 초벌번역.md --intensity 기본
 
