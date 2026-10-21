@@ -22,10 +22,11 @@
 - 차원: 의미 정확도 / 자연스러움 / 용어 / 문체·말투 / 독자·지역 / 구조·마크업
 - 상태: 검토 후보 / 확인된 오류 / 허용 / 보류
 - 중요도와 근거: 사용 목적에 미치는 영향 (횟수만으로 결정하지 않음)
-- 기계적 보존 검사 결과: 실제 오류 심각도와 구별
+- 기계적 보존 검사 결과: 실제 오류 심각도와 구별 (위험의 `basis`가 mechanical-check인지 heuristic-candidate인지 함께 적는다)
 - 출처·문맥을 확인한 뒤 판단이 달라졌는가:
-- 초벌에서 사라진 오류:
-- 후편집으로 새로 생긴 오류:
+- 초벌에서 사라진 오류 (`baseline_delta.translationese.fixed`):
+- 후편집으로 새로 생긴 오류 (`baseline_delta.translationese.introduced`, EDIT-4):
+- 어체·높임말·표면 잠금 변화 (`baseline_delta.register`, `surface_lock`, EDIT-3):
 - 확인 필요·검토자 결정:
 
 ## 마무리

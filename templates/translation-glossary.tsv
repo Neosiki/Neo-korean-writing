@@ -1,6 +1,4 @@
-# 번역 용어집 템플릿 — 열은 탭으로 구분합니다.
-# 원어	허용 역어(여러 개는 | 로 구분)	금지 역어(선택, | 로 구분)
-source	target	forbid
-large language model	대규모 언어 모델	거대 언어 모델
-prompt	프롬프트|지시문	명령어
-token	토큰
+source	target	forbid	mode	context
+large language model	대규모 언어 모델|LLM	거대언어모델	strict	본문 첫 등장은 풀어쓰기, 이후 LLM 허용
+prompt	프롬프트|질문문		flex	
+token	토큰		flex	
