@@ -14,6 +14,11 @@
 
 ## Unreleased
 
+- **v11 군집 진단·분량 게이트(2026-10):** `diagnose`가 신호를 문단별로 묶어 `clusters`(hot 문단, 단독 신호, `span_patch`/`paragraph_patch`/`paragraph_rewrite` 경로)를 출력한다. 각 finding에 `cluster`(must_fix·hot·isolated)가 붙는다. `verify_gates.py`에 P5 분량 변화(±25% 경고)를 추가해 과삭제와 내용 추가를 잡는다. Editorial Audit에 문단 재배열·밀도·자기 라벨 점검(2.8)과 독자 관점 5항목 평가표(2.9)를 추가했다. 문학 번역에서 LLM 심사 점수를 합격 근거로 쓰지 않는 규칙(EAMT 2026)을 넣었다. 근거: blader/humanizer, hardikpandya/stop-slop, conorbronsdon/avoid-ai-writing, amondnet/yoonmoon, NomaDamas/k-skill korean-humanizer, EAMT 2026 Creativity Bias 논문.
+
+- **번역 레인 v8(2026-10):** `translation_audit.py`를 8.0.0으로 올렸다. 모든 위험에 MQM식 심각도(치명·주요·경미)와 범주를 붙이고 `fix_order`·휴리스틱 점수를 출력한다. 자리표시자·태그 손상(FID-10, 치명), 문단 대응표 기반 누락·추가 후보(FID-8), 한국어 번역문의 영어 구절 잔류(FID-9), 용어집 일관성(`--glossary`, TERM-1·2), `--strict`를 추가했다. 인자 파싱을 argparse로 바꿔 옵션 값이 위치 인자로 오인되지 않는다.
+- `prompts/translation-draft-critique-edit.md`(초안→범주별 비평→심각도 순 수정, 선택 역번역 점검)와 `templates/translation-glossary.tsv`를 추가했다. 근거 자료와 아직 넣지 않은 항목은 `references/translation-fidelity.md`에 기록했다.
+
 - `neo-korean-writing` 설치형 CLI와 `pyproject.toml`을 추가했습니다. 내장 프롬프트·템플릿 조회, 장르별 작업공간 초기화, 문체 진단, 원문·수정본 보존 대조, 번역문 감사를 제공합니다.
 - Python wheel·source distribution을 빌드하고 격리 환경 설치를 검증할 수 있도록 CLI 사용·배포 문서 `docs/cli.md`와 CLI 회귀 테스트를 추가했습니다.
 
