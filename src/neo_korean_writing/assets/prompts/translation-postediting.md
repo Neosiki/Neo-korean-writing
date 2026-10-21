@@ -40,4 +40,4 @@ E. 선택 대안: 문학적/마케팅적 변형이 필요한 경우에만, 충�
 {{번역문 붙여넣기}}
 ```
 
-번역 후편집은 자연스러움만으로 판단하지 않습니다. 수정 뒤에는 `python3 scripts/korean_writing.py translation-audit 원문.md 번역문.md --direction en-to-ko --json`을 실행해 표면·구조 대조 결과를 보조적으로 확인할 수 있습니다. 용어집이 있으면 `--glossary 용어집.tsv`를, 치명·주요 위험에서 멈추려면 `--strict`를 붙입니다. 출력의 `fix_order`는 치명 → 주요 → 경미 순서의 수정 순서입니다. 초벌 번역이 있으면 `--baseline 초벌번역.md --intensity 기본`을 붙여 후편집 범위와 과편집 경고(EDIT-1·EDIT-2)를 확인하고, 번역투 유형별 교정 쌍은 `references/translationese-guide.md`를 봅니다.
+번역 후편집은 자연스러움만으로 판단하지 않습니다. 수정 뒤에는 `python3 scripts/korean_writing.py translation-audit 원문.md 번역문.md --direction en-to-ko --json`을 실행해 표면·구조 대조 결과를 보조적으로 확인할 수 있습니다. 용어집이 있으면 `--glossary 용어집.tsv`를, 치명·주요 위험에서 멈추려면 `--strict`를 붙입니다. 출력의 `fix_order`는 치명 → 주요 → 경미 순서의 수정 순서입니다. 초벌 번역이 있으면 `--baseline 초벌번역.md --intensity 기본`을 붙여 후편집 범위와 과편집 경고(EDIT-1·EDIT-2), 어체·높임말 변화(EDIT-3), 후편집으로 새로 생긴 번역투(EDIT-4)와 `baseline_delta`를 확인하고, 번역투 유형별 교정 쌍은 `references/translationese-guide.md`를 봅니다.
