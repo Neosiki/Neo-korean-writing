@@ -15,6 +15,8 @@ PROMPTS = {
     "press-release-editing": "press-release-editing.md",
     "longform-editing": "longform-editing.md",
     "translation-postediting": "translation-postediting.md",
+    "translation-draft-critique-edit": "translation-draft-critique-edit.md",
+    "cross-document-editing": "cross-document-editing.md",
     "detect-only": "detect-only.md",
 }
 TEMPLATES = {
@@ -22,12 +24,15 @@ TEMPLATES = {
     "lock-register": "lock-register.md",
     "editing-delivery": "editing-delivery.md",
     "writer-editor-handoff": "writer-editor-handoff.json",
+    "translation-glossary": "translation-glossary.tsv",
+    "context-manifest": "context-manifest.json",
 }
 PROFILES = {
     "general": ("standard-editing",),
     "press-release": ("press-release-editing",),
     "longform": ("longform-editing",),
-    "translation": ("translation-postediting",),
+    "translation": ("translation-postediting", "translation-draft-critique-edit"),
+    "context": ("cross-document-editing",),
     "detect": ("detect-only",),
 }
 
@@ -148,7 +153,20 @@ def cmd_translation_audit(args: argparse.Namespace) -> int:
         arguments.append("--literary")
     if args.json:
         arguments.append("--json")
+    if args.glossary:
+        arguments.extend(["--glossary", args.glossary])
+    if args.strict:
+        arguments.append("--strict")
     return _engine_call("translation-audit", arguments)
+
+
+def cmd_context_audit(args: argparse.Namespace) -> int:
+    arguments = [args.manifest]
+    if args.json:
+        arguments.append("--json")
+    if args.strict:
+        arguments.append("--strict")
+    return _engine_call("context-audit", arguments)
 
 
 def cmd_structure(args: argparse.Namespace) -> int:
@@ -211,7 +229,15 @@ def build_parser() -> argparse.ArgumentParser:
     audit.add_argument("--direction", default="auto")
     audit.add_argument("--literary", action="store_true")
     audit.add_argument("--json", action="store_true")
+    audit.add_argument("--glossary")
+    audit.add_argument("--strict", action="store_true")
     audit.set_defaults(handler=cmd_translation_audit)
+
+    context = subparsers.add_parser("context-audit", help="명시한 문서 간 용어·개체·주장 근거 대조")
+    context.add_argument("manifest")
+    context.add_argument("--json", action="store_true")
+    context.add_argument("--strict", action="store_true")
+    context.set_defaults(handler=cmd_context_audit)
 
     structure = subparsers.add_parser("structure", help="공식적 골격·과도한 구조 후보 진단")
     structure.add_argument("file")

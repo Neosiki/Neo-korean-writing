@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "documents": [
+    {"id": "profile", "path": "profile.md", "role": "target"},
+    {"id": "record", "path": "record.md", "role": "reference"}
+  ],
+  "terms": [
+    {"preferred": "생성형 AI", "variants": ["생성 AI"], "documents": ["profile"]}
+  ],
+  "entities": [
+    {"id": "person-1", "name": "가상인물", "aliases": ["가상대표"]}
+  ],
+  "claims": [
+    {
+      "subject": "person-1",
+      "predicate": "컨설팅 건수",
+      "value": "30건",
+      "scope": "2026년 수행 완료",
+      "as_of": "2026-10",
+      "evidence": {"document": "record", "quote": "2026년 컨설팅 30건을 완료했다."}
+    }
+  ]
+}

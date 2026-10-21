@@ -47,7 +47,7 @@ PLACEHOLDER_RE = re.compile(
 LATIN_RUN_RE = re.compile(
     r"(?<![A-Za-z0-9_/.@-])[A-Za-z][A-Za-z'\u2019-]*(?:\s+[A-Za-z][A-Za-z'\u2019-]*){2,}(?![A-Za-z0-9_/-])"
 )
-FENCE_RE = re.compile(r"```.*?```", re.S)
+FENCE_RE = re.compile(r"(?m)^ {0,3}(`{3,}|~{3,})[^\n]*\n[\s\S]*?^ {0,3}\1[^\n]*(?:\n|$)")
 
 KOREAN_PRONOUNS = re.compile(r"(?<![가-힣])(?:그녀의|그들의|그녀|그들|그것|그의|그)(?:는|가|를|에게|의|도|만|들이|들도)?(?![가-힣])")
 KOREAN_INTENSIFIERS = re.compile(r"(?:매우|정말|대단히|몹시|너무|굉장히|아주|극도로|놀랍게도)")
@@ -155,15 +155,15 @@ def english_residue(target, allowed=()):
     text = FENCE_RE.sub(" ", target)
     text = CODE_RE.sub(" ", text)
     text = URL_RE.sub(" ", text)
-    text = MARKDOWN_LINK_RE.sub(" ", text)
+    # Link labels remain reader-visible prose; only targets are exempt.
+    text = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", text)
     text = PLACEHOLDER_RE.sub(" ", text)
-    allowed_l = [a.lower() for a in allowed if a]
+    for term in sorted((a for a in allowed if a), key=len, reverse=True):
+        text = re.sub(r"(?<![A-Za-z0-9])" + re.escape(term) + r"(?![A-Za-z0-9])", " ", text, flags=re.I)
     runs = []
     for run in LATIN_RUN_RE.findall(text):
         words = run.split()
         if all(w.isupper() for w in words):
-            continue
-        if any(run.lower() in a or a in run.lower() for a in allowed_l):
             continue
         runs.append(run)
     return runs

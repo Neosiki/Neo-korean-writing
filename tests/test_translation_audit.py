@@ -46,6 +46,17 @@ class TestTranslationAudit(unittest.TestCase):
 
 
 class TestV8Lane(unittest.TestCase):
+    def test_allowed_term_does_not_hide_whole_english_sentence(self):
+        self.assertTrue(translation_audit.english_residue(
+            "Aside still needs a careful manual review", allowed=["Aside"]))
+
+    def test_link_label_is_checked(self):
+        self.assertIn("still needs manual translation", translation_audit.english_residue(
+            "[still needs manual translation](https://example.org)"))
+
+    def test_tilde_fence_is_not_english_residue(self):
+        self.assertEqual(translation_audit.english_residue("~~~text\nthis is sample code\n~~~\n정상"), [])
+
     def test_placeholder_damage_is_critical_hold(self):
         source = "Hello, {name}! You have %d new <b>messages</b>."
         target = "안녕하세요, {이름}님! 새 메시지가 %d개 있습니다."

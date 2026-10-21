@@ -18,7 +18,9 @@ class NeoKoreanWritingCliTests(unittest.TestCase):
         engine_dir = ROOT / "src" / "neo_korean_writing" / "engine"
         source = (ROOT / "scripts" / "korean_writing.py").read_text(encoding="utf-8")
         packaged = (engine_dir / "korean_writing.py").read_text(encoding="utf-8")
-        self.assertEqual(source, packaged.replace("from .translation_audit import main", "from translation_audit import main"))
+        packaged = packaged.replace("from .translation_audit import main", "from translation_audit import main")
+        packaged = packaged.replace("from .context_audit import main", "from context_audit import main")
+        self.assertEqual(source, packaged)
         self.assertEqual(
             (ROOT / "scripts" / "translation_audit.py").read_text(encoding="utf-8"),
             (engine_dir / "translation_audit.py").read_text(encoding="utf-8"),
@@ -91,6 +93,31 @@ class NeoKoreanWritingCliTests(unittest.TestCase):
         self.assertEqual(code_handoff, 0)
         self.assertIn('"S-2"', out.getvalue())
         self.assertIn('"pass": true', out.getvalue())
+
+    def test_translation_cli_passes_glossary_and_strict(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "s.md").write_text("A prompt.", encoding="utf-8")
+            (root / "t.md").write_text("프롬프트.", encoding="utf-8")
+            (root / "g.tsv").write_text("prompt\t지시문\n", encoding="utf-8")
+            with contextlib.redirect_stdout(io.StringIO()) as output:
+                code = cli.main(["translation-audit", str(root / "s.md"), str(root / "t.md"),
+                                 "--glossary", str(root / "g.tsv"), "--strict", "--json"])
+            self.assertEqual(code, 2)
+            self.assertIn('"hold"', output.getvalue())
+
+    def test_context_cli_loads_packaged_engine(self):
+        import json
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "a.md").write_text("생성 AI를 사용한다.", encoding="utf-8")
+            manifest = {"version": 1, "documents": [{"id": "a", "path": "a.md"}],
+                        "terms": [{"preferred": "생성형 AI", "variants": ["생성 AI"]}]}
+            (root / "m.json").write_text(json.dumps(manifest), encoding="utf-8")
+            with contextlib.redirect_stdout(io.StringIO()) as output:
+                code = cli.main(["context-audit", str(root / "m.json"), "--json"])
+            self.assertEqual(code, 0)
+            self.assertIn("CTX-TERM", output.getvalue())
 
 
 if __name__ == "__main__":

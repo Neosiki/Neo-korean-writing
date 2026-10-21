@@ -48,5 +48,6 @@ neo_korean_writing = [
   "assets/prompts/*.md",
   "assets/templates/*.md",
   "assets/templates/*.json",
+  "assets/templates/*.tsv",
   "engine/*.json",
 ]

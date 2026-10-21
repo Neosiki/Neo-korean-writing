@@ -34,6 +34,10 @@ jobs:
           python3 -m venv "$venv_dir"
           "$venv_dir/bin/pip" install "$package_dir"/*.whl
           "$venv_dir/bin/neo-korean-writing" assets
+          "$venv_dir/bin/neo-korean-writing" show template translation-glossary
+          "$venv_dir/bin/neo-korean-writing" show template context-manifest
+          "$venv_dir/bin/neo-korean-writing" show prompt translation-draft-critique-edit
+          "$venv_dir/bin/neo-korean-writing" context-audit --help
           "$venv_dir/bin/neo-korean-writing" init "$workspace" --profile press-release
           test -s "$workspace/prompts/press-release-editing.md"
           test -s "$workspace/templates/editing-brief.md"

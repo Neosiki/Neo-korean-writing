@@ -645,11 +645,16 @@ def cmd_translation_audit(args):
     from .translation_audit import main
     sys.exit(main(args))
 
+def cmd_context_audit(args):
+    from .context_audit import main
+    sys.exit(main(args))
+
 CMDS = {"diagnose": cmd_diagnose, "sunny": cmd_sunny, "connectives": cmd_connectives, "preserve": cmd_preserve,
         "diffrate": cmd_diffrate, "consistency": cmd_consistency, "format": cmd_format,
         "structure": cmd_structure, "morphology": cmd_morphology,
         "handoff-validate": cmd_handoff_validate,
-        "taxonomy": cmd_taxonomy, "translation-audit": cmd_translation_audit}
+        "taxonomy": cmd_taxonomy, "translation-audit": cmd_translation_audit,
+        "context-audit": cmd_context_audit}
 
 if __name__ == "__main__":
     if len(sys.argv) < 2 or sys.argv[1] not in CMDS:

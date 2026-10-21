@@ -76,3 +76,14 @@ neo-korean-writing assets
 선택형 형태소 계층은 `python3 -m pip install '.[morphology]'`로 설치합니다. 설치하지 않아도 기본 진단·보존 결과는 동일하게 작동합니다.
 
 패키지 공개 배포 전에는 빌드본의 메타데이터, 자산 포함 여부, 격리 환경에서의 `init`·`diagnose`·`verify` 동작을 확인해야 합니다. PyPI 등 외부 패키지 저장소에 실제로 게시하는 작업은 별도의 계정·권한·버전 승인 절차가 필요합니다.
+# 문서 맥락 감사와 번역 v8 옵션
+
+```text
+neo-korean-writing translation-audit source.md target.md --glossary glossary.tsv --strict --json
+neo-korean-writing context-audit context-manifest.json --strict --json
+neo-korean-writing init work --profile context
+neo-korean-writing show template translation-glossary
+neo-korean-writing show prompt translation-draft-critique-edit
+```
+
+`context-manifest.json`은 실제 대상 파일·용어·별칭·주장과 정확한 근거로 채운다. 상대 경로는 manifest 폴더 기준이다. 자세한 범위와 종료 코드는 `references/document-context.md`를 참고한다. 기본 용어집과 manifest는 예시이며 자동으로 사실을 승인하는 기준이 아니다.
