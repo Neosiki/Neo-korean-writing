@@ -18,6 +18,13 @@ v9 고도화(2026-10): 번역투를 유형(T1~T7·P1~P4·J1)별로 세고 빈도
 초벌 번역 대비 후편집 범위(가벼움·보통·많음)와 과편집 경고(EDIT-1·EDIT-2)를 낸다.
 유형별 보고 시작 횟수는 정상 한국어에도 흔한 표현(1~2회)을 위험으로 올리지 않기 위한 값이다.
 
+v9.1 보강(2026-10): 용어집에 권장어·허용 변형·고정 모드(strict)·사용 문맥을 두어 타당한
+약칭·동의 표현을 오류로 몰지 않고, 고정 용어만 혼용을 경고한다(TERM-3). --baseline에서는
+초벌 대비 어체·높임말 변화(EDIT-3), 후편집으로 새로 생긴 번역투(EDIT-4), 사라진 번역투와
+새 표면 잠금 누락을 `baseline_delta`로 따로 보고한다. 모든 위험에 `basis`(기계 점검/휴리스틱
+후보/사람 검토)와 `state`(검토 후보)를 붙여, 기계적 차단(critical)이 MQM Critical 확정이
+아님을 출력에서 구분한다.
+
 사용법:
   python3 translation_audit.py 원문.md 번역문.md
   python3 translation_audit.py 원문.md 번역문.md --baseline 초벌번역.md --intensity 기본
@@ -32,7 +39,7 @@ import statistics
 import sys
 from collections import Counter
 
-VERSION = "9.0.0"
+VERSION = "9.1.0"
 SEVERITY_RANK = {"critical": 0, "major": 1, "minor": 2, "review": 3}
 MQM_WEIGHT = {"critical": 25, "major": 5, "minor": 1, "review": 0}
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -195,7 +202,8 @@ def _split_alts(value):
 def load_glossary(path):
     """용어집 읽기. JSON 또는 TSV/CSV/`=>` 텍스트.
 
-    행 형식: 원어 [탭|=>|->|,] 허용역어1|허용역어2 [탭|=>|->|,] 금지역어1|금지역어2
+    행 형식: 원어 [탭|=>|->|,] 권장역어|허용변형2 [탭|=>|->|,] 금지역어1|금지역어2 [탭] strict|flex [탭] 사용 문맥
+    (첫 역어가 권장어, 나머지는 허용 변형. 4열이 strict(고정)일 때만 변형 혼용을 경고)
     JSON: {"원어": "역어"} / {"원어": ["역어1", "역어2"]} /
           [{"source": "...", "target": ["..."], "forbid": ["..."]}]
     """
@@ -205,13 +213,18 @@ def load_glossary(path):
         obj = json.loads(text)
         items = obj.items() if isinstance(obj, dict) else [(e["source"], e) for e in obj]
         for src, val in items:
+            mode, context, allowed = "flex", "", []
             if isinstance(val, dict):
                 targets, forbid = val.get("target", []), val.get("forbid", [])
+                allowed = val.get("allowed", [])
+                mode = val.get("mode", "flex")
+                context = val.get("context", "")
             else:
                 targets, forbid = val, []
             targets = _split_alts(targets) if isinstance(targets, str) else list(targets)
             forbid = _split_alts(forbid) if isinstance(forbid, str) else list(forbid)
-            entries.append({"source": src, "targets": targets, "forbid": forbid})
+            allowed = _split_alts(allowed) if isinstance(allowed, str) else list(allowed)
+            entries.append(_glossary_entry(src, targets + [a for a in allowed if a not in targets], forbid, mode, context))
         return entries
     for line in text.splitlines():
         line = line.strip()
@@ -225,13 +238,21 @@ def load_glossary(path):
             continue
         if cols[0].lower() in ("source", "원어") and len(entries) == 0:
             continue
-        entries.append({"source": cols[0], "targets": _split_alts(cols[1] if len(cols) > 1 else ""),
-                        "forbid": _split_alts(cols[2] if len(cols) > 2 else "")})
+        entries.append(_glossary_entry(
+            cols[0], _split_alts(cols[1] if len(cols) > 1 else ""), _split_alts(cols[2] if len(cols) > 2 else ""),
+            cols[3] if len(cols) > 3 else "flex", cols[4] if len(cols) > 4 else ""))
     return entries
 
 
+def _glossary_entry(source, targets, forbid, mode="flex", context=""):
+    """첫 역어는 권장어, 나머지는 허용 변형이다. mode=strict이면 한 문서에서 변형을 섞어 쓰면 경고한다."""
+    mode = "strict" if str(mode).strip().lower() in ("strict", "고정") else "flex"
+    return {"source": source, "targets": targets, "forbid": forbid, "mode": mode, "context": str(context).strip(),
+            "preferred": targets[0] if targets else ""}
+
+
 def glossary_check(source, target, entries):
-    issues, applicable = [], 0
+    issues, applicable, usage = [], 0, []
     for e in entries:
         if not e["source"] or not _term_in(source, e["source"]):
             continue
@@ -248,7 +269,17 @@ def glossary_check(source, target, entries):
             if _term_in(target, bad):
                 issues.append({"term": e["source"], "kind": "forbidden_variant", "found": bad,
                                "expected": e["targets"], "source_occurrences": n_src})
-    return {"entries_total": len(entries), "applicable": applicable, "issues": issues}
+        used = {t: _term_count(target, t) for t in e["targets"] if _term_in(target, t)}
+        if used:
+            usage.append({"term": e["source"], "preferred": e.get("preferred", ""), "mode": e.get("mode", "flex"),
+                          "context": e.get("context", ""), "used": used})
+            if e.get("mode") == "strict" and len(used) >= 2:
+                issues.append({"term": e["source"], "kind": "mixed_variants", "found": sorted(used),
+                               "expected": e["targets"], "source_occurrences": n_src})
+    variations = [u for u in usage if len(u["used"]) >= 2]
+    return {"entries_total": len(entries), "applicable": applicable, "issues": issues,
+            "usage": usage, "variations": variations,
+            "note": "허용 변형은 오류가 아니다. 고정(strict) 용어의 혼용만 경고한다"}
 
 
 # ---------------------------------------------------------------------------
@@ -502,6 +533,54 @@ def edit_scope(baseline, final, intensity="기본"):
     }
 
 
+HONORIFIC_RE = re.compile(r"으?시(?=[었겠며고는오])|십니다|십시오|세요|께서|드립니다|드려요|드리겠|주십시오|주세요")
+
+
+def _translationese_counts(text):
+    """유형별 원시 횟수(보고 기준 미만 포함)와 보고 시작 횟수."""
+    body = FENCE_RE.sub("", text)
+    return {spec[0] + " " + spec[1]: (len(_type_hits(spec, body)), spec[4]) for spec in TRANSLATIONESE_TYPES}
+
+
+def baseline_delta(source, baseline, target, direction="en-to-ko"):
+    """초벌 → 후편집본에서 무엇이 사라지고 무엇이 새로 생겼는지. 점수가 아니라 검토 단서다."""
+    out = {"translationese": {"fixed": [], "introduced": [], "remaining": []}}
+    if direction in ("en-to-ko", "same"):
+        before, after = _translationese_counts(baseline), _translationese_counts(target)
+        for key, (n_after, min_report) in after.items():
+            n_before = before[key][0]
+            row = {"type": key, "before": n_before, "after": n_after}
+            if n_before >= min_report and n_after < min_report:
+                out["translationese"]["fixed"].append(row)
+            elif n_after >= min_report and n_after > n_before:
+                out["translationese"]["introduced"].append(row)
+            elif n_after >= min_report:
+                out["translationese"]["remaining"].append(row)
+    reg_b, reg_a = register_profile(baseline), register_profile(target)
+    dom = lambda r: max(r["counts"], key=r["counts"].get) if r["counts"] else None
+    hon_b, hon_a = len(HONORIFIC_RE.findall(baseline)), len(HONORIFIC_RE.findall(target))
+    out["register"] = {"baseline_dominant": dom(reg_b), "final_dominant": dom(reg_a),
+                       "dominant_changed": bool(dom(reg_b) and dom(reg_a) and dom(reg_b) != dom(reg_a)),
+                       "honorific_markers": {"baseline": hon_b, "final": hon_a}}
+    src_locks = shared_locks(source)
+    miss_b = {(m["kind"], m["value"]) for m in _missing_counts(src_locks, shared_locks(baseline))}
+    miss_a = {(m["kind"], m["value"]) for m in _missing_counts(src_locks, shared_locks(target))}
+    out["surface_lock"] = {"introduced_missing": sorted(miss_a - miss_b), "fixed": sorted(miss_b - miss_a)}
+    return out
+
+
+BASIS_BY_ID = {"FID-5": "mechanical-check", "FID-6": "mechanical-check", "FID-10": "mechanical-check",
+               "LIT-1": "human-review"}
+
+
+def _label_risks(risks):
+    """기계적 차단은 MQM Critical 확정이 아니다. 근거 종류와 확정 상태를 위험마다 밝힌다."""
+    for r in risks:
+        r["basis"] = BASIS_BY_ID.get(r["id"], "heuristic-candidate")
+        r["state"] = "검토 후보"
+    return risks
+
+
 def audit_data(source, target, direction="auto", literary=False, glossary=None,
                baseline=None, intensity="기본"):
     if direction == "auto":
@@ -592,6 +671,7 @@ def audit_data(source, target, direction="auto", literary=False, glossary=None,
             ))
 
     scope = None
+    delta = None
     if baseline is not None:
         scope = edit_scope(baseline, target, intensity)
         pct = round(scope["touched_ratio"] * 100)
@@ -615,6 +695,22 @@ def audit_data(source, target, direction="auto", literary=False, glossary=None,
                 "분량이 25% 이상 달라짐: 누락·덧붙임이 없는지 원문과 대조",
                 severity="major" if abs(scope["size_delta"]) >= 0.4 else "minor",
                 mqm="Accuracy/Omission-Addition", count=1,
+            ))
+        delta = baseline_delta(source, baseline, target, direction)
+        reg = delta["register"]
+        hb, ha = reg["honorific_markers"]["baseline"], reg["honorific_markers"]["final"]
+        if reg["dominant_changed"] or (abs(ha - hb) >= 3 and abs(ha - hb) >= 0.5 * max(hb, 1)):
+            risks.append(_risk(
+                "EDIT-3", "warn", "초벌 대비 어체·높임말 변화",
+                {"dominant": [reg["baseline_dominant"], reg["final_dominant"]], "honorific_markers": [hb, ha]},
+                "후편집이 화자·청자 관계와 높임 수준을 바꾸지 않았는지 확인. 같은 뜻이라도 `확인해`와 `확인해 주세요`는 같지 않다",
+                severity="major" if reg["dominant_changed"] else "minor", mqm="Style/Register", count=1,
+            ))
+        if delta["translationese"]["introduced"]:
+            risks.append(_risk(
+                "EDIT-4", "warn", "후편집으로 새로 생긴 번역투", delta["translationese"]["introduced"],
+                "초벌에 없던 번역투가 수정 과정에서 들어왔다: 해당 문장을 초벌 표현으로 되돌리거나 다시 고칠 것",
+                severity="minor", mqm="Fluency/Awkward", count=len(delta["translationese"]["introduced"]),
             ))
 
     source_s = source_structure["sentences"]
@@ -654,16 +750,19 @@ def audit_data(source, target, direction="auto", literary=False, glossary=None,
             allowed_terms.extend(e["targets"] + [e["source"]])
         glossary_report = glossary_check(source, target, glossary)
         for issue in glossary_report["issues"]:
-            if issue["kind"] == "forbidden_variant":
+            if issue["kind"] == "mixed_variants":
+                label, act = "고정 용어 변형 혼용", f"{issue['found']}를 섞어 썼음 → 문서 안에서 하나로 통일(권장어 {issue['expected'][:1]})"
+            elif issue["kind"] == "forbidden_variant":
                 label, act = "금지 역어 사용", f"'{issue['found']}' 대신 {issue['expected'] or '지정 역어'} 사용"
             elif issue["kind"] == "untranslated_source_term":
                 label, act = "용어 미번역", f"원어 '{issue['term']}'가 그대로 남음 → {issue['expected']} 확인"
             else:
                 label, act = "용어집 역어 누락", f"'{issue['term']}'의 지정 역어 {issue['expected']}가 번역문에 없음"
             risks.append(_risk(
-                "TERM-1" if issue["kind"] != "forbidden_variant" else "TERM-2", "warn", label,
+                {"forbidden_variant": "TERM-2", "mixed_variants": "TERM-3"}.get(issue["kind"], "TERM-1"), "warn", label,
                 issue["term"], act + " (모호하면 괄호로 원어 병기)",
-                severity="major", mqm="Terminology/Inconsistent", count=issue["source_occurrences"],
+                severity="minor" if issue["kind"] == "mixed_variants" else "major",
+                mqm="Terminology/Inconsistent", count=issue["source_occurrences"],
             ))
 
     residue = []
@@ -722,6 +821,7 @@ def audit_data(source, target, direction="auto", literary=False, glossary=None,
             severity="review", mqm="Style/Literary",
         ))
 
+    _label_risks(risks)
     risks.sort(key=lambda r: (SEVERITY_RANK[r["severity"]], -r["count"], r["id"]))
     fix_order = []
     for r in risks:
@@ -757,6 +857,8 @@ def audit_data(source, target, direction="auto", literary=False, glossary=None,
         "list_punctuation": list_data,
         "hedges": hedge_data,
         "post_edit_scope": scope,
+        "baseline_delta": delta,
+        "severity_note": "critical은 기계적 차단 조건이고 사람이 확정하는 MQM Critical과 다르다. 모든 항목은 검토 후보이며 자동 검사 통과는 번역의 정확성 인증이 아니다",
         "risks": risks,
         "severity_summary": {k: by_severity.get(k, 0) for k in ("critical", "major", "minor", "review")},
         "fix_order": fix_order,
@@ -798,6 +900,11 @@ def _print_report(data):
         kinds = ", ".join(f"{t['id']} {t['label']} {t['count']}" for t in te["types"])
         print(f"번역투 유형: {kinds}  (1000자당 {te['per_1000_chars']})")
         print(f"  원천 힌트: {te['source_influence']['hint']}")
+    bd = data.get("baseline_delta")
+    if bd:
+        tr = bd["translationese"]
+        print(f"초벌 대비: 사라진 번역투 {len(tr['fixed'])}종 · 새로 생긴 번역투 {len(tr['introduced'])}종 · 남은 번역투 {len(tr['remaining'])}종"
+              f" · 새 표면 잠금 누락 {len(bd['surface_lock']['introduced_missing'])}건")
     scope = data.get("post_edit_scope")
     if scope:
         print(f"후편집 범위: {scope['tier']} — 초벌 문장 {round(scope['touched_ratio'] * 100)}% 수정"
