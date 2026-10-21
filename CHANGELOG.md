@@ -14,6 +14,8 @@
 
 ## Unreleased
 
+- Claude 업로드가 `SKILL.md` 두 개를 거절하는 것을 확인해 `build_skill_package.py --target claude`를 추가했다. 하위 글쓰기 지침은 `korean-writing/workflow.md`로 보존하고 패키지 내부 참조만 바꾼다. Codex용 원본과 사용자의 하위 스킬 파일은 변경하지 않는다.
+
 - **문서 맥락 감사(2026-10-21):** `context-audit`에 명시 파일 목록, 대상/참조 구분, 용어 후보, 개체 별칭 충돌, 범위·기준일별 주장 대조, 인용 존재 검증, 행·절·SHA-256 증적을 추가했다. 이름이 같다는 이유로 인물을 합치거나 다른 날짜의 값을 충돌로 확정하지 않는다.
 - 번역 감사 v8을 설치형 CLI에도 연결했다(`--glossary`, `--strict`). 번역 초안 프롬프트·맥락 프롬프트·용어집·manifest를 CLI 자산으로 제공하고 wheel의 TSV 누락을 수정했다. 영어 허용어가 잔류 문장 전체를 가리던 오탐 누락과 틸드 코드 블록·링크 글자 처리를 보완했다.
 - GitHub 7개 프로젝트의 적용 결정과 한계를 `references/github-writing-research-20261021.md`에 기록했다. 코드 이식이나 모델 다운로드 없이 별도 구현했다.

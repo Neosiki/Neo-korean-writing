@@ -13,9 +13,32 @@ INCLUDE_DIRS = ("agents", "references", "scripts", "tests", "korean-writing", "p
 INCLUDE_FILES = ("SKILL.md", "CHANGELOG.md", "ROADMAP.md")
 
 
+def package_entry(path: Path, target: str, root: Path = ROOT):
+    relative = path.relative_to(root).as_posix()
+    data = path.read_bytes()
+    if target == "claude":
+        # Claude accepts exactly one SKILL.md in an upload. Keep the complete
+        # writing workflow as a referenced document instead of a second entrypoint.
+        if relative == "korean-writing/SKILL.md":
+            relative = "korean-writing/workflow.md"
+        if path.suffix.lower() in {".md", ".py", ".json", ".yaml", ".yml", ".txt"}:
+            data = data.replace(b"korean-writing/SKILL.md", b"korean-writing/workflow.md")
+    return "neo-korean-writing/" + relative, data
+
+
+def write_package(output: Path, files: list[Path], target: str, root: Path = ROOT):
+    entries = [package_entry(path, target, root) for path in sorted(files)]
+    if target == "claude" and sum(Path(name).name == "SKILL.md" for name, _ in entries) != 1:
+        raise ValueError("Claude package must contain exactly one SKILL.md")
+    with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
+        for name, data in entries:
+            archive.writestr(name, data)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", default="dist/neo-korean-writing.skill")
+    parser.add_argument("--target", choices=("codex", "claude"), default="codex")
     args = parser.parse_args()
     check = subprocess.run([sys.executable, str(ROOT / "scripts/validate_repo.py")], cwd=ROOT)
     if check.returncode:
@@ -25,10 +48,8 @@ def main() -> int:
     files = [ROOT / name for name in INCLUDE_FILES]
     for directory in INCLUDE_DIRS:
         files.extend(path for path in (ROOT / directory).rglob("*") if path.is_file() and "__pycache__" not in path.parts)
-    with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
-        for path in sorted(files):
-            archive.write(path, Path("neo-korean-writing") / path.relative_to(ROOT))
-    print(f"built {output} ({len(files)} files)")
+    write_package(output, files, args.target)
+    print(f"built {output} ({len(files)} files; target={args.target})")
     return 0
 
 
