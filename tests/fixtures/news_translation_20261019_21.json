@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "checked_on": "2026-10-21",
+  "date_basis": "publication-page calendar date; preserve displayed timezone separately",
+  "translation_by": "ChatGPT; self-reviewed, not a published human translation or independent gold standard",
+  "rights": "Short attributed excerpts only; no full article archive. Synthetic mutations are authored test inputs, not publisher errors.",
+  "cases": [
+    {
+      "id": "N19A",
+      "published_date": "2026-10-19",
+      "display_time": "12:00 PM UTC",
+      "publisher": "Reuters Breakingviews",
+      "host": "Breakingviews",
+      "genre": "analysis",
+      "title_ko": "기업 AI 안전장치를 둘러싼 우려",
+      "author": "Yawen Chen",
+      "url": "https://www.breakingviews.com/columns/considered-view/oxford-summit-rings-alarm-corporate-ai-2026-10-19/",
+      "access_scope": "public standfirst; full column not read",
+      "source": "safeguards can fail when AI agents interact, while monitoring tools have blind spots.",
+      "translation": "AI 에이전트가 상호작용할 때 안전장치가 작동하지 않을 수 있고, 감시 도구에도 사각지대가 있다.",
+      "review_focus": ["modality", "genre"],
+      "review_decision": "can의 가능성을 유지한다. 칼럼의 진단을 모든 AI에 대한 검증 완료 사실로 확대하지 않는다.",
+      "mutations": [
+        {"synthetic": true, "error": "modality", "text": "AI 에이전트가 상호작용하면 안전장치는 반드시 실패한다. 감시 도구에도 사각지대가 있다."},
+        {"synthetic": true, "error": "scope", "text": "모든 AI 에이전트의 안전장치가 실패한다는 사실이 입증됐다. 감시 도구에도 사각지대가 있다."}
+      ]
+    },
+    {
+      "id": "N19B",
+      "published_date": "2026-10-19",
+      "display_time": "9:25 AM EDT",
+      "publisher": "Reuters",
+      "host": "Yahoo Finance syndicated Reuters",
+      "genre": "news",
+      "title_ko": "영국 AI 역량에 관한 자문단 경고",
+      "author": "Sam Tabahriti",
+      "url": "https://finance.yahoo.com/news/uk-risks-becoming-ai-customer-132523750.html",
+      "access_scope": "publisher-attributed search index; direct page returned 429",
+      "source": "The government did not immediately respond to a request for comment.",
+      "translation": "정부는 논평 요청에 즉각 답하지 않았다.",
+      "review_focus": ["response_status", "time"],
+      "review_decision": "취재 시점의 즉각적인 답변 부재다. 답변 거부나 영구적인 무응답으로 바꾸지 않는다.",
+      "mutations": [
+        {"synthetic": true, "error": "response_status", "text": "정부는 논평을 거부했다."},
+        {"synthetic": true, "error": "time", "text": "정부는 앞으로도 논평 요청에 답하지 않겠다고 밝혔다."}
+      ]
+    },
+    {
+      "id": "N20A",
+      "published_date": "2026-10-20",
+      "display_time": "6:51 AM EDT",
+      "publisher": "Reuters",
+      "host": "StreetInsider syndicated Reuters",
+      "genre": "news",
+      "title_ko": "퀄컴 감원 메모와 확인되지 않은 규모",
+      "author": "Aditya Soni and Jaspreet Singh",
+      "url": "https://www.streetinsider.com/Reuters/Exclusive-Qualcomm%2Bto%2Bcut%2Bjobs%2Bworldwide%2Bin%2Bperformance-focused%2Blayoffs,%2Binternal%2Bmemo%2Bshows/27206262.html",
+      "access_scope": "public syndicated body and byline/date",
+      "source": "The memo did not say how many jobs would be affected, and Reuters could not immediately determine the scale of the cuts.",
+      "translation": "메모에는 감원 규모가 명시되지 않았으며, 로이터도 이를 즉각 확인하지 못했다.",
+      "review_focus": ["unknown", "attribution"],
+      "review_decision": "메모의 정보 부재와 로이터의 확인 한계를 나눠 보존한다. 인원이나 거부 사유를 추정하지 않는다.",
+      "mutations": [
+        {"synthetic": true, "error": "invented_number", "text": "메모에 따르면 1,000명이 해고되며, 로이터도 규모를 확인했다."},
+        {"synthetic": true, "error": "attribution", "text": "회사는 감원 규모를 공개하지 않겠다고 로이터에 밝혔다."}
+      ]
+    },
+    {
+      "id": "N20B",
+      "published_date": "2026-10-20",
+      "display_time": "9:33 AM CDT",
+      "publisher": "Block Club Chicago; distributed in partnership with Associated Press",
+      "host": "KRMG; byline Associated Press; original publisher credited in body",
+      "genre": "legal_reporting",
+      "title_ko": "배달 로봇 생체정보 수집 의혹과 회사 측 반박",
+      "author": "original article byline not shown on host; do not infer",
+      "url": "https://krmg.com/2026/10/20/delivery-robots-accused-of-scanning-customers-faces-sharing-biometric-data/",
+      "access_scope": "public syndicated body, host timestamp and original-publisher credit",
+      "context": "They refers to the plaintiffs described in the immediately preceding paragraph.",
+      "source": "They claim the companies’ machines scanned their faces and hands without their knowledge or consent. Both companies dispute the allegations.",
+      "translation": "원고들은 회사 측 기계가 자신들도 모르게, 동의 없이 얼굴과 손을 스캔했다고 주장한다. 두 회사 모두 이 주장에 이의를 제기한다.",
+      "review_focus": ["allegation", "counterstatement"],
+      "review_decision": "원고의 주장과 두 회사의 반박을 함께 유지한다. 위법 수집이 확정됐거나 회사가 인정했다고 쓰지 않는다.",
+      "mutations": [
+        {"synthetic": true, "error": "allegation", "text": "두 회사가 고객의 얼굴과 손을 동의 없이 스캔한 사실이 확인됐다."},
+        {"synthetic": true, "error": "counterstatement", "text": "원고들은 동의 없는 얼굴·손 스캔을 주장했고, 두 회사 모두 이를 인정했다."}
+      ]
+    },
+    {
+      "id": "N21A",
+      "published_date": "2026-10-21",
+      "display_time": "6:33 AM; UTC 10:33 also shown in AP search result",
+      "publisher": "Associated Press",
+      "host": "ClickOnDetroit syndicated AP; AP original also found in news search",
+      "genre": "poll_reporting",
+      "title_ko": "민주당 성향 유권자의 개표 신뢰 변화",
+      "author": "Ali Swenson and Linley Sanders",
+      "url": "https://www.clickondetroit.com/news/politics/2026/10/21/democrats-faith-in-election-results-is-falling-but-still-exceeds-republicans-ap-norc-poll-finds/",
+      "access_scope": "AP and syndicated search-index body; direct open unavailable",
+      "context": "Their refers to registered voters who identify as Democrats, not all US adults.",
+      "source": "Their confidence that votes will be counted accurately has dropped from 75% in 2022 to 55% this year.",
+      "translation": "민주당 성향 등록 유권자들의 정확한 개표에 대한 신뢰는 2022년 75%에서 올해 55%로 낮아졌다.",
+      "review_focus": ["population", "comparison", "year"],
+      "review_decision": "대상 집단과 2022년·기사 기준 올해를 보존한다. 20%포인트와 상대 감소율 20%를 혼동하지 않는다. 원문에 없는 계산은 본문에 추가하지 않는다.",
+      "mutations": [
+        {"synthetic": true, "error": "population", "text": "미국 성인 전체의 정확한 개표에 대한 신뢰는 2022년 75%에서 올해 55%로 낮아졌다."},
+        {"synthetic": true, "error": "number", "text": "민주당 성향 등록 유권자들의 정확한 개표에 대한 신뢰는 2022년 75%에서 올해 65%로 낮아졌다."}
+      ]
+    },
+    {
+      "id": "N21B",
+      "published_date": "2026-10-21",
+      "display_time": "12:01 AM; host does not label timezone in retrieved header",
+      "publisher": "Associated Press",
+      "host": "ClickOrlando syndicated AP",
+      "genre": "news",
+      "title_ko": "경제 상황을 설명하는 두 정치인의 다른 어조",
+      "author": "Michelle L. Price",
+      "url": "https://www.clickorlando.com/news/politics/2026/10/21/a-golden-age-vs-were-working-on-it-trump-and-vance-give-different-pitches-on-the-economy/",
+      "access_scope": "public syndicated search-index body and publication header",
+      "source": "Vance said, “I recognize that gas prices are too high right now” and “we’re working on it.”",
+      "translation": "밴스는 “지금 휘발유 가격이 너무 높다는 점을 안다”며 “이를 해결하기 위해 노력하고 있다”고 말했다.",
+      "review_focus": ["speaker", "completion_status"],
+      "review_decision": "발언자는 밴스이며 대응이 진행 중이라는 말이다. 트럼프의 말로 합치거나 해결 완료로 바꾸지 않는다.",
+      "mutations": [
+        {"synthetic": true, "error": "speaker", "text": "트럼프는 “지금 휘발유 가격이 너무 높다는 점을 안다”며 “이를 해결하기 위해 노력하고 있다”고 말했다."},
+        {"synthetic": true, "error": "completion_status", "text": "밴스는 휘발유 가격 문제를 이미 해결했다고 말했다."}
+      ]
+    }
+  ]
+}

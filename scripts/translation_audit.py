@@ -28,6 +28,9 @@ v9.1 보강(2026-10): 용어집에 권장어·허용 변형·고정 모드(stric
 v9.2 보강(2026-10): 숫자에 붙은 명시적 단위 별칭(won/원 등)과 천 단위 쉼표를
 정규화한다. 값·부호·단위·반복 횟수는 보존하며 통화·배율·소수점 로캘 환산은 하지 않는다.
 
+v9.3 보강(2026-10): 기사 회귀로 확인한 연도형 년 접미 오탐을 보완하고,
+percentage points/%포인트/%p를 대조한다. %와 %p, 바뀐 연도는 구분한다.
+
 사용법:
   python3 translation_audit.py 원문.md 번역문.md
   python3 translation_audit.py 원문.md 번역문.md --baseline 초벌번역.md --intensity 기본
@@ -42,7 +45,7 @@ import statistics
 import sys
 from collections import Counter
 
-VERSION = "9.2.0"
+VERSION = "9.3.0"
 SEVERITY_RANK = {"critical": 0, "major": 1, "minor": 2, "review": 3}
 MQM_WEIGHT = {"critical": 25, "major": 5, "minor": 1, "review": 0}
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -55,6 +58,9 @@ URL_RE = re.compile(r"https?://[^\s)>'\"]+")
 UNIT_ALIASES = {
     "won": "원", "KRW": "원", "원": "원",
     "percent": "%", "per cent": "%", "퍼센트": "%", "%": "%",
+    "percentage points": "%p", "percentage point": "%p", "퍼센트포인트": "%p",
+    "퍼센트 포인트": "%p", "%포인트": "%p", "%p": "%p",
+    "years": "년", "year": "년",
     "kilometers": "km", "kilometres": "km", "kilometer": "km", "kilometre": "km", "킬로미터": "km", "km": "km",
     "centimeters": "cm", "centimetres": "cm", "centimeter": "cm", "centimetre": "cm", "센티미터": "cm", "cm": "cm",
     "meters": "m", "metres": "m", "meter": "m", "metre": "m", "미터": "m", "m": "m",
@@ -109,6 +115,10 @@ def _normalized_number(value):
     number = number.replace("−", "-")
     unit = unit.strip()
     canonical_unit = UNIT_ALIASES.get(unit, re.sub(r"\s+", "", unit))
+    # Four-digit calendar-form years commonly gain a Korean 년 suffix.
+    # This is a surface alias only, not proof that the number denotes a date.
+    if canonical_unit == "년" and re.fullmatch(r"[12]\d{3}", number):
+        canonical_unit = ""
     return number + canonical_unit
 
 
@@ -872,7 +882,7 @@ def audit_data(source, target, direction="auto", literary=False, glossary=None,
             "pass": not missing,
             "missing": missing,
             "extra": extra,
-            "number_policy": "명시된 단위 별칭과 천 단위 쉼표만 정규화한다. 값·부호·단위·횟수는 보존하며 통화·배율·소수점 로캘은 변환하지 않는다",
+            "number_policy": "명시된 단위 별칭·천 단위 쉼표·1000~2999의 연도형 년 접미만 정규화한다. %와 %p는 구분하며 통화·배율·소수점 로캘은 변환하지 않는다. 연도의 의미·수량 관계는 사람 검토가 필요하다",
         },
         "placeholders": {"pass": not (ph_missing or ph_extra), "missing": ph_missing, "extra": ph_extra},
         "structure": {

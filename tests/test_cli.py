@@ -62,6 +62,16 @@ class NeoKoreanWritingCliTests(unittest.TestCase):
                 self.assertEqual(cli.main(["show", "prompt", "translation-craft-review"]), 0)
             self.assertEqual(output.getvalue().strip(), prompt.read_text(encoding="utf-8").strip())
 
+    def test_news_profile_delivers_article_review_with_source_fields(self):
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory) / "news"
+            self.assertEqual(cli.main(["init", str(workspace), "--profile", "news-translation"]), 0)
+            prompt = workspace / "prompts" / "news-translation-review.md"
+            brief = workspace / "templates" / "translation-review-brief.md"
+            self.assertTrue(prompt.is_file())
+            self.assertIn("발행·수정·사건", brief.read_text(encoding="utf-8"))
+            self.assertTrue((workspace / "prompts" / "translation-postediting.md").is_file())
+
     def test_init_creates_selected_profile_and_common_templates(self):
         with tempfile.TemporaryDirectory() as directory:
             workspace = Path(directory) / "workspace"

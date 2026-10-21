@@ -17,6 +17,7 @@ PROMPTS = {
     "translation-postediting": "translation-postediting.md",
     "translation-draft-critique-edit": "translation-draft-critique-edit.md",
     "translation-craft-review": "translation-craft-review.md",
+    "news-translation-review": "news-translation-review.md",
     "cross-document-editing": "cross-document-editing.md",
     "detect-only": "detect-only.md",
 }
@@ -34,6 +35,7 @@ PROFILES = {
     "press-release": ("press-release-editing",),
     "longform": ("longform-editing",),
     "translation": ("translation-postediting", "translation-draft-critique-edit", "translation-craft-review"),
+    "news-translation": ("translation-postediting", "translation-draft-critique-edit", "news-translation-review"),
     "context": ("cross-document-editing",),
     "detect": ("detect-only",),
 }

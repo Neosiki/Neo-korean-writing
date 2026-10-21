@@ -19,6 +19,8 @@ python3 -m pip install -e .
 
 ## 핵심 명령
 
+해외 기사 번역은 `init 경로 --profile news-translation`으로 시작한다. 기사 검토 프롬프트와 인계서에서 발행·수정·사건 날짜, 발언자·반박, 여론조사의 대상·시점을 대조한다. `python scripts/evaluate_news_fixtures.py --json`은 공개 기사 6구간과 시험용 변형 12개의 표면 검사·의미 사각지대를 분리해 보고한다. 개발용 회귀 검사이며 독립 번역 품질 점수가 아니다.
+
 번역 프로필에는 `translation-craft-review` 프롬프트와 `translation-review-brief` 인계서가 포함된다. `show prompt translation-craft-review`로 확인할 수 있다. 문체 판단·자료 조사·정보 공개 순서를 검토할 때만 추가로 사용한다. 번역 감사 v9.2는 `1,348 won`과 `1,348원` 같은 명시된 단위 별칭을 대조하되 값·부호·단위 변화는 계속 알린다. 환산이나 번역 의미 전체의 동등성을 판정하지 않는다.
 
 | 명령 | 용도 |

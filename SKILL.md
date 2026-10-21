@@ -310,6 +310,8 @@ summary.md                   변경률·등급·핵심 변경 요약
 
 ## 출처와 적용 범위
 
+해외 보도·칼럼을 번역하거나 감수하면 [기사 번역 검토](references/news-translation-review.md)와 `prompts/news-translation-review.md`를 읽고 화자·주장·확인 상태·조사 대상·기준 시점을 대조한다. 상대 날짜는 기사 작성 시점에 연결한다. 공개 기사 발췌의 개발용 회귀 결과를 독립 번역 품질 평가로 보고하지 않는다.
+
 번역가의 문체·조사 방식·문학적 전개를 검토할 때는 [외부 자료 3선](references/translator-craft-research-20261021.md)과 `prompts/translation-craft-review.md`를 사용한다. 문체 표본의 근거, 조사 종료·보류 이유, 정보 공개 순서를 기록한다. 공개 관심도는 효과 검증과 구분하고 단순 교정에서는 추가 자료를 읽지 않는다.
 
 외부 번역 평가 기준·한국어 연구·현장 사례를 대조하거나 번역 검토 기준을 설계할 때는 [대외 자료 조사](references/translation-external-research-20261021.md)를 읽고 `templates/translation-review-brief.md`로 목적·허용 용어·말투·문맥을 인계한다. light/full 목표 품질과 편집 변경량을 구분한다. 허용되는 용어 변형은 보존하고, 원문·초벌·수정본에서 새 오류를 확인한다. 현재 자동 severity는 검토 우선순위이며 사람의 MQM 평가가 아니다. 출처의 확인 범위와 언어쌍을 표시하고 언론 사례를 성능 검증으로 사용하지 않는다.
