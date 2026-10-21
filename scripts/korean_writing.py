@@ -178,6 +178,54 @@ def ending(s):
     return m.group(1)[-2:] if m else ""
 
 # ---------------- diagnose ----------------
+HOT_MIN_CATEGORIES = 2   # 서로 다른 범주 2개 이상이 합쳐 3개 이상이면 hot
+HOT_MIN_SIGNALS = 3
+HOT_SOLO_SIGNALS = 5     # 한 범주만이어도 5개 이상 몰리면 hot
+ESCALATE_RATIO = 0.5
+
+
+def cluster_data(findings, text):
+    """문단 단위 군집 분석. 신호는 서로 겹칠 때 의미가 크다.
+
+    한 문단에 서로 다른 범주 2개 이상이 합쳐 신호 3개 이상, 또는 한 범주만으로 5개 이상 몰리면 hot 문단이다.
+    P0은 군집과 무관하게 항상 고친다. hot이 아닌 P1·P2 신호는 isolated로 표시해
+    과교정을 막고(단독 신호는 유지 우선), hot 문단이 절반 이상이면 구간 패치 대신
+    문단 단위 재작성을 검토하도록 권고한다. 권고일 뿐 자동 재작성은 하지 않는다.
+    """
+    by_par = {}
+    for f in findings:
+        if f["span"] == "문서 전체":
+            continue
+        by_par.setdefault(f["location"]["paragraph"], []).append(f)
+    hot = []
+    for par, fs in sorted(by_par.items()):
+        cats = sorted({f["id"] for f in fs})
+        if (len(cats) >= HOT_MIN_CATEGORIES and len(fs) >= HOT_MIN_SIGNALS) or len(fs) >= HOT_SOLO_SIGNALS:
+            hot.append({"paragraph": par, "line": fs[0]["location"]["line"],
+                        "signals": len(fs), "categories": cats})
+    hot_set = {h["paragraph"] for h in hot}
+    for f in findings:
+        if f["span"] == "문서 전체":
+            continue
+        if f["severity"] == "P0":
+            f["cluster"] = "must_fix"
+        elif f["location"]["paragraph"] in hot_set:
+            f["cluster"] = "hot"
+        else:
+            f["cluster"] = "isolated"
+    paragraphs = len([p for p in re.split(r"\n\s*\n", text) if p.strip()])
+    ratio = len(hot) / max(paragraphs, 1)
+    if paragraphs >= 4 and ratio >= ESCALATE_RATIO:
+        route = "paragraph_rewrite"
+    elif hot:
+        route = "paragraph_patch"
+    else:
+        route = "span_patch"
+    return {"hot_paragraphs": hot, "paragraphs": paragraphs, "hot_ratio": round(ratio, 2),
+            "route": route,
+            "isolated_signals": sum(1 for f in findings if f.get("cluster") == "isolated")}
+
+
 def diagnose_data(t, profile=None):
     P = load_patterns()
     profile = normalize_profile(profile)
@@ -224,9 +272,11 @@ def diagnose_data(t, profile=None):
         })
     idx = total / n * 1000
     grade = "A" if idx < 1.5 else "B" if idx < 4 else "C" if idx < 8 else "D"
+    findings = sorted(findings, key=lambda x: (x["location"]["start"], x["id"]))
+    clusters = cluster_data(findings, scan)
     return {"index": round(idx, 2), "grade": grade, "signals": total, "chars": n,
             "patterns": sorted(rows, key=lambda x: -x["count"]), "relaxed": relaxed,
-            "findings": sorted(findings, key=lambda x: (x["location"]["start"], x["id"])),
+            "findings": findings, "clusters": clusters,
             "profile": profile or "general",
             "rhythm": {"sentences": len(sents), "mean_len": round(mean), "cv": round(cv, 2),
                        "monotone": cv < 0.35 and len(sents) >= 5, "max_same_ending": rep},
@@ -265,6 +315,13 @@ def cmd_diagnose(args):
             print(f"  [{label}] {row['word']} {row['count']}회")
         if "rewritten" in c:
             print("  선택적 축약 결과가 함께 계산됨 — 의미 검토 후 채택")
+    c = d["clusters"]
+    route_label = {"span_patch": "구간 패치(신호가 흩어져 있음)",
+                   "paragraph_patch": "hot 문단만 집중 수술",
+                   "paragraph_rewrite": "문단 단위 재작성 검토(hot 문단이 절반 이상)"}[c["route"]]
+    print(f"군집: hot 문단 {len(c['hot_paragraphs'])}/{c['paragraphs']}  단독 신호 {c['isolated_signals']}개  → {route_label}")
+    for h in c["hot_paragraphs"][:10]:
+        print(f"  [hot] {h['line']}행 문단 {h['paragraph']}: 신호 {h['signals']}개 ({', '.join(h['categories'])})")
     r = d["rhythm"]
     print(f"리듬: 문장 {r['sentences']}개, 평균 {r['mean_len']}자, 변동계수 {r['cv']}"
           + ("  ← 균일(단조 의심)" if r["monotone"] else ""))

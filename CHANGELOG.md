@@ -17,6 +17,7 @@
 - **문서 맥락 감사(2026-10-21):** `context-audit`에 명시 파일 목록, 대상/참조 구분, 용어 후보, 개체 별칭 충돌, 범위·기준일별 주장 대조, 인용 존재 검증, 행·절·SHA-256 증적을 추가했다. 이름이 같다는 이유로 인물을 합치거나 다른 날짜의 값을 충돌로 확정하지 않는다.
 - 번역 감사 v8을 설치형 CLI에도 연결했다(`--glossary`, `--strict`). 번역 초안 프롬프트·맥락 프롬프트·용어집·manifest를 CLI 자산으로 제공하고 wheel의 TSV 누락을 수정했다. 영어 허용어가 잔류 문장 전체를 가리던 오탐 누락과 틸드 코드 블록·링크 글자 처리를 보완했다.
 - GitHub 7개 프로젝트의 적용 결정과 한계를 `references/github-writing-research-20261021.md`에 기록했다. 코드 이식이나 모델 다운로드 없이 별도 구현했다.
+- **v11 군집 진단·분량 게이트(2026-10):** `diagnose`가 신호를 문단별로 묶어 `clusters`(hot 문단, 단독 신호, `span_patch`/`paragraph_patch`/`paragraph_rewrite` 경로)를 출력한다. 각 finding에 `cluster`(must_fix·hot·isolated)가 붙는다. `verify_gates.py`에 P5 분량 변화(±25% 경고)를 추가해 과삭제와 내용 추가를 잡는다. Editorial Audit에 문단 재배열·밀도·자기 라벨 점검(2.8)과 독자 관점 5항목 평가표(2.9)를 추가했다. 문학 번역에서 LLM 심사 점수를 합격 근거로 쓰지 않는 규칙(EAMT 2026)을 넣었다. 근거: blader/humanizer, hardikpandya/stop-slop, conorbronsdon/avoid-ai-writing, amondnet/yoonmoon, NomaDamas/k-skill korean-humanizer, EAMT 2026 Creativity Bias 논문.
 
 - **번역 레인 v8(2026-10):** `translation_audit.py`를 8.0.0으로 올렸다. 모든 위험에 MQM식 심각도(치명·주요·경미)와 범주를 붙이고 `fix_order`·휴리스틱 점수를 출력한다. 자리표시자·태그 손상(FID-10, 치명), 문단 대응표 기반 누락·추가 후보(FID-8), 한국어 번역문의 영어 구절 잔류(FID-9), 용어집 일관성(`--glossary`, TERM-1·2), `--strict`를 추가했다. 인자 파싱을 argparse로 바꿔 옵션 값이 위치 인자로 오인되지 않는다.
 - `prompts/translation-draft-critique-edit.md`(초안→범주별 비평→심각도 순 수정, 선택 역번역 점검)와 `templates/translation-glossary.tsv`를 추가했다. 근거 자료와 아직 넣지 않은 항목은 `references/translation-fidelity.md`에 기록했다.

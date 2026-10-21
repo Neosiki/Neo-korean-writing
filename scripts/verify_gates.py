@@ -14,6 +14,7 @@ ending_comma -86%, C-8 대구 -75%가 숨어 있었다. 이 스크립트는 문�
                   내려왔는가. 미달(> +2.0)·과교정(< -1.5)은 WARN.
     P2 전멸    — C-8 대구: before >= 5 AND after == 0 이면 FAIL.
     P3 golden  — tests/golden/checks.run_checks() 실패 목록 (수치 주입 포함).
+    P5 분량    — 공백 제외 글자 수가 ±25% 이상 변하면 과삭제·추가 의심 WARN.
     P4 터치율  — 원문 문장 중 after에 그대로 없는 비율 + 수치 소실 관찰.
                  게이트 아님, 보고만 (수치 소실은 문장 병합·표기 통합의
                  정상 부산물일 수 있어 exit code에 기여하지 않는다).
@@ -72,6 +73,10 @@ S1_OVERCORRECT_Z = -1.5  # after z가 미만이면 과교정
 
 # P2 전멸 임계값 — 원래 대구가 이만큼은 있어야 "전멸"이 의미를 가진다.
 ANNIHILATION_MIN_BEFORE = 5
+
+# P5 분량 변화 임계값 — 윤문은 내용을 빼거나 보태지 않는다.
+SIZE_SHRINK_WARN = 0.25   # 공백 제외 글자 수가 이 비율 이상 줄면 과삭제(누락) 의심
+SIZE_GROW_WARN = 0.25     # 이 비율 이상 늘면 원문에 없는 내용 추가 의심
 
 _WS_RE = re.compile(r"\s+")
 
@@ -240,6 +245,24 @@ def main(argv: list[str] | None = None) -> int:
     if dropped:
         print(f"[P4 수치소실] 관찰: {dropped} "
               f"(문장 병합·표기 통합이면 정상 — exit 미반영, 확인 요망)")
+
+    # --- P5 분량 변화 (과삭제·추가 의심, 경고 전용) -----------------------
+    b_len = len(_WS_RE.sub("", before))
+    a_len = len(_WS_RE.sub("", after))
+    delta = (a_len - b_len) / max(b_len, 1)
+    b_sents = [s for s in _m._split_sentences(before) if s.strip()]
+    a_sents = [s for s in _m._split_sentences(after) if s.strip()]
+    if delta <= -SIZE_SHRINK_WARN:
+        size_verdict = "WARN — 과삭제 의심(누락 위험). 빠진 문장을 원문과 대조"
+    elif delta >= SIZE_GROW_WARN:
+        size_verdict = "WARN — 분량 증가. 원문에 없는 내용이 추가되지 않았는지 확인"
+    else:
+        size_verdict = "OK"
+    warn = warn or size_verdict != "OK"
+    report["size_delta"] = {"rate": round(delta, 4), "before_chars": b_len, "after_chars": a_len,
+                            "sentences_before": len(b_sents), "sentences_after": len(a_sents),
+                            "verdict": size_verdict}
+    print(f"[P5 분량] {delta * 100:+.1f}% (공백 제외 {b_len}→{a_len}자, 문장 {len(b_sents)}→{len(a_sents)}) — {size_verdict}")
 
     # --- 통합 판정 --------------------------------------------------------
     if abort:

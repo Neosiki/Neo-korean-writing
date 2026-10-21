@@ -385,6 +385,7 @@ def audit_data(source, target, direction="auto", literary=False, glossary=None):
                 "모호한 비유를 임의의 구체 사물로 확정하지 않음",
                 "반복을 자동으로 동의어로 바꾸지 않음",
                 "영어권 문체·영국식 어휘를 한국어 윤문 기준으로 이식하지 않음",
+                "LLM 심사·자동 지표 점수를 문학 번역의 합격 근거로 쓰지 않음(EAMT 2026)",
             ],
         }
         risks.append(_risk(
