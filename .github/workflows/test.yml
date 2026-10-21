@@ -70,15 +70,6 @@ jobs:
           path: ${{ runner.temp }}/neo-korean-writing.skill
           if-no-files-found: error
           retention-days: 14
-      - name: Claude 단일 진입점 Skill 배포본 빌드
-        run: python3 scripts/build_skill_package.py --target claude --output "$RUNNER_TEMP/neo-korean-writing-claude.skill"
-      - name: Claude Skill 배포본 보관
-        uses: actions/upload-artifact@v4
-        with:
-          name: neo-korean-writing-claude-skill
-          path: ${{ runner.temp }}/neo-korean-writing-claude.skill
-          if-no-files-found: error
-          retention-days: 14
       - name: v10 Detect·보존·인계 smoke
         run: |
           tmpdir="$(mktemp -d)"
