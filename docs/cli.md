@@ -32,7 +32,7 @@ python3 -m pip install -e .
 | `neo-korean-writing morphology 원문.md --json` | `kiwipiepy` 설치 시 형태소·종결·조사 분포를 보조 진단합니다. |
 | `neo-korean-writing translation-audit 원문.md 번역문.md --direction en-to-ko --literary --json` | 번역문 충실성·문학적 위험을 확인합니다. |
 | `neo-korean-writing translation-audit 원문.md 후편집본.md --baseline 초벌번역.md --intensity 기본` | 번역투 유형(T1~T7·P1~P4·J1)별 진단과 원천 힌트, 어체 혼용·목록 마침표·완충 표현, 초벌 대비 후편집 범위와 과편집 경고(EDIT-1·EDIT-2)를 출력합니다. |
-| `neo-korean-writing translation-audit 원문.md 번역문.md --glossary 용어집.tsv --strict` | 용어집 일관성을 검사하고 치명·주요 위험이 있으면 멈춥니다. 위험마다 심각도와 `fix_order`를 출력합니다. |
+| `neo-korean-writing translation-audit 원문.md 번역문.md --glossary 용어집.tsv --strict` | 용어집 일관성(권장어·허용 변형·strict 혼용, 사용 현황)을 검사하고 치명·주요 위험이 있으면 멈춥니다. 위험마다 심각도와 `fix_order`를 출력합니다. |
 
 ## 작업공간 시작 예시
 
