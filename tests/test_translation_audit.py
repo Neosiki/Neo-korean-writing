@@ -400,5 +400,139 @@ class TestV92NumericUnitPreservation(unittest.TestCase):
         self.assertTrue(changed["baseline_delta"]["surface_lock"]["introduced_missing"])
 
 
+class TestV93CanonicalQuantities(unittest.TestCase):
+    """값이 같은 표기 차이는 통과시키고, 값이 다른 것은 계속 잡는다. 문장은 모두 직접 쓴 것이다."""
+
+    def _passes(self, source, target):
+        data = translation_audit.audit_data(source, target, "en-to-ko")
+        self.assertTrue(data["surface_lock"]["pass"], data["surface_lock"])
+        return data
+
+    def test_equivalent_notations_pass(self):
+        pairs = [
+            ("The test ran from March 3 to April 7, 2026.", "시험은 2026년 3월 3일부터 4월 7일까지 진행됐다."),
+            ("It opened on October 15, 2026.", "2026년 10월 15일에 문을 열었다."),
+            ("The fund raised 1.5 billion dollars.", "펀드는 15억 달러를 모았다."),
+            ("Sales were 3.2 million.", "매출은 320만이었다."),
+            ("Runway is 24 to 36 months.", "자금은 24~36개월분이다."),
+            ("It fell to -150 °C.", "영하 150도까지 내려갔다."),
+            ("The user is 42 years old.", "사용자는 42세다."),
+            ("We hired 12 people.", "12명을 채용했다."),
+        ]
+        for source, target in pairs:
+            with self.subTest(source=source):
+                self._passes(source, target)
+
+    def test_different_values_still_hold(self):
+        pairs = [
+            ("It opened on October 15, 2026.", "2026년 10월 16일에 문을 열었다."),
+            ("It opened on October 15, 2026.", "2025년 10월 15일에 문을 열었다."),
+            ("The fund raised 1.5 billion dollars.", "펀드는 150억 달러를 모았다."),
+            ("Runway is 24 to 36 months.", "자금은 24~30개월분이다."),
+            ("It fell to -150 °C.", "150도까지 내려갔다."),
+            ("We hired 12 people.", "13명을 채용했다."),
+        ]
+        for source, target in pairs:
+            with self.subTest(source=source):
+                data = translation_audit.audit_data(source, target, "en-to-ko")
+                self.assertFalse(data["surface_lock"]["pass"])
+                self.assertTrue(any(r["id"] == "FID-6" and r["level"] == "hold" for r in data["risks"]))
+
+    def test_verified_imperial_conversion_is_review_not_hold(self):
+        data = self._passes("It travels 10 miles.", "약 16.09km를 이동한다.")
+        self.assertEqual(len(data["surface_lock"]["verified_conversions"]), 1)
+        self.assertTrue(any(r["id"] == "FID-6" and r["level"] == "review" for r in data["risks"]))
+        self.assertFalse(any(r["id"] == "FID-6" and r["level"] == "hold" for r in data["risks"]))
+
+    def test_wrong_imperial_conversion_still_holds(self):
+        for source, target in [("It travels 10 miles.", "약 40km를 이동한다."),
+                               ("It was 90 °F.", "기온은 50도였다.")]:
+            with self.subTest(source=source):
+                data = translation_audit.audit_data(source, target, "en-to-ko")
+                self.assertFalse(data["surface_lock"]["pass"])
+
+    def test_year_before_to_is_not_a_range_start(self):
+        data = self._passes("Trust fell from 75% in 2022 to 55% now.", "신뢰는 2022년 75%에서 지금 55%로 낮아졌다.")
+        self.assertEqual(data["surface_lock"]["extra"], [])
+
+    def test_year_alone_and_thousands_do_not_collide(self):
+        self.assertNotEqual(translation_audit.number_tokens("1,000"), translation_audit.number_tokens("1.000"))
+        self._passes("It grew in 2026.", "2026년에 성장했다.")
+
+
+class TestV941IntegrationRegressions(unittest.TestCase):
+    def test_each_supported_unit_conversion_and_negative_temperature(self):
+        for source, target in [("10 miles", "16.09km"), ("10 pounds", "4.54kg"),
+                               ("1 foot", "0.3048m"), ("1 inch", "2.54cm"),
+                               ("1 ounce", "28.349523125g"), ("32 °F", "0도"), ("-40 °F", "영하 40도")]:
+            with self.subTest(source=source):
+                data = translation_audit.audit_data(source, target, "en-to-ko")
+                self.assertTrue(data["surface_lock"]["pass"], data["surface_lock"])
+                self.assertTrue(data["surface_lock"]["verified_conversions"])
+
+    def test_qualified_units_are_not_misread_as_weight_or_standard_miles(self):
+        for source, target in [("10 pounds sterling", "4.54kg"), ("1 nautical mile", "1.61km")]:
+            with self.subTest(source=source):
+                data = translation_audit.audit_data(source, target, "en-to-ko")
+                self.assertFalse(data["surface_lock"]["pass"])
+                self.assertEqual(data["surface_lock"]["verified_conversions"], [])
+
+    def test_rounded_conversion_passes_but_five_percent_drift_does_not(self):
+        for source, good, bad in [("100 miles", "161km", "153km"),
+                                   ("90 °F", "32도", "33도"),
+                                   ("10 pounds", "4.54kg", "4.4kg")]:
+            with self.subTest(source=source):
+                ok = translation_audit.audit_data(source, good, "en-to-ko")
+                no = translation_audit.audit_data(source, bad, "en-to-ko")
+                self.assertTrue(ok["surface_lock"]["pass"])
+                self.assertTrue(ok["surface_lock"]["verified_conversions"])
+                self.assertFalse(no["surface_lock"]["pass"])
+
+    def test_conversion_report_explains_precision_and_preserves_counts(self):
+        data = translation_audit.audit_data("10 miles, 10 miles", "16.09km", "en-to-ko")
+        self.assertFalse(data["surface_lock"]["pass"])
+        converted = data["surface_lock"]["verified_conversions"][0]
+        self.assertEqual(converted["count"], 1)
+        self.assertEqual(converted["tolerance"], "0.005")
+        self.assertEqual(converted["basis"], "target-displayed-rounding-precision")
+
+    def test_explicit_date_year_swaps_are_blocked_but_reordering_is_allowed(self):
+        source = "2025-10-15 and 2026-11-16"
+        swapped = translation_audit.audit_data(source, "2026년 10월 15일과 2025년 11월 16일", "en-to-ko")
+        reordered = translation_audit.audit_data(source, "2026년 11월 16일과 2025년 10월 15일", "en-to-ko")
+        self.assertFalse(swapped["surface_lock"]["pass"])
+        self.assertTrue(any(m["kind"] == "date_binding" for m in swapped["surface_lock"]["missing"]))
+        self.assertTrue(reordered["surface_lock"]["pass"])
+
+    def test_shared_year_range_still_passes(self):
+        data = translation_audit.audit_data("March 3 to April 7, 2026", "2026년 3월 3일부터 4월 7일까지", "en-to-ko")
+        self.assertTrue(data["surface_lock"]["pass"], data["surface_lock"])
+
+    def test_negative_korean_magnitudes_keep_their_sign(self):
+        for negative, positive in [("-15억", "15억"), ("-1억 5000만", "1억 5000만"), ("−3.2만", "3.2만")]:
+            with self.subTest(negative=negative):
+                self.assertNotEqual(translation_audit.number_tokens(negative), translation_audit.number_tokens(positive))
+                self.assertFalse(translation_audit.audit_data(negative, positive, "same")["surface_lock"]["pass"])
+        self.assertTrue(translation_audit.audit_data("-1.5 billion", "-15억", "en-to-ko")["surface_lock"]["pass"])
+
+    def test_fenced_code_is_protected_even_when_numbers_are_not_prose(self):
+        before = "```python\nvalue = 10\n```\n"
+        for after in ("```python\nvalue = 11\n```\n", "```python\nother = 10\n```\n"):
+            with self.subTest(after=after):
+                self.assertFalse(translation_audit.audit_data(before, after, "same")["surface_lock"]["pass"])
+        self.assertTrue(translation_audit.audit_data(before, before, "same")["surface_lock"]["pass"])
+
+    def test_existing_calendar_form_year_domain_is_preserved(self):
+        for year in (1000, 1899, 2500, 2999):
+            with self.subTest(year=year):
+                data = translation_audit.audit_data(f"In {year}, it fell to 55%.", f"{year}년에 55%로 낮아졌다.", "en-to-ko")
+                self.assertTrue(data["surface_lock"]["pass"], data["surface_lock"])
+
+    def test_impossible_calendar_dates_are_not_normalized_as_valid(self):
+        self.assertEqual(translation_audit.explicit_date_bindings("February 30, 2026"), [])
+        self.assertEqual(translation_audit.explicit_date_bindings("2026년 2월 30일"), [])
+        self.assertTrue(translation_audit.explicit_date_bindings("February 29, 2024"))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -31,6 +31,10 @@ v9.2 보강(2026-10): 숫자에 붙은 명시적 단위 별칭(won/원 등)과 �
 v9.3 보강(2026-10): 기사 회귀로 확인한 연도형 년 접미 오탐을 보완하고,
 percentage points/%포인트/%p를 대조한다. %와 %p, 바뀐 연도는 구분한다.
 
+v9.4 보강(2026-10): 값이 같은 표기(날짜, 천·만·억↔thousand·million·billion, 기간 단위, 범위,
+영하)를 같은 토큰으로 맞춘다. 마일·파운드 등은 번역문이 환산했을 때 계산이 맞으면 review로
+알리고 어긋나면 hold한다. 통화·소수점 로캘은 변환하지 않는다.
+
 사용법:
   python3 translation_audit.py 원문.md 번역문.md
   python3 translation_audit.py 원문.md 번역문.md --baseline 초벌번역.md --intensity 기본
@@ -44,8 +48,10 @@ import re
 import statistics
 import sys
 from collections import Counter
+from datetime import date
+from decimal import Decimal, InvalidOperation
 
-VERSION = "9.3.0"
+VERSION = "9.4.1"
 SEVERITY_RANK = {"critical": 0, "major": 1, "minor": 2, "review": 3}
 MQM_WEIGHT = {"critical": 25, "major": 5, "minor": 1, "review": 0}
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -66,6 +72,33 @@ UNIT_ALIASES = {
     "meters": "m", "metres": "m", "meter": "m", "metre": "m", "미터": "m", "m": "m",
     "kilograms": "kg", "kilogram": "kg", "킬로그램": "kg", "kg": "kg",
     "grams": "g", "gram": "g", "그램": "g", "g": "g",
+    # 기간·연령: 영어 years와 한국어 년은 같은 단위로 본다.
+    "years old": "세", "year old": "세", "세": "세", "살": "세",
+    "years": "년", "year": "년", "년": "년",
+    "months": "개월", "month": "개월", "개월": "개월",
+    "weeks": "주", "week": "주", "주": "주",
+    "days": "일", "day": "일", "일": "일",
+    "hours": "시간", "hour": "시간", "시간": "시간",
+    "minutes": "분", "minute": "분", "분": "분",
+    "seconds": "초", "second": "초", "초": "초",
+    # 온도: -150 °C와 영하 150도는 같은 값이다. 화씨는 따로 둔다.
+    "°C": "°", "℃": "°", "degrees": "°", "degree": "°", "도": "°",
+    "°F": "°F", "℉": "°F",
+    # 야드파운드법: 환산은 하지 않고 단위만 정규화한다. 환산 여부는 아래에서 따로 검증한다.
+    "miles": "mi", "mile": "mi", "마일": "mi",
+    "nautical miles": "nmi", "nautical mile": "nmi", "해리": "nmi",
+    "pounds": "lb", "pound": "lb", "lbs": "lb", "lb": "lb", "파운드": "lb",
+    "pounds sterling": "GBP", "pound sterling": "GBP", "파운드 스털링": "GBP",
+    "feet": "ft", "foot": "ft", "ft": "ft", "피트": "ft",
+    "inches": "in", "inch": "in", "인치": "in",
+    "ounces": "oz", "ounce": "oz", "oz": "oz", "온스": "oz",
+}
+COUNTER_UNITS = {"명", "개", "건", "회"}  # 영어에는 대응 단위가 없어 값만 비교한다.
+MONTHS = {
+    "january": 1, "jan": 1, "february": 2, "feb": 2, "march": 3, "mar": 3, "april": 4, "apr": 4,
+    "may": 5, "june": 6, "jun": 6, "july": 7, "jul": 7, "august": 8, "aug": 8,
+    "september": 9, "sept": 9, "sep": 9, "october": 10, "oct": 10, "november": 11, "nov": 11,
+    "december": 12, "dec": 12,
 }
 _UNIT_PATTERN = "|".join(
     re.escape(unit) + (r"(?![A-Za-z])" if unit.isascii() and unit[-1].isalpha() else "")
@@ -117,9 +150,247 @@ def _normalized_number(value):
     canonical_unit = UNIT_ALIASES.get(unit, re.sub(r"\s+", "", unit))
     # Four-digit calendar-form years commonly gain a Korean 년 suffix.
     # This is a surface alias only, not proof that the number denotes a date.
-    if canonical_unit == "년" and re.fullmatch(r"[12]\d{3}", number):
+    if canonical_unit in COUNTER_UNITS or (canonical_unit == "년" and re.fullmatch(r"[12]\d{3}", number)):
         canonical_unit = ""
     return number + canonical_unit
+
+
+_MONTH_PAT = "|".join(sorted(MONTHS, key=len, reverse=True))
+_NUM = r"[-+−]?\d+(?:[,.]\d+)*"
+_TAIL = r"(?:[ \t]*(?:" + _UNIT_PATTERN + r"|명|개|년|월|일|시|분|배|건|회))?"
+_UNIT_ONLY = r"(?:[ \t]*(?:" + _UNIT_PATTERN + r"))?"
+_NEGATIVE_KO_RE = re.compile(r"(?:영하|마이너스)\s*(?=\d)")
+_RANGE_RE = re.compile(
+    r"(?<![\w.])(?P<a>" + _NUM + r")(?P<ua>" + _TAIL + r")\s*(?:\bto\b|[–—~〜]|에서)\s*(?P<b>" + _NUM + r")(?P<ub>" + _TAIL + r")"
+)
+_HYPHEN_RANGE_RE = re.compile(
+    r"(?<![\w.-])(?P<a>\d+(?:\.\d+)?)-(?P<b>\d+(?:\.\d+)?)(?P<ub>" + _TAIL + r")(?![A-Za-z0-9_-])"
+)
+_DATE_PATTERNS = [
+    ("en_dmy", re.compile(r"(?<![A-Za-z0-9])(?P<d>\d{1,2})(?:st|nd|rd|th)?\s+(?:of\s+)?(?P<m>" + _MONTH_PAT + r")\b\.?(?:\s*,?\s*(?P<y>\d{4})(?!\d))?", re.I)),
+    ("en_mdy", re.compile(r"(?<![A-Za-z])(?P<m>" + _MONTH_PAT + r")\b\.?\s+(?P<d>\d{1,2})(?:st|nd|rd|th)?(?!\d)(?:\s*,?\s*(?P<y>\d{4})(?!\d))?", re.I)),
+    ("en_my", re.compile(r"(?<![A-Za-z])(?P<m>" + _MONTH_PAT + r")\b\.?\s+(?P<y>\d{4})(?!\d)", re.I)),
+    ("iso", re.compile(r"(?<![\d.])(?P<y>\d{4})[-/.](?P<m>\d{1,2})[-/.](?P<d>\d{1,2})(?![\d])")),
+    ("ko_ymd", re.compile(r"(?:(?P<y>\d{4})\s*년\s*)?(?P<m>\d{1,2})\s*월\s*(?P<d>\d{1,2})\s*일")),
+    ("ko_ym", re.compile(r"(?P<y>\d{4})\s*년\s*(?P<m>\d{1,2})\s*월(?!\s*\d)")),
+]
+_EN_MAG = {"thousand": Decimal(10) ** 3, "million": Decimal(10) ** 6, "billion": Decimal(10) ** 9, "trillion": Decimal(10) ** 12}
+_EN_MAG_RE = re.compile(
+    r"(?<![A-Za-z0-9_])(?P<n>[-+−]?\d+(?:[,.]\d+)*)\s*(?P<w>thousand|million|billion|trillion)(?![A-Za-z])(?P<u>" + _UNIT_ONLY + r")"
+)
+_KO_MAG = {"천": Decimal(10) ** 3, "만": Decimal(10) ** 4, "억": Decimal(10) ** 8, "조": Decimal(10) ** 12}
+_KO_SEG = r"\d+(?:,\d{3})*(?:\.\d+)?"
+_KO_MAG_RE = re.compile(
+    r"(?<![\d.,])(?P<span>[-+−]?" + _KO_SEG + r"\s*[조억만천]+(?:\s*" + _KO_SEG + r"\s*[조억만천]*)*)(?P<u>[ \t]*(?:" + _UNIT_PATTERN + r"|명|개|건|회))?"
+)
+_KO_SEG_RE = re.compile(r"(" + _KO_SEG + r")\s*([조억만천]*)")
+
+
+def _decimal(text):
+    text = text.replace("−", "-").strip()
+    if re.fullmatch(r"[-+]?\d{1,3}(?:,\d{3})+(?:\.\d+)?", text):
+        text = text.replace(",", "")
+    try:
+        return Decimal(text)
+    except InvalidOperation:
+        return None
+
+
+def _decimal_text(value):
+    text = format(value.normalize(), "f")
+    return text[:-2] if text.endswith(".0") else text
+
+
+def _mask(text, regex, make_token, items):
+    out, last = [], 0
+    for m in regex.finditer(text):
+        token = make_token(m)
+        if token is None:
+            continue
+        for one in (token if isinstance(token, list) else [token]):
+            items.append((m.start(), one))
+        out.append(text[last:m.start()])
+        out.append(" " * (m.end() - m.start()))
+        last = m.end()
+    out.append(text[last:])
+    return "".join(out)
+
+
+def _date_token(m):
+    g = m.groupdict()
+    month = g.get("m")
+    month = MONTHS.get(month.lower().rstrip(".")) if month and not month.isdigit() else (int(month) if month else None)
+    if not month or not 1 <= month <= 12:
+        return None
+    day = g.get("d")
+    if day is not None and not 1 <= int(day) <= 31:
+        return None
+    if day is not None:
+        try:
+            date(int(g.get("y") or 2000), month, int(day))
+        except ValueError:
+            return None
+    # 연도는 날짜에 붙이지 않고 따로 센다: "March 3 to April 7, 2026"의 연도는 뒤 날짜에만 붙어 있기 때문이다.
+    tokens = [f"date:{month:02d}-{int(day):02d}" if day is not None else f"month:{month:02d}"]
+    if g.get("y"):
+        tokens.append(f"y:{g['y']}")
+    return tokens
+
+
+def _unit_suffix(raw):
+    raw = (raw or "").strip()
+    if not raw:
+        return ""
+    unit = UNIT_ALIASES.get(raw, raw)
+    return "" if unit in COUNTER_UNITS else unit
+
+
+def _en_magnitude_token(m):
+    value = _decimal(m.group("n"))
+    if value is None:
+        return None
+    return _decimal_text(value * _EN_MAG[m.group("w").lower()]) + _unit_suffix(m.group("u"))
+
+
+def _ko_magnitude_token(m):
+    total = Decimal(0)
+    for number, suffix in _KO_SEG_RE.findall(m.group("span")):
+        value = _decimal(number)
+        if value is None:
+            return None
+        for ch in suffix:
+            value *= _KO_MAG[ch]
+        total += value
+    if m.group("span").startswith(("-", "−")):
+        total = -total
+    return _decimal_text(total) + _unit_suffix(m.group("u"))
+
+
+def explicit_date_bindings(text):
+    """Bind year to month/day only if every recognized date has an explicit year.
+
+    Partial shared-year ranges retain the existing independent year count. This
+    avoids inventing which endpoint inherits a year while protecting fully dated
+    pairs from year swaps. Reordering complete dates remains allowed.
+    """
+    bindings = []
+    incomplete = False
+    def collect(match):
+        nonlocal incomplete
+        tokens = _date_token(match)
+        if tokens is None:
+            return None
+        if not match.groupdict().get("y"):
+            incomplete = True
+        else:
+            bindings.append(match.group("y") + ":" + tokens[0])
+        return tokens
+    for _name, regex in _DATE_PATTERNS:
+        text = _mask(text, regex, collect, [])
+    return [] if incomplete else bindings
+
+
+def _range_sub(m):
+    a, b = m.group("a"), m.group("b")
+    ua, ub = m.group("ua") or "", m.group("ub") or ""
+    if not ua.strip() and re.fullmatch(r"[12]\d{3}", a):
+        return m.group(0)  # "in 2022 to 55%"의 연도는 범위의 시작값이 아니다
+    unit = ub if ub.strip() else ua
+    return f"{a}{ua if ua.strip() else unit} {b}{ub if ub.strip() else unit}"
+
+
+def _hyphen_range_sub(m):
+    ub = m.group("ub") or ""
+    return f"{m.group('a')}{ub} {m.group('b')}{ub}"
+
+
+def number_tokens(text):
+    """값이 같은 표기 차이를 같은 토큰으로 맞춘 숫자 토큰 목록.
+
+    날짜(October 15, 2026 = 2026년 10월 15일), 크기 단어(1.5 billion = 15억), 기간 단위(years = 년),
+    범위(24 to 36 = 24~36), 영하 표기, 연도는 같은 값으로 묶는다. 금액·단위의 환산은 하지 않는다.
+    """
+    text = FENCE_RE.sub(lambda m: " " * len(m.group()), text)
+    text = _NEGATIVE_KO_RE.sub("-", text)
+    text = _RANGE_RE.sub(_range_sub, text)
+    text = _HYPHEN_RANGE_RE.sub(_hyphen_range_sub, text)
+    items = []
+    for _name, regex in _DATE_PATTERNS:
+        text = _mask(text, regex, _date_token, items)
+    text = _mask(text, _EN_MAG_RE, _en_magnitude_token, items)
+    text = _mask(text, _KO_MAG_RE, _ko_magnitude_token, items)
+    for m in NUMBER_RE.finditer(text):
+        token = _normalized_number(m.group())
+        year = re.fullmatch(r"([12]\d{3})(년)?", token)
+        items.append((m.start(), f"y:{year.group(1)}" if year else token))
+    return [token for _pos, token in sorted(items, key=lambda x: x[0])]
+
+
+# 환산은 자동으로 하지 않는다. 다만 번역가가 단위를 환산한 경우 값이 맞는지는 계산해서 알려 준다.
+_CONVERSIONS = {
+    "mi": ("km", Decimal("1.609344")),
+    "lb": ("kg", Decimal("0.45359237")),
+    "ft": ("m", Decimal("0.3048")),
+    "in": ("cm", Decimal("2.54")),
+    "oz": ("g", Decimal("28.349523125")),
+}
+_QTY_RE = re.compile(r"(-?\d+(?:\.\d+)?)(mi|lb|ft|in|oz|km|kg|cm|m|g|°F|°)")
+
+
+def _qty(token):
+    m = _QTY_RE.fullmatch(token)
+    return (Decimal(m.group(1)), m.group(2)) if m else None
+
+
+def _decimals(token):
+    m = re.match(r"-?\d+\.(\d+)", token)
+    return len(m.group(1)) if m else 0
+
+
+def reconcile_conversions(missing_all, extra_all):
+    """누락으로 잡힌 야드파운드법 값이 추가 토큰의 미터법 값과 환산 일치하면 '환산 확인'으로 옮긴다."""
+    miss = [dict(m) for m in missing_all]
+    extra = [dict(e) for e in extra_all]
+    converted = []
+    for ms in miss:
+        if ms["kind"] != "number":
+            continue
+        src = _qty(ms["value"])
+        if not src or (src[1] not in _CONVERSIONS and src[1] != "°F"):
+            continue
+        value, unit = src
+        if unit == "°F":
+            target_unit, expected = "°", (value - 32) * 5 / 9
+        else:
+            target_unit, factor = _CONVERSIONS[unit]
+            expected = value * factor
+        for ex in extra:
+            if ms["count"] <= 0:
+                break
+            if ex["kind"] != "number" or ex["count"] <= 0:
+                continue
+            tgt = _qty(ex["value"])
+            if not tgt or tgt[1] != target_unit:
+                continue
+            # Only the target's displayed rounding precision is allowed. A broad
+            # percentage tolerance would approve materially wrong conversions.
+            tol = Decimal("0.5") * (Decimal(10) ** -_decimals(ex["value"]))
+            if abs(tgt[0] - expected) <= tol:
+                n = min(ms["count"], ex["count"])
+                ms["count"] -= n
+                ex["count"] -= n
+                converted.append({"source": ms["value"], "target": ex["value"],
+                                  "expected": _decimal_text(expected) + target_unit,
+                                  "difference": _decimal_text(abs(tgt[0] - expected)),
+                                  "tolerance": _decimal_text(tol),
+                                  "basis": "target-displayed-rounding-precision", "count": n})
+    return ([m for m in miss if m["count"] > 0], [e for e in extra if e["count"] > 0], converted)
+
+
+def surface_diff(source_locks, other_locks):
+    missing = _missing_counts(source_locks, other_locks)
+    extra = _extra_counts(source_locks, other_locks)
+    return reconcile_conversions(missing, extra)
 
 
 def shared_locks(text):
@@ -127,8 +398,9 @@ def shared_locks(text):
     out = {}
     out["url"] = list(URL_RE.findall(text))
     number_matches = list(NUMBER_RE.finditer(text))
-    out["number"] = [_normalized_number(m.group()) for m in number_matches]
-    out["code"] = CODE_RE.findall(text)
+    out["number"] = number_tokens(text)
+    out["code"] = CODE_RE.findall(text) + [m.group() for m in FENCE_RE.finditer(text)]
+    out["date_binding"] = explicit_date_bindings(FENCE_RE.sub(" ", text))
     # A recognized numeric unit such as KRW is already protected with its amount.
     # A standalone KRW or an acronym spanning beyond a number stays locked.
     out["acronym"] = [m.group() for m in ACRONYM_RE.finditer(text)
@@ -141,6 +413,8 @@ def shared_locks(text):
 def _missing_counts(before, after):
     missing = []
     for kind, values in before.items():
+        if kind == "date_binding" and not (values and after.get(kind)):
+            continue
         b = Counter(values)
         a = Counter(after.get(kind, []))
         for value, count in (b - a).items():
@@ -151,6 +425,8 @@ def _missing_counts(before, after):
 def _extra_counts(before, after):
     extra = []
     for kind, values in after.items():
+        if kind == "date_binding" and not (values and before.get(kind)):
+            continue
         b = Counter(before.get(kind, []))
         a = Counter(values)
         for value, count in (a - b).items():
@@ -605,8 +881,8 @@ def baseline_delta(source, baseline, target, direction="en-to-ko"):
                        "dominant_changed": bool(dom(reg_b) and dom(reg_a) and dom(reg_b) != dom(reg_a)),
                        "honorific_markers": {"baseline": hon_b, "final": hon_a}}
     src_locks = shared_locks(source)
-    miss_b = {(m["kind"], m["value"]) for m in _missing_counts(src_locks, shared_locks(baseline))}
-    miss_a = {(m["kind"], m["value"]) for m in _missing_counts(src_locks, shared_locks(target))}
+    miss_b = {(m["kind"], m["value"]) for m in surface_diff(src_locks, shared_locks(baseline))[0]}
+    miss_a = {(m["kind"], m["value"]) for m in surface_diff(src_locks, shared_locks(target))[0]}
     out["surface_lock"] = {"introduced_missing": sorted(miss_a - miss_b), "fixed": sorted(miss_b - miss_a)}
     return out
 
@@ -630,8 +906,7 @@ def audit_data(source, target, direction="auto", literary=False, glossary=None,
 
     source_locks = shared_locks(source)
     target_locks = shared_locks(target)
-    missing_all = _missing_counts(source_locks, target_locks)
-    extra_all = _extra_counts(source_locks, target_locks)
+    missing_all, extra_all, converted = surface_diff(source_locks, target_locks)
     missing = [m for m in missing_all if m["kind"] != "placeholder"]
     extra = [m for m in extra_all if m["kind"] != "placeholder"]
     ph_missing = [m for m in missing_all if m["kind"] == "placeholder"]
@@ -832,6 +1107,12 @@ def audit_data(source, target, direction="auto", literary=False, glossary=None,
             "숫자·URL·코드·약어·링크 대상은 번역문을 채택하기 전에 복구",
             severity="critical", mqm="Accuracy/Mistranslation(surface)", count=sum(m["count"] for m in missing),
         ))
+    if converted:
+        risks.append(_risk(
+            "FID-6", "review", "단위 환산 값 확인", converted,
+            "야드파운드법 값을 미터법으로 환산한 번역이다. 환산 값은 계산으로 맞았지만 원문 병기 여부는 편집 방침으로 정한다",
+            severity="review", mqm="Locale convention", count=len(converted),
+        ))
     if structure_warnings:
         risks.append(_risk(
             "FID-5", "hold", "문서 구조 변화", structure_warnings,
@@ -882,7 +1163,8 @@ def audit_data(source, target, direction="auto", literary=False, glossary=None,
             "pass": not missing,
             "missing": missing,
             "extra": extra,
-            "number_policy": "명시된 단위 별칭·천 단위 쉼표·1000~2999의 연도형 년 접미만 정규화한다. %와 %p는 구분하며 통화·배율·소수점 로캘은 변환하지 않는다. 연도의 의미·수량 관계는 사람 검토가 필요하다",
+            "verified_conversions": converted,
+            "number_policy": "값이 같은 표기만 같은 토큰으로 본다(단위 별칭, 천 단위 쉼표, 연도형 년 접미, %와 %p 구분, 날짜, 천·만·억·million·billion, 기간 단위, 범위, 영하). 통화·소수점 로캘은 변환하지 않는다. 마일·파운드·피트·인치·온스·화씨는 계산이 맞을 때만 환산 확인(review)으로 두고, 값이 어긋나면 FID-6 hold로 둔다",
         },
         "placeholders": {"pass": not (ph_missing or ph_extra), "missing": ph_missing, "extra": ph_extra},
         "structure": {
