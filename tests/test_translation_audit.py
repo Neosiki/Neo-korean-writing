@@ -151,5 +151,121 @@ class TestV8Lane(unittest.TestCase):
         self.assertEqual(code, 0)
 
 
+class TestV9Translationese(unittest.TestCase):
+    def _te(self, target, source="A sentence.", **kw):
+        return translation_audit.audit_data(source, target, direction="en-to-ko", **kw)
+
+    def _fid7(self, data):
+        return [r for r in data["risks"] if r["id"] == "FID-7" and "군집" not in r["label"]]
+
+    def test_single_tonghae_is_not_reported(self):
+        data = self._te("자료를 통해 확인했다. 결과는 분명했다.")
+        self.assertEqual(self._fid7(data), [])
+        below = [t["id"] for t in data["translationese"]["below_threshold"]]
+        self.assertIn("P2", below)
+
+    def test_tonghae_repetition_escalates_by_frequency(self):
+        three = self._te("자료를 통해 보았다. 면담을 통해 들었다. 현장을 통해 확인했다.")
+        five = self._te("자료를 통해 보았다. 면담을 통해 들었다. 현장을 통해 확인했다. 표를 통해 비교했다. 기록을 통해 검증했다.")
+        self.assertEqual(self._fid7(three)[0]["severity"], "minor")
+        self.assertEqual(self._fid7(five)[0]["severity"], "major")
+
+    def test_double_passive_is_reported_even_once(self):
+        data = self._te("보고서가 작성되어졌다.")
+        labels = [r["label"] for r in self._fid7(data)]
+        self.assertTrue(any("이중 피동" in x for x in labels))
+
+    def test_hot_paragraph_cluster(self):
+        text = ("보고서는 팀에 의해 작성되어졌다. 이 연구는 가격이 오른다는 것을 보여준다. 이 시스템은 시장에 있어서 변화를 가능하게 한다. "
+                "그는 자료를 통해 분석을 통해 시장을 통해 설명했다.")
+        data = self._te(text)
+        hot = data["translationese"]["hot_paragraphs"]
+        self.assertEqual(len(hot), 1)
+        self.assertGreaterEqual(len(hot[0]["types"]), 3)
+        self.assertTrue(any(r["label"] == "번역투 군집 문단" for r in data["risks"]))
+
+    def test_source_influence_japanese_like(self):
+        data = self._te("그는 학생으로서의 책임을 다했다. 연구라고 하는 작업에서의 경험과 회사에서의 경험은 다르다.")
+        self.assertEqual(data["translationese"]["source_influence"]["inferred"], "japanese-like")
+
+    def test_source_influence_english_like(self):
+        data = self._te("그는 문을 열었다. 그의 손은 떨렸다. 그가 말했다. 그는 가지고 있던 열쇠를 내려놓았다.")
+        self.assertEqual(data["translationese"]["source_influence"]["inferred"], "english-like")
+
+    def test_register_mix_flagged_and_quotes_excluded(self):
+        mixed = self._te("보고서를 제출합니다. 결과는 다음과 같습니다. 원인은 단순하다. 대책은 분명하다. 비용은 낮다.")
+        self.assertTrue(mixed["register"]["mixed"])
+        self.assertTrue(any(r["id"] == "FID-11" for r in mixed["risks"]))
+        quoted = self._te("그가 말했다. \u201c제출합니다. 확인합니다. 감사합니다.\u201d 방은 조용하다. 불은 꺼져 있다. 창은 닫혀 있다.")
+        self.assertFalse(quoted["register"]["mixed"])
+
+    def test_list_period_inconsistency(self):
+        bad = self._te("- 첫째 항목이다.\n- 둘째 항목\n- 셋째 항목이다.\n")
+        good = self._te("- 첫째 항목\n- 둘째 항목\n- 셋째 항목\n")
+        self.assertTrue(any(r["id"] == "FID-12" for r in bad["risks"]))
+        self.assertFalse(any(r["id"] == "FID-12" for r in good["risks"]))
+
+    def test_hedge_increase_vs_source(self):
+        source = "The price rose. The cost fell. The firm grew."
+        target = "가격이 오를 수 있다. 비용이 줄 수 있다. 회사가 클 가능성이 있다. 결과가 달라질 수도 있다."
+        data = self._te(target, source=source)
+        self.assertTrue(any(r["id"] == "FID-13" for r in data["risks"]))
+        faithful = self._te("가격이 올랐다. 비용이 줄었다.", source=source)
+        self.assertFalse(any(r["id"] == "FID-13" for r in faithful["risks"]))
+
+    def test_korean_checks_skipped_for_ko_to_en(self):
+        data = translation_audit.audit_data("그는 자료를 통해 분석을 통해 말했다.", "He spoke.", direction="ko-to-en")
+        self.assertIsNone(data["translationese"])
+        self.assertIsNone(data["register"])
+
+
+class TestV9PostEditScope(unittest.TestCase):
+    BASE = "첫 문장이다. 둘째 문장이다. 셋째 문장이다. 넷째 문장이다. 다섯째 문장이다. 여섯째 문장이다. 일곱째 문장이다. 여덟째 문장이다."
+
+    def test_identical_is_light_without_risk(self):
+        data = translation_audit.audit_data(self.BASE, self.BASE, direction="same", baseline=self.BASE)
+        scope = data["post_edit_scope"]
+        self.assertEqual(scope["tier"], "가벼움")
+        self.assertFalse(any(r["id"].startswith("EDIT") for r in data["risks"]))
+
+    def test_without_baseline_no_scope(self):
+        data = translation_audit.audit_data(self.BASE, self.BASE, direction="same")
+        self.assertIsNone(data["post_edit_scope"])
+
+    def test_heavy_rewrite_holds(self):
+        final = "전혀 다른 글이다. 새로 쓴 둘째다. 새로 쓴 셋째다. 새로 쓴 넷째다. 새로 쓴 다섯째다. 새로 쓴 여섯째다. 일곱째 문장이다. 여덟째 문장이다."
+        data = translation_audit.audit_data(self.BASE, final, direction="same", baseline=self.BASE)
+        edit = [r for r in data["risks"] if r["id"] == "EDIT-1"]
+        self.assertEqual(edit[0]["level"], "hold")
+        self.assertEqual(data["status"], "hold")
+        self.assertEqual(data["post_edit_scope"]["tier"], "많음")
+
+    def test_intensity_changes_threshold(self):
+        final = self.BASE.replace("셋째 문장이다.", "셋째를 고친 문장이다.").replace("넷째 문장이다.", "넷째를 고친 문장이다.").replace("다섯째 문장이다.", "다섯째를 고친 문장이다.")
+        conservative = translation_audit.audit_data(self.BASE, final, direction="same", baseline=self.BASE, intensity="보수")
+        aggressive = translation_audit.audit_data(self.BASE, final, direction="same", baseline=self.BASE, intensity="적극")
+        self.assertTrue(any(r["id"] == "EDIT-1" and r["level"] == "hold" for r in conservative["risks"]))
+        self.assertFalse(any(r["id"] == "EDIT-1" for r in aggressive["risks"]))
+
+    def test_size_delta_warned(self):
+        final = self.BASE + " " + "덧붙인 문장이 이어진다. " * 4
+        data = translation_audit.audit_data(self.BASE, final, direction="same", baseline=self.BASE)
+        self.assertTrue(any(r["id"] == "EDIT-2" for r in data["risks"]))
+
+    def test_cli_baseline_and_bad_intensity(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            paths = {}
+            for name in ("s.md", "t.md", "b.md"):
+                paths[name] = os.path.join(d, name)
+                with open(paths[name], "w", encoding="utf-8") as f:
+                    f.write(self.BASE)
+            ok = translation_audit.main([paths["s.md"], paths["t.md"], "--direction", "same",
+                                         "--baseline", paths["b.md"], "--json"])
+            bad = translation_audit.main([paths["s.md"], paths["t.md"], "--intensity", "과격"])
+        self.assertEqual(ok, 0)
+        self.assertEqual(bad, 3)
+
+
 if __name__ == "__main__":
     unittest.main()

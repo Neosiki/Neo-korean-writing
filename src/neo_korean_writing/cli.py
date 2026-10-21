@@ -157,6 +157,9 @@ def cmd_translation_audit(args: argparse.Namespace) -> int:
         arguments.extend(["--glossary", args.glossary])
     if args.strict:
         arguments.append("--strict")
+    if args.baseline:
+        arguments.extend(["--baseline", args.baseline])
+    arguments.extend(["--intensity", args.intensity])
     return _engine_call("translation-audit", arguments)
 
 
@@ -231,6 +234,8 @@ def build_parser() -> argparse.ArgumentParser:
     audit.add_argument("--json", action="store_true")
     audit.add_argument("--glossary")
     audit.add_argument("--strict", action="store_true")
+    audit.add_argument("--baseline")
+    audit.add_argument("--intensity", choices=("보수", "기본", "적극"), default="기본")
     audit.set_defaults(handler=cmd_translation_audit)
 
     context = subparsers.add_parser("context-audit", help="명시한 문서 간 용어·개체·주장 근거 대조")

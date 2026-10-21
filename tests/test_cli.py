@@ -119,6 +119,19 @@ class NeoKoreanWritingCliTests(unittest.TestCase):
             self.assertEqual(code, 0)
             self.assertIn("CTX-TERM", output.getvalue())
 
+    def test_translation_cli_forwards_v9_baseline_and_intensity(self):
+        import json
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for name, text in (("s.md", "A short sentence."), ("t.md", "짧은 문장이다."),
+                               ("baseline.md", "짧은 문장이다.")):
+                (root / name).write_text(text, encoding="utf-8")
+            with contextlib.redirect_stdout(io.StringIO()) as output:
+                code = cli.main(["translation-audit", str(root / "s.md"), str(root / "t.md"),
+                                 "--baseline", str(root / "baseline.md"), "--intensity", "보수", "--json"])
+            self.assertIn(code, (0, 1))
+            self.assertEqual(json.loads(output.getvalue())["post_edit_scope"]["intensity"], "보수")
+
 
 if __name__ == "__main__":
     unittest.main()

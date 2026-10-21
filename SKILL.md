@@ -142,6 +142,14 @@ strict/heavy이거나 원문이 한국어 번역투·AI 슬롭으로 의심될 �
 - `--strict`: 치명·주요가 하나라도 있으면 `hold`로 올린다.
 - 원문만 있고 번역문이 없으면 `prompts/translation-draft-critique-edit.md`로 초안 → 범주별 비평 → 심각도 순 수정을 돌린 뒤 감사를 실행한다. 이 점수와 등급은 사람이 하는 MQM 평가를 대체하지 않는 휴리스틱이다.
 
+### 번역 레인 v9: 번역투 유형·원천 힌트·후편집 범위
+
+`translation_audit.py`는 한국어 번역문의 번역투를 유형(T1~T7, P1~P4, J1)별로 세고, **빈도로 심각도를 가른다.** 유형마다 보고 시작 횟수가 있어 1~2회짜리 `~를 통해`는 위험으로 올리지 않는다. 같은 문단에 서로 다른 유형이 3개 이상 모이면 hot 문단으로 묶어 문장 패치 대신 문단 단위 윤문을 권한다. 영어·일본어 계통 신호로 `source_influence` 힌트(어디서부터 고칠지)를 내지만 원천 언어 판정은 아니다.
+
+- 서술 어체 혼용(FID-11), 목록 마침표 불일치(FID-12), 원문에 없는 완충 표현 증가(FID-13)를 따로 본다. 따옴표 안 말투와 제목은 어체 검사에서 제외한다.
+- `--baseline 초벌번역.md`: 초벌 대비 바뀐 문장 비율로 후편집 범위(가벼움·보통·많음)를 보고한다. `--intensity 보수|기본|적극`에 따라 과편집 경고·채택 중단(EDIT-1)의 문턱이 달라지고, 분량이 25% 이상 달라지면 EDIT-2를 올린다.
+- 오역이 의심되면 윤문으로 고치지 않고 `[의미 확인]`으로 표시해 사람에게 넘긴다. 교정 순서, 교정 쌍, 오탐 가드는 [`references/translationese-guide.md`](references/translationese-guide.md)에 둔다.
+
 ## 5. 문체 보존과 윤문 처방
 
 ### 보존
@@ -295,5 +303,7 @@ summary.md                   변경률·등급·핵심 변경 요약
 - [ ] `--full-edit`이면 문단 대응표·재배치 기준본·구조 보존 검증을 남겼는가
 
 ## 출처와 적용 범위
+
+외부 번역 평가 기준·한국어 연구·현장 사례를 대조하거나 번역 검토 기준을 설계할 때는 [대외 자료 조사](references/translation-external-research-20261021.md)를 읽고 `templates/translation-review-brief.md`로 목적·허용 용어·말투·문맥을 인계한다. light/full 목표 품질과 편집 변경량을 구분한다. 허용되는 용어 변형은 보존하고, 원문·초벌·수정본에서 새 오류를 확인한다. 현재 자동 severity는 검토 우선순위이며 사람의 MQM 평가가 아니다. 출처의 확인 범위와 언어쌍을 표시하고 언론 사례를 성능 검증으로 사용하지 않는다.
 
 확장 taxonomy·quick-rules·rewriting-playbook·post-editese 지표는 윤기자의 설계를 바탕으로 구성했다. 이 스킬의 운영 taxonomy·LOCK·한국어 장르 프로파일·Codex 실행 규칙은 `Neosiki/neo-korean-writing`의 v5 설계를 계승해 v6으로 통합했고, v7에서 번역 충실성·문학 번역 참고선을 추가했으며, v8에서 윤기자 설계의 v2.2~v2.3 개선 사항(단일 콜 우선 route 재편, 4축 구조 수렴 게이트, 진단 슬림 인덱스, 대조 코퍼스 실증 검증)을 반영했다. 번역·문학 판단의 외부 근거와 서비스 benchmark는 `references/translation-fidelity.md`와 `references/translation-benchmarks.md`에 기록한다.
