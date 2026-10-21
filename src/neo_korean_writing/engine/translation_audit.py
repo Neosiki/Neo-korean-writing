@@ -12,8 +12,15 @@ v8 고도화(2026-10): MQM식 심각도 등급(치명·주요·경미)과 고칠
 ({name}, %s, {{x}}, <b>) 손상 검사를 추가했다. 모든 등급은 사람이 MQM으로 평가하기
 전에 훑어보는 휴리스틱이며 번역 품질 점수가 아니다.
 
+v9 고도화(2026-10): 번역투를 유형(T1~T7·P1~P4·J1)별로 세고 빈도에 따라 경미/주요로 나누며,
+같은 문단에 몰린 군집(hot 문단)과 영어·일본어 원천형 힌트를 보고한다. 서술 어체 혼용(FID-11),
+목록 마침표 불일치(FID-12), 원문에 없는 완충 표현 증가(FID-13)를 추가했고, --baseline으로
+초벌 번역 대비 후편집 범위(가벼움·보통·많음)와 과편집 경고(EDIT-1·EDIT-2)를 낸다.
+유형별 보고 시작 횟수는 정상 한국어에도 흔한 표현(1~2회)을 위험으로 올리지 않기 위한 값이다.
+
 사용법:
   python3 translation_audit.py 원문.md 번역문.md
+  python3 translation_audit.py 원문.md 번역문.md --baseline 초벌번역.md --intensity 기본
   python3 translation_audit.py 원문.md 번역문.md --direction en-to-ko --literary --json
   python3 translation_audit.py 원문.md 번역문.md --glossary 용어집.tsv --strict
 """
@@ -25,7 +32,7 @@ import statistics
 import sys
 from collections import Counter
 
-VERSION = "8.0.0"
+VERSION = "9.0.0"
 SEVERITY_RANK = {"critical": 0, "major": 1, "minor": 2, "review": 3}
 MQM_WEIGHT = {"critical": 25, "major": 5, "minor": 1, "review": 0}
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -244,7 +251,259 @@ def glossary_check(source, target, entries):
     return {"entries_total": len(entries), "applicable": applicable, "issues": issues}
 
 
-def audit_data(source, target, direction="auto", literary=False, glossary=None):
+# ---------------------------------------------------------------------------
+# v9: 번역투 유형 프로파일 · 문체 혼용 · 목록 마침표 · 완충 표현 · 후편집 범위
+# ---------------------------------------------------------------------------
+# (유형 ID, 라벨, taxonomy ID, 정규식, 보고 시작 횟수, 주요 격상 횟수, 원천 계통, 교정 방향)
+# 보고 시작 횟수 미만은 위험으로 올리지 않는다: 1~2회는 정상 한국어에도 흔하다
+# (references/empirical-validation.md — A-2·I-1 강등 근거와 같은 원리).
+TRANSLATIONESE_TYPES = [
+    ("T1", "무생물 주어 + 능동 만능동사", "A-15",
+     re.compile(r"(?:연구|보고서|결과|데이터|기술|시스템|도구|그림|표|사건|상황|경험|제도|정책|변화)(?:은|는|이|가)\s+[^.\n]{0,25}?"
+                r"(?:보여\s*준다|보여\s*주었|보여\s*줍니다|말해\s*준다|알려\s*준다|가능하게\s*(?:한다|했|합니다)|허용한다|이끈다|이끌었|가져온다|가져왔)"),
+     2, 4, "en", "추상 주어를 사람·수단으로 바꾸거나 '~ 덕분에/~ 때문에' 부사구로 낮춘다"),
+    ("T2", "이중 피동", "A-8",
+     re.compile(r"(?:되어|보여|쓰여|불려|나뉘어|잊혀|읽혀|놓여|닫혀|열려|바뀌어)\s*(?:지[는고며도]|진다|집니다|졌|질)|지게\s*(?:된다|되었|됐|됩니다)"),
+     1, 2, "shared", "보여진다→보인다, 쓰여진→쓰인, 되어진다→된다처럼 한 겹으로 줄인다"),
+    ("T2", "행위자 피동 '에 의해'", "A-9",
+     re.compile(r"에\s*의(?:해서?|하여|한)(?![가-힣])"),
+     2, 4, "en", "행위자를 주어로 올려 능동문으로 바꾼다('연구팀이 발표했다')"),
+    ("T3", "대명사 직역", "A-16",
+     KOREAN_PRONOUNS, 3, 6, "en", "문맥으로 알 수 있는 주어는 생략하고, 필요하면 이름·호칭으로 복원한다"),
+    ("T4", "복수 '들' 과다", "A-17(보류)",
+     re.compile(r"(?<=[가-힣])들(?=[은는이가을를의에도과와로])"),
+     8, 14, "en", "무정물·이미 복수가 드러난 명사의 '들'을 지운다(사람 명사의 '들'은 보존)"),
+    ("T5", "긴 좌향 수식(관형절 중첩)", "A-18", None, 1, 3, "en",
+     "관형절을 문장으로 끊고 접속어미로 잇는다. 한 문장에 수식 하나만 남긴다"),
+    ("T6", "'가지고 있다' 소유 직역", "A-7",
+     re.compile(r"(?:가지고|갖고)\s*(?:있|계)(?:다|는|으며|습니다|었)"),
+     1, 3, "en", "있다/갖췄다/지녔다 중 문맥에 맞는 말로, 또는 주어를 바꿔 '~에는 …이 있다'로"),
+    ("T7", "이중 조사 결합", "A-19",
+     re.compile(r"(?:에서의|에로의|으로의|에의|(?:으)?로부터의)"),
+     2, 4, "ja", "'에서의 경험'→'에서 겪은 경험'처럼 서술어를 복원해 조사 연쇄를 푼다"),
+    ("P1", "'~에 대해(서)/대한' 남발", "A-1",
+     re.compile(r"에\s*대(?:해서?|하여|한)(?![가-힣])"),
+     4, 8, "shared", "목적격('을/를')이나 '~에게', '~ 관해'로 바꾸고, 문단당 1회 이하로"),
+    ("P2", "'~를 통해' 남발", "A-2",
+     re.compile(r"[를을]\s*통(?:해서?|하여|한)(?![가-힣])"),
+     3, 5, "en", "'~로', '~해서', 능동문으로 분산한다(1~2회는 보존)"),
+    ("P3", "'~에 있어(서)'", "A-3",
+     re.compile(r"에\s*있어(?:서의|서는|서도|서)?(?![가-힣])"),
+     1, 3, "shared", "'~에서', '~할 때', '~로는'으로 바꾼다"),
+    ("P4", "'~와 관련하여/에 기반하여'", "A-5/A-6",
+     re.compile(r"(?:와|과)\s*관련(?:하여|해서|된)(?![가-힣])|에\s*기반(?:하여|해서|한)(?![가-힣])"),
+     2, 4, "en", "'~ 때문에', '~에 따라', '~를 바탕으로'처럼 관계가 드러나는 말로 바꾼다"),
+    ("J1", "일본어식 구문(로서의·라고 하는 등)", "A-3/A-19 보강",
+     re.compile(r"(?:으)?로서의(?![가-힣])|라고\s*하는(?![가-힣])|에\s*다름\s*아니|하지\s*않으면\s*안\s*(?:된다|됩니다|되)|(?:으)?로\s*되어\s*있"),
+     1, 3, "ja", "'로서의'→'로서', '라고 하는'→'라는', '하지 않으면 안 된다'→'해야 한다'"),
+]
+
+LONG_MODIFIER_RE = re.compile(r"(?:하는|되는|있는|없는|하던|되던|받은|가진|한|된|할|될)\s+(?=[가-힣])")
+OF_CHAIN_RE = re.compile(r"[가-힣]+의\s+[가-힣]+의\s+[가-힣]+의")
+SENT_SPLIT_RE = re.compile(r"(?<=[.!?。])\s+|\n+")
+QUOTE_SPAN_RE = re.compile(r"“[^”\n]*”|\"[^\"\n]*\"|「[^」\n]*」|『[^』\n]*』|‘[^’\n]*’")
+REG_FORMAL_RE = re.compile(r"(?:니다|니까|십시오|십시요)$")
+REG_POLITE_RE = re.compile(r"요$")
+REG_PLAIN_RE = re.compile(r"다$")
+HEDGE_KO_RE = re.compile(
+    r"수\s*도?\s*있(?:다|습니다|으며|고|지만|는데|을)|것으로\s*(?:보인다|보입니다|보이며|보여|추정|판단|예상|전망|생각)|"
+    r"가능성이\s*(?:있|높|큽|크)|듯\s*하|보인다|보입니다|추정된다|여겨진다"
+)
+HEDGE_EN_RE = re.compile(
+    r"\b(?:may|might|could|can|would|seems?|seemed|appears?|appeared|likely|possibly|perhaps|probably|suggests?|suggested|tends?\s+to)\b",
+    re.I,
+)
+SCOPE_INTENSITY = {"보수": (0.20, 0.35), "기본": (0.40, 0.55), "적극": (0.55, 0.70)}
+
+
+def _sentences(text):
+    text = FENCE_RE.sub("", text)
+    return [p.strip() for p in SENT_SPLIT_RE.split(text) if len(p.strip()) >= 3]
+
+
+def _excerpt(text, limit=60):
+    text = re.sub(r"\s+", " ", text).strip()
+    return text if len(text) <= limit else text[:limit] + "…"
+
+
+def _type_hits(spec, text):
+    code, _label, _tax, regex, _minr, _majr, _fam, _fix = spec
+    if code == "T5":
+        hits = []
+        for s in _sentences(text):
+            if len(s) >= 100 and len(LONG_MODIFIER_RE.findall(s)) >= 4:
+                hits.append(s)
+        return hits
+    out = []
+    for m in regex.finditer(text):
+        lo, hi = max(0, m.start() - 14), min(len(text), m.end() + 8)
+        out.append(text[lo:hi].replace("\n", " "))
+    return out
+
+
+def translationese_profile(text):
+    """한국어 번역문의 번역투를 유형별로 세고, 빈도에 따라 경미/주요로 나눈다.
+
+    1~2회는 정상 한국어에도 흔하므로 유형마다 보고 시작 횟수를 둔다. 같은 문단에 서로 다른
+    유형이 모이면 hot 문단으로 묶어 문단 단위 윤문을 권한다. 원천 언어 추정은 힌트일 뿐이다.
+    """
+    body = FENCE_RE.sub("", text)
+    chars = max(len(body), 1)
+    types, below, total = [], [], 0
+    for spec in TRANSLATIONESE_TYPES:
+        code, label, tax, _rx, min_report, major_at, family, fix = spec
+        hits = _type_hits(spec, body)
+        n = len(hits)
+        if not n:
+            continue
+        entry = {
+            "id": code, "label": label, "taxonomy": tax, "count": n, "family": family,
+            "samples": [_excerpt(h, 48) for h in hits[:3]], "fix": fix,
+        }
+        if code == "T4" and n / chars * 1000 < 6:
+            entry["note"] = "밀도가 낮아 보고하지 않음"
+            below.append(entry)
+            continue
+        if n < min_report:
+            below.append(entry)
+            continue
+        entry["severity"] = "major" if n >= major_at else "minor"
+        types.append(entry)
+        total += n
+
+    reported = {t["id"] + t["label"] for t in types}
+    hot = []
+    for i, para in enumerate(_paragraphs(body), 1):
+        kinds, hits = set(), 0
+        for spec in TRANSLATIONESE_TYPES:
+            if spec[0] + spec[1] not in reported:
+                continue
+            n = len(_type_hits(spec, para))
+            if n:
+                kinds.add(spec[0])
+                hits += n
+        if len(kinds) >= 3 or hits >= 5:
+            hot.append({"paragraph": i, "types": sorted(kinds), "hits": hits, "excerpt": _excerpt(para)})
+
+    en_types = [t for t in types if t["family"] == "en"]
+    ja_types = [t for t in types if t["family"] == "ja"]
+    of_chain = len(OF_CHAIN_RE.findall(body))
+    en_score = sum(t["count"] for t in en_types)
+    ja_score = sum(t["count"] for t in ja_types) + of_chain
+    if en_types and (ja_types or of_chain >= 2):
+        inferred, hint = "mixed", "영어·일본어형 신호가 섞임 → 심각도가 높은 유형부터"
+    elif en_types:
+        inferred, hint = "english-like", "영어 원천형 신호 우세 → 피동의 능동화, 주어·대명사 생략, 무생물 주어 낮추기부터"
+    elif ja_types or of_chain >= 2:
+        inferred, hint = "japanese-like", "일본어 원천형 신호 우세 → 조사·'의' 연쇄, '로서의/라고 하는' 구문부터 정리"
+    else:
+        inferred, hint = "unclear", "원천 언어를 가를 만한 신호가 부족함(공통형 번역투만 있거나 신호 없음)"
+    return {
+        "total_hits": total,
+        "per_1000_chars": round(total / chars * 1000, 1),
+        "types": types,
+        "below_threshold": below,
+        "hot_paragraphs": hot,
+        "source_influence": {"inferred": inferred, "english_score": en_score, "japanese_score": ja_score,
+                             "hint": hint, "note": "문체 신호에서 추정한 힌트이며 원천 언어 판정이 아님"},
+    }
+
+
+def _register_of(sentence):
+    s = sentence.strip().rstrip(".!?…。 ")
+    s = s.rstrip("\"”’)」』 ")
+    if REG_FORMAL_RE.search(s):
+        return "formal"
+    if REG_POLITE_RE.search(s):
+        return "polite"
+    if REG_PLAIN_RE.search(s):
+        return "plain"
+    return None
+
+
+def register_profile(text):
+    """따옴표·제목·표·코드 밖의 서술문 어체(합쇼/해요/한다)를 세어 혼용을 찾는다."""
+    body = FENCE_RE.sub("", text)
+    counts = Counter()
+    samples = {"formal": [], "polite": [], "plain": []}
+    for para in _paragraphs(body):
+        if re.match(r"^\s*(?:#|\||>)", para):
+            continue
+        para = QUOTE_SPAN_RE.sub("", para)
+        for s in _sentences(para):
+            reg = _register_of(re.sub(r"^\s*(?:[-*+]|\d+[.)])\s+", "", s))
+            if reg:
+                counts[reg] += 1
+                if len(samples[reg]) < 3:
+                    samples[reg].append(_excerpt(s, 40))
+    total = sum(counts.values())
+    ranked = counts.most_common()
+    mixed = False
+    minority = None
+    if len(ranked) >= 2 and total:
+        minority = ranked[1][0]
+        mixed = ranked[1][1] >= 2 and ranked[1][1] / total >= 0.15
+    return {"counts": dict(counts), "total": total, "mixed": mixed, "minority": minority if mixed else None,
+            "samples": samples if mixed else {}}
+
+
+def list_punctuation_check(text):
+    """같은 목록 안에서 항목 끝 마침표가 섞였는지 본다(항목 3개 이상 목록만)."""
+    lists, cur = [], []
+    for line in FENCE_RE.sub("", text).splitlines():
+        m = re.match(r"^\s*(?:[-*+]|\d+[.)])\s+(.+?)\s*$", line)
+        if m:
+            cur.append(m.group(1))
+        elif cur:
+            lists.append(cur)
+            cur = []
+    if cur:
+        lists.append(cur)
+    issues = []
+    for idx, items in enumerate(lists, 1):
+        if len(items) < 3:
+            continue
+        with_p = sum(1 for it in items if it.rstrip()[-1:] in ".。")
+        if 0 < with_p < len(items):
+            issues.append({"list": idx, "items": len(items), "with_period": with_p})
+    return {"lists": len(lists), "inconsistent": issues}
+
+
+def hedge_profile(source, target, direction):
+    ko = [len(HEDGE_KO_RE.findall(p)) for p in _paragraphs(target)]
+    dense = [i for i, n in enumerate(ko, 1) if n >= 3]
+    out = {"target_hedges": sum(ko), "dense_paragraphs": dense, "source_hedges": None}
+    if direction == "en-to-ko":
+        out["source_hedges"] = len(HEDGE_EN_RE.findall(source))
+    return out
+
+
+def edit_scope(baseline, final, intensity="기본"):
+    """초벌 번역 대비 후편집이 얼마나 문장을 바꿨는지 센다(범위 보고 + 과편집 경고)."""
+    import difflib
+    warn_at, hold_at = SCOPE_INTENSITY.get(intensity, SCOPE_INTENSITY["기본"])
+    b, f = _sentences(baseline), _sentences(final)
+    matcher = difflib.SequenceMatcher(None, b, f, autojunk=False)
+    kept = sum(blk.size for blk in matcher.get_matching_blocks())
+    touched = len(b) - kept
+    ratio = touched / max(len(b), 1)
+    if ratio < 0.15:
+        tier = "가벼움"
+    elif ratio < 0.40:
+        tier = "보통"
+    else:
+        tier = "많음"
+    size_delta = (len(final) - len(baseline)) / max(len(baseline), 1)
+    return {
+        "baseline_sentences": len(b), "final_sentences": len(f), "touched_sentences": touched,
+        "touched_ratio": round(ratio, 3), "tier": tier, "intensity": intensity,
+        "warn_at": warn_at, "hold_at": hold_at, "size_delta": round(size_delta, 3),
+        "note": "초벌의 절반가량이 바뀌면 후편집이 아니라 재번역일 수 있음(과교정·post-editese 점검)",
+    }
+
+
+def audit_data(source, target, direction="auto", literary=False, glossary=None,
+               baseline=None, intensity="기본"):
     if direction == "auto":
         direction = "en-to-ko" if re.search(r"[A-Za-z]", source) and re.search(r"[가-힣]", target) else "same"
 
@@ -281,13 +540,82 @@ def audit_data(source, target, direction="auto", literary=False, glossary=None):
             severity="major", mqm="Accuracy/Addition", count=target_intensifiers,
         ))
 
-    translationese = len(TRANSLATIONESE_RE.findall(target)) if direction in ("en-to-ko", "same") else 0
-    if translationese:
-        risks.append(_risk(
-            "FID-7", "warn", "한국어 번역투 후보", translationese,
-            "A-1~A-19 span을 확인하되, 인용·전문 문맥의 합법적 표현은 보존",
-            severity="minor", mqm="Fluency/Awkward", count=translationese,
-        ))
+    translationese = 0
+    translationese_data = register_data = list_data = hedge_data = None
+    if direction in ("en-to-ko", "same"):
+        translationese_data = translationese_profile(target)
+        translationese = translationese_data["total_hits"]
+        for t in translationese_data["types"]:
+            risks.append(_risk(
+                "FID-7", "warn", f"한국어 번역투 {t['id']} {t['label']}",
+                {"taxonomy": t["taxonomy"], "samples": t["samples"]},
+                f"{t['fix']} (taxonomy {t['taxonomy']}; 인용·전문 문맥의 합법적 표현은 보존)",
+                severity=t["severity"], mqm="Fluency/Awkward", count=t["count"],
+            ))
+        for h in translationese_data["hot_paragraphs"]:
+            risks.append(_risk(
+                "FID-7", "warn", "번역투 군집 문단",
+                {"paragraph": h["paragraph"], "types": h["types"], "excerpt": h["excerpt"]},
+                "문장별 패치보다 문단 단위로 다시 읽고 윤문(주어·피동·조사 연쇄를 한꺼번에 정리)",
+                severity="major", mqm="Fluency/Awkward", count=1,
+            ))
+        register_data = register_profile(target)
+        if register_data["mixed"]:
+            minority = register_data["minority"]
+            risks.append(_risk(
+                "FID-11", "warn", "서술 어체 혼용",
+                {"counts": register_data["counts"], "samples": register_data["samples"].get(minority, [])},
+                "합쇼체·해요체·한다체 중 문서 전체의 어체를 하나로 통일(따옴표 안 말투와 제목은 예외)",
+                severity="minor", mqm="Style/Register", count=register_data["counts"].get(minority, 1),
+            ))
+        list_data = list_punctuation_check(target)
+        if list_data["inconsistent"]:
+            risks.append(_risk(
+                "FID-12", "warn", "목록 마침표 불일치", list_data["inconsistent"],
+                "같은 목록 안에서는 항목 끝 마침표를 모두 붙이거나 모두 뺀다",
+                severity="minor", mqm="Style/Punctuation", count=len(list_data["inconsistent"]),
+            ))
+        hedge_data = hedge_profile(source, target, direction)
+        src_h, tgt_h = hedge_data["source_hedges"], hedge_data["target_hedges"]
+        if src_h is not None and tgt_h >= src_h + 3 and tgt_h >= 1.5 * max(src_h, 1):
+            risks.append(_risk(
+                "FID-13", "warn", "완충 표현 증가", {"source": src_h, "target": tgt_h},
+                "원문에 없는 '~일 수 있다·~로 보인다·가능성이 있다'로 단정을 흐리지 않았는지 대조",
+                severity="major" if literary or tgt_h >= src_h + 6 else "minor",
+                mqm="Accuracy/Addition(modality)", count=tgt_h - src_h,
+            ))
+        if hedge_data["dense_paragraphs"]:
+            risks.append(_risk(
+                "FID-13", "warn", "완충 표현 밀집 문단", hedge_data["dense_paragraphs"],
+                "한 문단에 완충 표현이 3회 이상: 원문이 실제로 유보하는 곳만 남기고 나머지는 단정형으로",
+                severity="minor", mqm="Fluency/Awkward", count=len(hedge_data["dense_paragraphs"]),
+            ))
+
+    scope = None
+    if baseline is not None:
+        scope = edit_scope(baseline, target, intensity)
+        pct = round(scope["touched_ratio"] * 100)
+        if scope["touched_ratio"] >= scope["hold_at"]:
+            risks.append(_risk(
+                "EDIT-1", "hold", f"후편집 범위 과다(초벌 문장의 {pct}% 수정)",
+                {k: scope[k] for k in ("touched_sentences", "baseline_sentences", "touched_ratio", "intensity")},
+                "재번역 수준의 변경: 원문 대조(FID)를 다시 하고, 국소 수술이 가능한 곳은 초벌로 되돌릴 것",
+                severity="major", mqm="Style/Over-editing", count=scope["touched_sentences"],
+            ))
+        elif scope["touched_ratio"] >= scope["warn_at"]:
+            risks.append(_risk(
+                "EDIT-1", "warn", f"후편집 범위 큼(초벌 문장의 {pct}% 수정)",
+                {k: scope[k] for k in ("touched_sentences", "baseline_sentences", "touched_ratio", "intensity")},
+                "바꾼 문장이 모두 번역투·오역 교정인지 확인하고, 취향 수정은 되돌릴 것",
+                severity="minor", mqm="Style/Over-editing", count=scope["touched_sentences"],
+            ))
+        if abs(scope["size_delta"]) >= 0.25:
+            risks.append(_risk(
+                "EDIT-2", "warn", "초벌 대비 분량 변화", {"size_delta": scope["size_delta"]},
+                "분량이 25% 이상 달라짐: 누락·덧붙임이 없는지 원문과 대조",
+                severity="major" if abs(scope["size_delta"]) >= 0.4 else "minor",
+                mqm="Accuracy/Omission-Addition", count=1,
+            ))
 
     source_s = source_structure["sentences"]
     target_s = target_structure["sentences"]
@@ -424,6 +752,11 @@ def audit_data(source, target, direction="auto", literary=False, glossary=None):
         "english_residue": residue,
         "glossary": glossary_report,
         "translationese_signals": translationese,
+        "translationese": translationese_data,
+        "register": register_data,
+        "list_punctuation": list_data,
+        "hedges": hedge_data,
+        "post_edit_scope": scope,
         "risks": risks,
         "severity_summary": {k: by_severity.get(k, 0) for k in ("critical", "major", "minor", "review")},
         "fix_order": fix_order,
@@ -460,6 +793,15 @@ def _print_report(data):
           f"  (MQM 휴리스틱 {data['mqm_heuristic']['penalty']}점, 1000자당 {data['mqm_heuristic']['per_1000_chars']})")
     if data["fix_order"]:
         print("고칠 순서: " + " → ".join(data["fix_order"]))
+    te = data.get("translationese")
+    if te and te["types"]:
+        kinds = ", ".join(f"{t['id']} {t['label']} {t['count']}" for t in te["types"])
+        print(f"번역투 유형: {kinds}  (1000자당 {te['per_1000_chars']})")
+        print(f"  원천 힌트: {te['source_influence']['hint']}")
+    scope = data.get("post_edit_scope")
+    if scope:
+        print(f"후편집 범위: {scope['tier']} — 초벌 문장 {round(scope['touched_ratio'] * 100)}% 수정"
+              f"({scope['touched_sentences']}/{scope['baseline_sentences']}), 분량 {scope['size_delta']:+.0%}, 강도 {scope['intensity']}")
     for risk in data["risks"]:
         print(f"  [{risk['severity']}/{risk['level']}] {risk['id']} {risk['label']}: {risk['evidence']}")
         print(f"      → {risk['action']}")
@@ -475,6 +817,8 @@ def main(args=None):
     parser.add_argument("--glossary")
     parser.add_argument("--literary", action="store_true")
     parser.add_argument("--strict", action="store_true")
+    parser.add_argument("--baseline")
+    parser.add_argument("--intensity", default="기본", choices=list(SCOPE_INTENSITY))
     parser.add_argument("--json", action="store_true")
     parser.error = lambda msg: (_ for _ in ()).throw(ValueError(msg))
     try:
@@ -490,10 +834,11 @@ def main(args=None):
     try:
         source, target = read_text(ns.source), read_text(ns.target)
         glossary = load_glossary(ns.glossary) if ns.glossary else None
+        baseline = read_text(ns.baseline) if ns.baseline else None
     except (OSError, ValueError, KeyError) as exc:
         print(f"입력 읽기 실패: {exc}", file=sys.stderr)
         return 3
-    data = audit_data(source, target, ns.direction, ns.literary, glossary)
+    data = audit_data(source, target, ns.direction, ns.literary, glossary, baseline, ns.intensity)
     if ns.strict:
         data = _apply_strict(data)
     if ns.json:
