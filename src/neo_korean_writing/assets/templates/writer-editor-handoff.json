@@ -24,6 +24,11 @@
     "terms": [],
     "structures": []
   },
+  "delivery": {
+    "mode": "copy",
+    "final_path": "final.md",
+    "review_path": "review.md"
+  },
   "editorial": {
     "structure_change": "suggest_only",
     "change_budget_pct": 25,

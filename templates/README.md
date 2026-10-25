@@ -20,4 +20,6 @@
 > 템플릿의 빈 칸은 AI가 추정해 채우는 정보가 아닙니다. 확인할 수 없다면 `미정` 또는 `[확인 필요]`로 유지해야 합니다.
 # 문서 간 맥락 감사 추가
 
+번역을 파일로 이어갈 때는 `writer-editor-handoff.json`에 `translation-session`이 선택적 진행 기록을 추가한다. 원문·용어집·초안이 바뀌면 재검토할 단계를 표시한다. delivery의 copy는 납품 본문만, review는 별도 검토 보고를 포함한다. [실행 방법](../references/translation-continuation.md)을 참고한다.
+
 - `context-manifest.json`: 대상·참조 문서, 권장 용어, 개체 별칭, 시점과 근거가 있는 주장. 예시 경로·가상 데이터는 실제 작업 자료로 바꾼다.

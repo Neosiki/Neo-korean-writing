@@ -15,6 +15,7 @@ PROMPTS = {
     "press-release-editing": "press-release-editing.md",
     "longform-editing": "longform-editing.md",
     "translation-postediting": "translation-postediting.md",
+    "translation-continuation": "translation-continuation.md",
     "translation-draft-critique-edit": "translation-draft-critique-edit.md",
     "translation-craft-review": "translation-craft-review.md",
     "news-translation-review": "news-translation-review.md",
@@ -35,8 +36,8 @@ PROFILES = {
     "general": ("standard-editing",),
     "press-release": ("press-release-editing",),
     "longform": ("longform-editing",),
-    "translation": ("translation-postediting", "translation-draft-critique-edit", "translation-craft-review"),
-    "news-translation": ("translation-postediting", "translation-draft-critique-edit", "news-translation-review"),
+    "translation": ("translation-postediting", "translation-draft-critique-edit", "translation-craft-review", "translation-continuation"),
+    "news-translation": ("translation-postediting", "translation-draft-critique-edit", "news-translation-review", "translation-continuation"),
     "context": ("cross-document-editing",),
     "detect": ("detect-only",),
 }
@@ -173,6 +174,10 @@ def cmd_translation_audit(args: argparse.Namespace) -> int:
     return _engine_call("translation-audit", arguments)
 
 
+def cmd_translation_session(args: argparse.Namespace) -> int:
+    return _engine_call("translation-session", args.arguments)
+
+
 def cmd_context_audit(args: argparse.Namespace) -> int:
     arguments = [args.manifest]
     if args.json:
@@ -250,6 +255,10 @@ def build_parser() -> argparse.ArgumentParser:
     audit.add_argument("--baseline")
     audit.add_argument("--intensity", choices=("보수", "기본", "적극"), default="기본")
     audit.set_defaults(handler=cmd_translation_audit)
+
+    session = subparsers.add_parser("translation-session", help="번역 인계서의 단계·표현 선택을 기록하고 이어가기")
+    session.add_argument("arguments", nargs=argparse.REMAINDER)
+    session.set_defaults(handler=cmd_translation_session)
 
     context = subparsers.add_parser("context-audit", help="명시한 문서 간 용어·개체·주장 근거 대조")
     context.add_argument("manifest")

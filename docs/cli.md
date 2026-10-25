@@ -1,5 +1,18 @@
 # Neo-korean-writing CLI
 
+## 번역 작업 이어가기 (스킬 v10.4)
+
+번역 프로필은 이어가기 프롬프트도 제공합니다. 작업 폴더의 Writer–Editor 인계서에 입력과 단계를 기록합니다.
+
+```bash
+neo-korean-writing init work --profile translation
+# work/templates/writer-editor-handoff.json의 독자·목적 등을 채우고 실제 원문을 준비한 뒤:
+neo-korean-writing translation-session init work/templates/writer-editor-handoff.json --source source.md --domain finance
+neo-korean-writing translation-session inspect work/templates/writer-editor-handoff.json --json
+```
+
+소스 스크립트는 `python scripts/translation_session.py` 또는 `python scripts/korean_writing.py translation-session`으로 같은 인자를 받습니다. 하위 명령은 init·inspect·checkpoint·decision입니다. 입력 변경은 2, 입력 오류는 3으로 종료합니다. 등록 파일의 해시와 단계 순서만 확인하며 의미 검수는 실행하지 않습니다. [단계 기록·표현 선택·새 입력 등록 방법](../references/translation-continuation.md)을 참고하세요.
+
 `neo-korean-writing`은 저장소의 프롬프트·템플릿·진단 도구를 설치형 명령으로 묶은 CLI입니다. 외부 모델 API를 호출하거나 원고를 자동으로 덮어쓰지 않습니다. 작업공간을 만들고, 윤문 전후 원고의 보존 항목을 대조하며, 번역문 대조와 문체 진단을 실행하는 로컬 도구입니다.
 
 ## 설치

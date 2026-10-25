@@ -438,6 +438,12 @@ def handoff_data(t):
     budget = data["editorial"].get("change_budget_pct", 25)
     if not isinstance(budget, (int, float)) or not 0 <= budget <= 50:
         errors.append("editorial.change_budget_pct는 0~50 숫자여야 함")
+    delivery = data.get("delivery")
+    if delivery is not None:
+        if not isinstance(delivery, dict) or delivery.get("mode") not in ("copy", "review"):
+            errors.append("delivery.mode는 copy 또는 review이어야 함")
+        elif any(not isinstance(delivery.get(k), str) or not delivery[k].strip() for k in ("final_path", "review_path")):
+            errors.append("delivery.final_path·review_path는 비어 있지 않은 문자열이어야 함")
     return {"pass": not errors, "errors": errors, "warnings": warnings,
             "summary": {"genre": data["context"].get("genre"), "voice": voice,
                         "sourced_claims": len(data["provenance"].get("sourced_claims", [])),
@@ -712,6 +718,10 @@ def cmd_translation_audit(args):
     from .translation_audit import main
     sys.exit(main(args))
 
+def cmd_translation_session(args):
+    from .translation_session import main
+    sys.exit(main(args))
+
 def cmd_context_audit(args):
     from .context_audit import main
     sys.exit(main(args))
@@ -721,6 +731,7 @@ CMDS = {"diagnose": cmd_diagnose, "sunny": cmd_sunny, "connectives": cmd_connect
         "structure": cmd_structure, "morphology": cmd_morphology,
         "handoff-validate": cmd_handoff_validate,
         "taxonomy": cmd_taxonomy, "translation-audit": cmd_translation_audit,
+        "translation-session": cmd_translation_session,
         "context-audit": cmd_context_audit}
 
 if __name__ == "__main__":

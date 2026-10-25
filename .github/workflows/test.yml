@@ -37,6 +37,7 @@ jobs:
           "$venv_dir/bin/neo-korean-writing" show template translation-glossary
           "$venv_dir/bin/neo-korean-writing" show template context-manifest
           "$venv_dir/bin/neo-korean-writing" show prompt translation-draft-critique-edit
+          "$venv_dir/bin/neo-korean-writing" show prompt translation-continuation
           "$venv_dir/bin/neo-korean-writing" show prompt news-translation-review
           "$venv_dir/bin/neo-korean-writing" show template translation-review-brief
           "$venv_dir/bin/neo-korean-writing" context-audit --help
@@ -44,6 +45,9 @@ jobs:
           test -s "$workspace/prompts/press-release-editing.md"
           test -s "$workspace/templates/editing-brief.md"
           "$venv_dir/bin/neo-korean-writing" verify "$workspace/README.md" "$workspace/README.md" --strict
+          printf '%s\n' 'The bank may reopen.' > "$workspace/source.md"
+          "$venv_dir/bin/neo-korean-writing" translation-session init "$workspace/templates/writer-editor-handoff.json" --source "$workspace/source.md" --domain finance
+          "$venv_dir/bin/neo-korean-writing" translation-session inspect "$workspace/templates/writer-editor-handoff.json" --json
           mkdir -p "$RUNNER_TEMP/neo-korean-writing-package"
           cp "$package_dir"/* "$RUNNER_TEMP/neo-korean-writing-package/"
       - name: CLI 배포본 아티팩트 보관

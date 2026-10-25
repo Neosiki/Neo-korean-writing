@@ -63,6 +63,7 @@ def main() -> int:
         (ROOT / "scripts/korean_writing.py", ROOT / "src/neo_korean_writing/engine/korean_writing.py"),
         (ROOT / "scripts/translation_audit.py", ROOT / "src/neo_korean_writing/engine/translation_audit.py"),
         (ROOT / "scripts/translation_formats.py", ROOT / "src/neo_korean_writing/engine/translation_formats.py"),
+        (ROOT / "scripts/translation_session.py", ROOT / "src/neo_korean_writing/engine/translation_session.py"),
         (ROOT / "scripts/context_audit.py", ROOT / "src/neo_korean_writing/engine/context_audit.py"),
         (ROOT / "scripts/patterns.json", ROOT / "src/neo_korean_writing/engine/patterns.json"),
     ]
@@ -75,6 +76,7 @@ def main() -> int:
         if source.name == "korean_writing.py":
             b = b.replace("from .translation_audit import main", "from translation_audit import main")
             b = b.replace("from .context_audit import main", "from context_audit import main")
+            b = b.replace("from .translation_session import main", "from translation_session import main")
         if a != b:
             fail(f"packaged engine drift: {source.name}", errors)
 
