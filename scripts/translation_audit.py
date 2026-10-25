@@ -55,7 +55,7 @@ from collections import Counter
 from datetime import date
 from decimal import Decimal, InvalidOperation
 
-VERSION = "9.6.1"
+VERSION = "9.7.0"
 SEVERITY_RANK = {"critical": 0, "major": 1, "minor": 2, "review": 3}
 MQM_WEIGHT = {"critical": 25, "major": 5, "minor": 1, "review": 0}
 HERE = os.path.dirname(os.path.abspath(__file__))

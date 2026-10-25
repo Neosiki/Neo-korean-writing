@@ -9,7 +9,7 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-INCLUDE_DIRS = ("agents", "references", "scripts", "tests", "korean-writing", "prompts", "templates")
+INCLUDE_DIRS = ("agents", "references", "scripts", "tests", "korean-writing", "prompts", "templates", "benchmarks")
 INCLUDE_FILES = ("SKILL.md", "CHANGELOG.md", "ROADMAP.md", "THIRD_PARTY_NOTICES.md")
 
 

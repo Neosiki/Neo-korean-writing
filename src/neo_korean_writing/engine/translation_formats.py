@@ -4,7 +4,7 @@ HTML checks explicitly balanced fragments, not the whole HTML5 parsing algorithm
 XML uses ElementTree without DTDs. ICU MessageFormat 1 uses a pinned MIT parser.
 Ordinary prose keeps the existing lightweight placeholder policy.
 """
-from collections import Counter, defaultdict
+from collections import Counter
 from html.parser import HTMLParser
 import re
 import xml.etree.ElementTree as ET
@@ -61,6 +61,7 @@ class Markup(HTMLParser):
         self.nodes = []
         self.errors = []
         self.text = []
+        self.variables = Counter()
 
     def opening(self, tag, attrs, closed=False):
         names = [key for key, _ in attrs]
@@ -70,7 +71,7 @@ class Markup(HTMLParser):
         self.text.extend(value for _, value in attrs if value)
         self.nodes.append((tuple(self.stack), tag, protected))
         if not closed and tag not in VOID:
-            self.stack.append(tag)
+            self.stack.append((tag, protected))
 
     def handle_starttag(self, tag, attrs):
         self.opening(tag, attrs)
@@ -79,13 +80,14 @@ class Markup(HTMLParser):
         self.opening(tag, attrs, True)
 
     def handle_endtag(self, tag):
-        if not self.stack or self.stack[-1] != tag:
+        if not self.stack or self.stack[-1][0] != tag:
             self.errors.append("태그 닫힘 순서 불일치: " + tag)
         else:
             self.stack.pop()
 
     def handle_data(self, data):
         self.text.append(data)
+        self.variables.update((tuple(self.stack), variable) for variable in VARIABLE.findall(data))
         if re.search(r"</?[A-Za-z]", data):
             self.errors.append("해석되지 않은 태그 형태의 텍스트")
 
@@ -105,16 +107,20 @@ def markup_data(text, xml=False):
             root = ET.fromstring("<audit-root>" + text + "</audit-root>" if wrapped else text)
         except ET.ParseError as exc:
             return [], [str(exc)]
-        nodes = []
+        nodes, variables = [], Counter()
         pending = [(root, (), wrapped)]
         while pending:
             node, parents, wrapper = pending.pop()
             if not wrapper:
                 attrs = protected_attributes(node.attrib.items())
                 nodes.append((parents, node.tag, attrs))
-                parents = parents + (node.tag,)
+                parents = parents + ((node.tag, attrs),)
+            variables.update((parents, v) for v in VARIABLE.findall(node.text or ""))
+            for child in node:
+                # ElementTree tail text belongs to the containing parent, not the child.
+                variables.update((parents, v) for v in VARIABLE.findall(child.tail or ""))
             pending.extend((child, parents, False) for child in reversed(node))
-        return nodes, []
+        return {"nodes": nodes, "variables": variables}, []
     reader = Markup()
     try:
         reader.feed(text)
@@ -122,8 +128,8 @@ def markup_data(text, xml=False):
     except (ValueError, AssertionError) as exc:
         reader.errors.append(str(exc))
     if reader.stack:
-        reader.errors.append("명시적으로 닫히지 않은 태그: " + ", ".join(reader.stack))
-    return reader.nodes, reader.errors
+        reader.errors.append("명시적으로 닫히지 않은 태그: " + ", ".join(tag for tag, _ in reader.stack))
+    return {"nodes": reader.nodes, "variables": reader.variables}, reader.errors
 
 
 def icu_data(text):
@@ -142,14 +148,14 @@ def icu_data(text):
             if token["text"] in stack[-1]:
                 errors.append("중복 ICU 분기: " + token["text"])
             stack[-1].add(token["text"])
-    arguments, controls = defaultdict(set), []
     def walk(nodes, route=()):
+        arguments, controls = Counter(), Counter()
         for node in nodes:
             if isinstance(node, str):
                 continue
             name, kind = node["name"], node.get("type", "string")
             signature = ("#" if node.get("hash") else kind, repr(node.get("format")))
-            arguments[(route, name)].add(signature)
+            arguments[(route, name, signature)] += 1
             if kind in ("plural", "selectordinal", "select"):
                 options = node["options"]
                 if kind != "select" and any(not (k in {"zero", "one", "two", "few", "many", "other"} or re.fullmatch(r"=-?\d+(?:\.\d+)?", k)) for k in options):
@@ -158,12 +164,24 @@ def icu_data(text):
                     errors.append("음수 ICU offset: " + name)
                 # Locale plural names may differ; exact-value and select branches encode meaning.
                 required = sorted(k for k in options if kind == "select" or k.startswith("="))
-                controls.append((route, name, kind, node.get("offset", 0), tuple(required)))
+                controls[(route, name, kind, node.get("offset", 0), tuple(required))] += 1
+                locale_arguments, locale_controls = Counter(), Counter()
                 for selector, children in options.items():
-                    # A dropped locale-only plural branch is allowed, including its repeated variables.
-                    walk(children, route + ((name, selector if kind == "select" or selector.startswith("=") else "locale"),))
-    walk(ast)
-    return {"arguments": dict(arguments), "controls": controls}, errors
+                    specific = kind == "select" or selector.startswith("=")
+                    child_args, child_controls = walk(children, route + ((name, selector if specific else "locale"),))
+                    if specific:
+                        arguments.update(child_args)
+                        controls.update(child_controls)
+                    else:
+                        # Alternative locale branches do not execute together. Preserve the
+                        # maximum per-branch multiplicity rather than summing alternatives.
+                        locale_arguments |= child_args
+                        locale_controls |= child_controls
+                arguments.update(locale_arguments)
+                controls.update(locale_controls)
+        return arguments, controls
+    arguments, controls = walk(ast)
+    return {"arguments": arguments, "controls": controls}, errors
 
 
 def compare_formats(source, target, requested="auto"):
@@ -182,11 +200,13 @@ def compare_formats(source, target, requested="auto"):
     if not source_errors and not target_errors:
         if profile == "icu":
             if before["arguments"] != after["arguments"]:
-                report["issues"].append({"kind": "icu.arguments", "message": "ICU 변수 이름 또는 타입이 달라졌습니다"})
-            # Locale plural alternatives may collapse; select/exact branches remain distinct.
-            if set(before["controls"]) != set(after["controls"]):
+                report["issues"].append({"kind": "icu.arguments", "message": "ICU 변수 이름·타입·분기별 반복 횟수가 달라졌습니다"})
+            if before["controls"] != after["controls"]:
                 report["issues"].append({"kind": "icu.controls", "message": "ICU 선택 분기·명시 값·offset이 달라졌습니다"})
-        elif Counter(before) != Counter(after):
-            report["issues"].append({"kind": profile + ".structure", "message": "태그 계층·개수 또는 보호 속성이 달라졌습니다"})
+        else:
+            if Counter(before["nodes"]) != Counter(after["nodes"]):
+                report["issues"].append({"kind": profile + ".structure", "message": "태그 계층·개수 또는 보호 속성이 달라졌습니다"})
+            if before["variables"] != after["variables"]:
+                report["issues"].append({"kind": profile + ".variable_binding", "message": "변수가 연결된 요소·속성 경로 또는 반복 횟수가 달라졌습니다"})
     report["pass"] = not report["issues"]
     return report

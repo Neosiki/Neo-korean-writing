@@ -67,6 +67,8 @@ jobs:
         run: python3 scripts/evaluate_fixtures.py
       - name: 해외 기사 발췌·출처·표면 잠금 회귀와 의미 사각지대 보고
         run: python3 scripts/evaluate_news_fixtures.py
+      - name: 2차 개발 벤치마크와 의미 검토 한계 보고
+        run: python3 scripts/benchmark_round2.py --check
       - name: 회귀 테스트
         run: python3 -m unittest discover -s tests -v
       - name: v10 Skill 배포본 재현 빌드

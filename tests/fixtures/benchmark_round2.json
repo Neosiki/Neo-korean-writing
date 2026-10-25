@@ -1,0 +1,716 @@
+{
+  "schema_version": 1,
+  "created_on": "2026-10-25",
+  "baseline_commit": "9a1fd0ccb3f1592fd498dcf9a08e7bbe25fd7ad8",
+  "provenance": "Authored synthetic fixtures, frozen before round-2 implementation; not independent translation-quality evaluation.",
+  "cases": [
+    {
+      "id": "markup-dev-tag-swap",
+      "split": "development",
+      "family": "markup",
+      "source": "<b>{price}</b><i>{stock}</i>",
+      "target": "<b>{stock}</b><i>{price}</i>",
+      "expected_clean": false,
+      "format": "html"
+    },
+    {
+      "id": "markup-dev-id-swap",
+      "split": "development",
+      "family": "markup",
+      "source": "<p id=\"cost\">{price}</p><p id=\"count\">{stock}</p>",
+      "target": "<p id=\"cost\">{stock}</p><p id=\"count\">{price}</p>",
+      "expected_clean": false,
+      "format": "html"
+    },
+    {
+      "id": "markup-dev-ancestor-swap",
+      "split": "development",
+      "family": "markup",
+      "source": "<section><b>{x}</b></section><aside><b>{y}</b></aside>",
+      "target": "<section><b>{y}</b></section><aside><b>{x}</b></aside>",
+      "expected_clean": false,
+      "format": "html"
+    },
+    {
+      "id": "markup-dev-element-reorder",
+      "split": "development",
+      "family": "markup",
+      "source": "<b>{price}</b><i>{stock}</i>",
+      "target": "<i>{stock}</i><b>{price}</b>",
+      "expected_clean": true,
+      "format": "html"
+    },
+    {
+      "id": "markup-dev-within-element-order",
+      "split": "development",
+      "family": "markup",
+      "source": "<b>{first} {last}</b>",
+      "target": "<b>{last} {first}</b>",
+      "expected_clean": true,
+      "format": "html"
+    },
+    {
+      "id": "markup-dev-variable-missing",
+      "split": "development",
+      "family": "markup",
+      "source": "<b>{price}</b><i>{stock}</i>",
+      "target": "<b>{price}</b><i>재고</i>",
+      "expected_clean": false,
+      "format": "html"
+    },
+    {
+      "id": "markup-dev-localized-attribute",
+      "split": "development",
+      "family": "markup",
+      "source": "<img alt=\"Open the drawer\" src=\"drawer.png\">",
+      "target": "<img alt=\"서랍 열기\" src=\"drawer.png\">",
+      "expected_clean": true,
+      "format": "html"
+    },
+    {
+      "id": "markup-dev-locked-href",
+      "split": "development",
+      "family": "markup",
+      "source": "<a href=\"/help\">Help</a>",
+      "target": "<a href=\"/account\">도움말</a>",
+      "expected_clean": false,
+      "format": "html"
+    },
+    {
+      "id": "markup-dev-xml-tag-swap",
+      "split": "development",
+      "family": "markup",
+      "source": "<R><A>{x}</A><B>{y}</B></R>",
+      "target": "<R><A>{y}</A><B>{x}</B></R>",
+      "expected_clean": false,
+      "format": "xml"
+    },
+    {
+      "id": "markup-dev-xml-namespace-swap",
+      "split": "development",
+      "family": "markup",
+      "source": "<r xmlns:q=\"urn:demo\"><q:a>{x}</q:a><q:b>{y}</q:b></r>",
+      "target": "<r xmlns:q=\"urn:demo\"><q:a>{y}</q:a><q:b>{x}</q:b></r>",
+      "expected_clean": false,
+      "format": "xml"
+    },
+    {
+      "id": "markup-dev-xml-same-element-order",
+      "split": "development",
+      "family": "markup",
+      "source": "<r>{a} {b}</r>",
+      "target": "<r>{b} {a}</r>",
+      "expected_clean": true,
+      "format": "xml"
+    },
+    {
+      "id": "markup-dev-xml-attribute-translation",
+      "split": "development",
+      "family": "markup",
+      "source": "<r title=\"Open\">{name}</r>",
+      "target": "<r title=\"열기\">{name}</r>",
+      "expected_clean": true,
+      "format": "xml"
+    },
+    {
+      "id": "markup-verify-new-tags",
+      "split": "verification",
+      "family": "markup",
+      "source": "<strong>{total}</strong><em>{count}</em>",
+      "target": "<strong>{count}</strong><em>{total}</em>",
+      "expected_clean": false,
+      "format": "html"
+    },
+    {
+      "id": "markup-verify-anchor-binding",
+      "split": "verification",
+      "family": "markup",
+      "source": "<a href=\"/buyer\">{buyer}</a><a href=\"/seller\">{seller}</a>",
+      "target": "<a href=\"/buyer\">{seller}</a><a href=\"/seller\">{buyer}</a>",
+      "expected_clean": false,
+      "format": "html"
+    },
+    {
+      "id": "markup-verify-tail-binding",
+      "split": "verification",
+      "family": "markup",
+      "source": "<p><b>{actor}</b>{action}</p>",
+      "target": "<p><b>{action}</b>{actor}</p>",
+      "expected_clean": false,
+      "format": "html"
+    },
+    {
+      "id": "markup-verify-ancestor-id",
+      "split": "verification",
+      "family": "markup",
+      "source": "<section id=\"left\"><span>{a}</span></section><section id=\"right\"><span>{b}</span></section>",
+      "target": "<section id=\"left\"><span>{b}</span></section><section id=\"right\"><span>{a}</span></section>",
+      "expected_clean": false,
+      "format": "html"
+    },
+    {
+      "id": "markup-verify-xml-tail",
+      "split": "verification",
+      "family": "markup",
+      "source": "<r><a>{who}</a>{what}</r>",
+      "target": "<r><a>{what}</a>{who}</r>",
+      "expected_clean": false,
+      "format": "xml"
+    },
+    {
+      "id": "markup-verify-whole-id-reorder",
+      "split": "verification",
+      "family": "markup",
+      "source": "<p id=\"a\">{x}</p><p id=\"b\">{y}</p>",
+      "target": "<p id=\"b\">{y}</p><p id=\"a\">{x}</p>",
+      "expected_clean": true,
+      "format": "html"
+    },
+    {
+      "id": "markup-verify-attribute-order",
+      "split": "verification",
+      "family": "markup",
+      "source": "<span class=\"name\" title=\"Hello\">{name}</span>",
+      "target": "<span title=\"안녕\" class=\"name\">{name}</span>",
+      "expected_clean": true,
+      "format": "html"
+    },
+    {
+      "id": "markup-verify-same-node-word-order",
+      "split": "verification",
+      "family": "markup",
+      "source": "<div>{day} {month} {year}</div>",
+      "target": "<div>{year} {month} {day}</div>",
+      "expected_clean": true,
+      "format": "html"
+    },
+    {
+      "id": "icu-dev-repeat-root",
+      "split": "development",
+      "family": "icu",
+      "source": "Hello {name}. Bye {name}.",
+      "target": "안녕 {name}. 잘 가요.",
+      "expected_clean": false,
+      "format": "icu"
+    },
+    {
+      "id": "icu-dev-repeat-number",
+      "split": "development",
+      "family": "icu",
+      "source": "{sum, number} then {sum, number}",
+      "target": "합계 {sum, number}",
+      "expected_clean": false,
+      "format": "icu"
+    },
+    {
+      "id": "icu-dev-repeat-select",
+      "split": "development",
+      "family": "icu",
+      "source": "{r, select, a {{name} {name}} other {{name}}}",
+      "target": "{r, select, a {{name}} other {{name}}}",
+      "expected_clean": false,
+      "format": "icu"
+    },
+    {
+      "id": "icu-dev-repeat-plural",
+      "split": "development",
+      "family": "icu",
+      "source": "{n, plural, one {{item} {item}} other {{item} {item}}}",
+      "target": "{n, plural, other {{item}}}",
+      "expected_clean": false,
+      "format": "icu"
+    },
+    {
+      "id": "icu-dev-plural-localization",
+      "split": "development",
+      "family": "icu",
+      "source": "{n, plural, one {# record} other {# records}}",
+      "target": "{n, plural, other {#개 기록}}",
+      "expected_clean": true,
+      "format": "icu"
+    },
+    {
+      "id": "icu-dev-argument-order",
+      "split": "development",
+      "family": "icu",
+      "source": "{a} met {b}.",
+      "target": "{b} 그리고 {a}.",
+      "expected_clean": true,
+      "format": "icu"
+    },
+    {
+      "id": "icu-dev-select-order",
+      "split": "development",
+      "family": "icu",
+      "source": "{r, select, a {Admin {name}} other {Guest {name}}}",
+      "target": "{r, select, other {손님 {name}} a {관리자 {name}}}",
+      "expected_clean": true,
+      "format": "icu"
+    },
+    {
+      "id": "icu-dev-explicit-branch-lost",
+      "split": "development",
+      "family": "icu",
+      "source": "{n, plural, =0 {Empty} other {# records}}",
+      "target": "{n, plural, other {#개 기록}}",
+      "expected_clean": false,
+      "format": "icu"
+    },
+    {
+      "id": "icu-verify-triple-to-double",
+      "split": "verification",
+      "family": "icu",
+      "source": "{name}, {name}, {name}",
+      "target": "{name}, {name}",
+      "expected_clean": false,
+      "format": "icu"
+    },
+    {
+      "id": "icu-verify-formatted-repeat-lost",
+      "split": "verification",
+      "family": "icu",
+      "source": "{n, number, integer} and {n, number, integer}",
+      "target": "{n, number, integer}",
+      "expected_clean": false,
+      "format": "icu"
+    },
+    {
+      "id": "icu-verify-nested-repeat",
+      "split": "verification",
+      "family": "icu",
+      "source": "{r, select, a {{n, plural, other {{label} {label}}}} other {Guest}}",
+      "target": "{r, select, a {{n, plural, other {{label}}}} other {손님}}",
+      "expected_clean": false,
+      "format": "icu"
+    },
+    {
+      "id": "icu-verify-hash-repeat",
+      "split": "verification",
+      "family": "icu",
+      "source": "{n, plural, other {# of # records}}",
+      "target": "{n, plural, other {#개 기록}}",
+      "expected_clean": false,
+      "format": "icu"
+    },
+    {
+      "id": "icu-verify-ordinal-localization",
+      "split": "verification",
+      "family": "icu",
+      "source": "{n, selectordinal, one {#st} two {#nd} other {#th}}",
+      "target": "{n, selectordinal, other {#번째}}",
+      "expected_clean": true,
+      "format": "icu"
+    },
+    {
+      "id": "icu-verify-nested-localization",
+      "split": "verification",
+      "family": "icu",
+      "source": "{n, plural, one {{r, select, a {{name}} other {Guest}}} other {{r, select, a {{name}} other {Guests}}}}",
+      "target": "{n, plural, other {{r, select, a {{name}} other {손님}}}}",
+      "expected_clean": true,
+      "format": "icu"
+    },
+    {
+      "id": "icu-verify-formatted-repeat-preserved",
+      "split": "verification",
+      "family": "icu",
+      "source": "{n, number} plus {n, number}",
+      "target": "{n, number} 더하기 {n, number}",
+      "expected_clean": true,
+      "format": "icu"
+    },
+    {
+      "id": "icu-verify-within-branch-order",
+      "split": "verification",
+      "family": "icu",
+      "source": "{r, select, a {{a} {b}} other {{a}}}",
+      "target": "{r, select, a {{b} {a}} other {{a}}}",
+      "expected_clean": true,
+      "format": "icu"
+    },
+    {
+      "id": "surface-money-ok",
+      "split": "development",
+      "family": "surface",
+      "source": "The fee is 2200 won.",
+      "target": "요금은 2,200원이다.",
+      "expected_clean": true,
+      "format": "plain"
+    },
+    {
+      "id": "surface-money-changed",
+      "split": "development",
+      "family": "surface",
+      "source": "The fee is 2200 won.",
+      "target": "요금은 2,300원이다.",
+      "expected_clean": false,
+      "format": "plain"
+    },
+    {
+      "id": "surface-range-ok",
+      "split": "development",
+      "family": "surface",
+      "source": "Wait 2 to 4 hours.",
+      "target": "2~4시간 기다린다.",
+      "expected_clean": true,
+      "format": "plain"
+    },
+    {
+      "id": "surface-range-changed",
+      "split": "development",
+      "family": "surface",
+      "source": "Wait 2 to 4 hours.",
+      "target": "2~5시간 기다린다.",
+      "expected_clean": false,
+      "format": "plain"
+    },
+    {
+      "id": "surface-date-ok",
+      "split": "development",
+      "family": "surface",
+      "source": "June 3, 2026",
+      "target": "2026년 6월 3일",
+      "expected_clean": true,
+      "format": "plain"
+    },
+    {
+      "id": "surface-date-changed",
+      "split": "development",
+      "family": "surface",
+      "source": "June 3, 2026",
+      "target": "2027년 6월 3일",
+      "expected_clean": false,
+      "format": "plain"
+    },
+    {
+      "id": "surface-magnitude-ok",
+      "split": "verification",
+      "family": "surface",
+      "source": "3.2 billion",
+      "target": "32억",
+      "expected_clean": true,
+      "format": "plain"
+    },
+    {
+      "id": "surface-magnitude-changed",
+      "split": "verification",
+      "family": "surface",
+      "source": "3.2 billion",
+      "target": "3.2억",
+      "expected_clean": false,
+      "format": "plain"
+    },
+    {
+      "id": "surface-percent-ok",
+      "split": "verification",
+      "family": "surface",
+      "source": "15 percent",
+      "target": "15%",
+      "expected_clean": true,
+      "format": "plain"
+    },
+    {
+      "id": "surface-percent-point-changed",
+      "split": "verification",
+      "family": "surface",
+      "source": "15 percent",
+      "target": "15%p",
+      "expected_clean": false,
+      "format": "plain"
+    },
+    {
+      "id": "surface-code-ok",
+      "split": "verification",
+      "family": "surface",
+      "source": "Use `--dry-run` first.",
+      "target": "먼저 `--dry-run`을 쓴다.",
+      "expected_clean": true,
+      "format": "plain"
+    },
+    {
+      "id": "surface-code-changed",
+      "split": "verification",
+      "family": "surface",
+      "source": "Use `--dry-run` first.",
+      "target": "먼저 `--force`를 쓴다.",
+      "expected_clean": false,
+      "format": "plain"
+    },
+    {
+      "id": "term-finance-ok",
+      "split": "development",
+      "family": "glossary",
+      "source": "The bank is nearby.",
+      "target": "은행",
+      "expected_clean": true,
+      "format": "plain",
+      "glossary": [
+        {
+          "source": "bank",
+          "target": [
+            "은행"
+          ],
+          "domains": [
+            "finance"
+          ]
+        },
+        {
+          "source": "bank",
+          "target": [
+            "강둑"
+          ],
+          "domains": [
+            "geography"
+          ]
+        }
+      ],
+      "domain": "finance"
+    },
+    {
+      "id": "term-finance-wrong",
+      "split": "development",
+      "family": "glossary",
+      "source": "The bank is nearby.",
+      "target": "강둑",
+      "expected_clean": false,
+      "format": "plain",
+      "glossary": [
+        {
+          "source": "bank",
+          "target": [
+            "은행"
+          ],
+          "domains": [
+            "finance"
+          ]
+        },
+        {
+          "source": "bank",
+          "target": [
+            "강둑"
+          ],
+          "domains": [
+            "geography"
+          ]
+        }
+      ],
+      "domain": "finance"
+    },
+    {
+      "id": "term-geography-ok",
+      "split": "development",
+      "family": "glossary",
+      "source": "The bank is nearby.",
+      "target": "강둑",
+      "expected_clean": true,
+      "format": "plain",
+      "glossary": [
+        {
+          "source": "bank",
+          "target": [
+            "은행"
+          ],
+          "domains": [
+            "finance"
+          ]
+        },
+        {
+          "source": "bank",
+          "target": [
+            "강둑"
+          ],
+          "domains": [
+            "geography"
+          ]
+        }
+      ],
+      "domain": "geography"
+    },
+    {
+      "id": "term-geography-wrong",
+      "split": "verification",
+      "family": "glossary",
+      "source": "The bank is nearby.",
+      "target": "은행",
+      "expected_clean": false,
+      "format": "plain",
+      "glossary": [
+        {
+          "source": "bank",
+          "target": [
+            "은행"
+          ],
+          "domains": [
+            "finance"
+          ]
+        },
+        {
+          "source": "bank",
+          "target": [
+            "강둑"
+          ],
+          "domains": [
+            "geography"
+          ]
+        }
+      ],
+      "domain": "geography"
+    },
+    {
+      "id": "term-phrase-ok",
+      "split": "verification",
+      "family": "glossary",
+      "source": "The bank is nearby.",
+      "target": "은행",
+      "expected_clean": true,
+      "format": "plain",
+      "glossary": [
+        {
+          "source": "bank",
+          "target": [
+            "은행"
+          ],
+          "domains": [
+            "finance"
+          ]
+        },
+        {
+          "source": "bank",
+          "target": [
+            "강둑"
+          ],
+          "domains": [
+            "geography"
+          ]
+        }
+      ],
+      "domain": "finance"
+    },
+    {
+      "id": "term-phrase-wrong",
+      "split": "verification",
+      "family": "glossary",
+      "source": "The bank is nearby.",
+      "target": "뱅크",
+      "expected_clean": false,
+      "format": "plain",
+      "glossary": [
+        {
+          "source": "bank",
+          "target": [
+            "은행"
+          ],
+          "domains": [
+            "finance"
+          ]
+        },
+        {
+          "source": "bank",
+          "target": [
+            "강둑"
+          ],
+          "domains": [
+            "geography"
+          ]
+        }
+      ],
+      "domain": "finance"
+    },
+    {
+      "id": "semantic-possibility",
+      "split": "development",
+      "family": "semantic_review",
+      "source": "The clinic may reopen.",
+      "target": "병원이 다시 문을 연다.",
+      "expected_clean": null,
+      "format": "plain",
+      "review_reason": "가능성을 확정으로 바꿈"
+    },
+    {
+      "id": "semantic-actor",
+      "split": "development",
+      "family": "semantic_review",
+      "source": "Mina questioned Joon.",
+      "target": "준이 미나에게 질문했다.",
+      "expected_clean": null,
+      "format": "plain",
+      "review_reason": "행위 주체를 바꿈"
+    },
+    {
+      "id": "semantic-quantifier",
+      "split": "development",
+      "family": "semantic_review",
+      "source": "Some shops close early.",
+      "target": "모든 가게가 일찍 닫는다.",
+      "expected_clean": null,
+      "format": "plain",
+      "review_reason": "일부를 전체로 바꿈"
+    },
+    {
+      "id": "semantic-negation",
+      "split": "verification",
+      "family": "semantic_review",
+      "source": "The plan is not approved.",
+      "target": "계획이 승인되었다.",
+      "expected_clean": null,
+      "format": "plain",
+      "review_reason": "부정을 긍정으로 바꿈"
+    },
+    {
+      "id": "semantic-causality",
+      "split": "verification",
+      "family": "semantic_review",
+      "source": "Sales rose after the campaign.",
+      "target": "캠페인 때문에 매출이 올랐다.",
+      "expected_clean": null,
+      "format": "plain",
+      "review_reason": "시간 순서를 인과로 바꿈"
+    },
+    {
+      "id": "semantic-attribution",
+      "split": "verification",
+      "family": "semantic_review",
+      "source": "The supplier says the item is safe.",
+      "target": "이 제품은 안전하다.",
+      "expected_clean": null,
+      "format": "plain",
+      "review_reason": "주장 귀속을 서술자의 사실로 바꿈"
+    },
+    {
+      "id": "session-source_change",
+      "split": "development",
+      "family": "session",
+      "scenario": "source_change"
+    },
+    {
+      "id": "session-glossary_change",
+      "split": "development",
+      "family": "session",
+      "scenario": "glossary_change"
+    },
+    {
+      "id": "session-draft_change",
+      "split": "development",
+      "family": "session",
+      "scenario": "draft_change"
+    },
+    {
+      "id": "session-brief_change",
+      "split": "verification",
+      "family": "session",
+      "scenario": "brief_change"
+    },
+    {
+      "id": "session-decision_change",
+      "split": "verification",
+      "family": "session",
+      "scenario": "decision_change"
+    },
+    {
+      "id": "session-resume",
+      "split": "verification",
+      "family": "session",
+      "scenario": "resume"
+    }
+  ]
+}

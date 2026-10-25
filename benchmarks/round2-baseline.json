@@ -1,0 +1,743 @@
+{
+  "schema_version": 1,
+  "fixtures_sha256": "d7fa27c574c2ab4880cab66f2876fe749cacf777dfbfb601183f19540e8d253f",
+  "baseline_commit": "9a1fd0ccb3f1592fd498dcf9a08e7bbe25fd7ad8",
+  "tool_version": "9.6.1",
+  "mechanical": {
+    "matched": 42,
+    "total": 60,
+    "crashes": 0,
+    "false_blocks": 0,
+    "missed_damage": 18
+  },
+  "by_family": {
+    "glossary": {
+      "matched": 6,
+      "total": 6
+    },
+    "icu": {
+      "matched": 8,
+      "total": 16
+    },
+    "markup": {
+      "matched": 10,
+      "total": 20
+    },
+    "session": {
+      "matched": 6,
+      "total": 6
+    },
+    "surface": {
+      "matched": 12,
+      "total": 12
+    }
+  },
+  "by_split": {
+    "development": {
+      "matched": 23,
+      "total": 32
+    },
+    "verification": {
+      "matched": 19,
+      "total": 28
+    }
+  },
+  "semantic_review": {
+    "total": 6,
+    "scored": false,
+    "automatic_passes": 6
+  },
+  "interpretation": "Authored development fixtures, not independent translation-quality evaluation. Semantic cases require source comparison and are excluded from the mechanical success rate.",
+  "cases": [
+    {
+      "id": "markup-dev-tag-swap",
+      "split": "development",
+      "family": "markup",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": false,
+      "actual_clean": true,
+      "matched": false
+    },
+    {
+      "id": "markup-dev-id-swap",
+      "split": "development",
+      "family": "markup",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": false,
+      "actual_clean": true,
+      "matched": false
+    },
+    {
+      "id": "markup-dev-ancestor-swap",
+      "split": "development",
+      "family": "markup",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": false,
+      "actual_clean": true,
+      "matched": false
+    },
+    {
+      "id": "markup-dev-element-reorder",
+      "split": "development",
+      "family": "markup",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": true,
+      "actual_clean": true,
+      "matched": true
+    },
+    {
+      "id": "markup-dev-within-element-order",
+      "split": "development",
+      "family": "markup",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": true,
+      "actual_clean": true,
+      "matched": true
+    },
+    {
+      "id": "markup-dev-variable-missing",
+      "split": "development",
+      "family": "markup",
+      "status": "hold",
+      "risk_ids": [
+        "FID-10"
+      ],
+      "expected_clean": false,
+      "actual_clean": false,
+      "matched": true
+    },
+    {
+      "id": "markup-dev-localized-attribute",
+      "split": "development",
+      "family": "markup",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": true,
+      "actual_clean": true,
+      "matched": true
+    },
+    {
+      "id": "markup-dev-locked-href",
+      "split": "development",
+      "family": "markup",
+      "status": "hold",
+      "risk_ids": [
+        "FID-10"
+      ],
+      "expected_clean": false,
+      "actual_clean": false,
+      "matched": true
+    },
+    {
+      "id": "markup-dev-xml-tag-swap",
+      "split": "development",
+      "family": "markup",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": false,
+      "actual_clean": true,
+      "matched": false
+    },
+    {
+      "id": "markup-dev-xml-namespace-swap",
+      "split": "development",
+      "family": "markup",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": false,
+      "actual_clean": true,
+      "matched": false
+    },
+    {
+      "id": "markup-dev-xml-same-element-order",
+      "split": "development",
+      "family": "markup",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": true,
+      "actual_clean": true,
+      "matched": true
+    },
+    {
+      "id": "markup-dev-xml-attribute-translation",
+      "split": "development",
+      "family": "markup",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": true,
+      "actual_clean": true,
+      "matched": true
+    },
+    {
+      "id": "markup-verify-new-tags",
+      "split": "verification",
+      "family": "markup",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": false,
+      "actual_clean": true,
+      "matched": false
+    },
+    {
+      "id": "markup-verify-anchor-binding",
+      "split": "verification",
+      "family": "markup",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": false,
+      "actual_clean": true,
+      "matched": false
+    },
+    {
+      "id": "markup-verify-tail-binding",
+      "split": "verification",
+      "family": "markup",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": false,
+      "actual_clean": true,
+      "matched": false
+    },
+    {
+      "id": "markup-verify-ancestor-id",
+      "split": "verification",
+      "family": "markup",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": false,
+      "actual_clean": true,
+      "matched": false
+    },
+    {
+      "id": "markup-verify-xml-tail",
+      "split": "verification",
+      "family": "markup",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": false,
+      "actual_clean": true,
+      "matched": false
+    },
+    {
+      "id": "markup-verify-whole-id-reorder",
+      "split": "verification",
+      "family": "markup",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": true,
+      "actual_clean": true,
+      "matched": true
+    },
+    {
+      "id": "markup-verify-attribute-order",
+      "split": "verification",
+      "family": "markup",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": true,
+      "actual_clean": true,
+      "matched": true
+    },
+    {
+      "id": "markup-verify-same-node-word-order",
+      "split": "verification",
+      "family": "markup",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": true,
+      "actual_clean": true,
+      "matched": true
+    },
+    {
+      "id": "icu-dev-repeat-root",
+      "split": "development",
+      "family": "icu",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": false,
+      "actual_clean": true,
+      "matched": false
+    },
+    {
+      "id": "icu-dev-repeat-number",
+      "split": "development",
+      "family": "icu",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": false,
+      "actual_clean": true,
+      "matched": false
+    },
+    {
+      "id": "icu-dev-repeat-select",
+      "split": "development",
+      "family": "icu",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": false,
+      "actual_clean": true,
+      "matched": false
+    },
+    {
+      "id": "icu-dev-repeat-plural",
+      "split": "development",
+      "family": "icu",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": false,
+      "actual_clean": true,
+      "matched": false
+    },
+    {
+      "id": "icu-dev-plural-localization",
+      "split": "development",
+      "family": "icu",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": true,
+      "actual_clean": true,
+      "matched": true
+    },
+    {
+      "id": "icu-dev-argument-order",
+      "split": "development",
+      "family": "icu",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": true,
+      "actual_clean": true,
+      "matched": true
+    },
+    {
+      "id": "icu-dev-select-order",
+      "split": "development",
+      "family": "icu",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": true,
+      "actual_clean": true,
+      "matched": true
+    },
+    {
+      "id": "icu-dev-explicit-branch-lost",
+      "split": "development",
+      "family": "icu",
+      "status": "hold",
+      "risk_ids": [
+        "FID-10",
+        "FID-6"
+      ],
+      "expected_clean": false,
+      "actual_clean": false,
+      "matched": true
+    },
+    {
+      "id": "icu-verify-triple-to-double",
+      "split": "verification",
+      "family": "icu",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": false,
+      "actual_clean": true,
+      "matched": false
+    },
+    {
+      "id": "icu-verify-formatted-repeat-lost",
+      "split": "verification",
+      "family": "icu",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": false,
+      "actual_clean": true,
+      "matched": false
+    },
+    {
+      "id": "icu-verify-nested-repeat",
+      "split": "verification",
+      "family": "icu",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": false,
+      "actual_clean": true,
+      "matched": false
+    },
+    {
+      "id": "icu-verify-hash-repeat",
+      "split": "verification",
+      "family": "icu",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": false,
+      "actual_clean": true,
+      "matched": false
+    },
+    {
+      "id": "icu-verify-ordinal-localization",
+      "split": "verification",
+      "family": "icu",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": true,
+      "actual_clean": true,
+      "matched": true
+    },
+    {
+      "id": "icu-verify-nested-localization",
+      "split": "verification",
+      "family": "icu",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": true,
+      "actual_clean": true,
+      "matched": true
+    },
+    {
+      "id": "icu-verify-formatted-repeat-preserved",
+      "split": "verification",
+      "family": "icu",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": true,
+      "actual_clean": true,
+      "matched": true
+    },
+    {
+      "id": "icu-verify-within-branch-order",
+      "split": "verification",
+      "family": "icu",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": true,
+      "actual_clean": true,
+      "matched": true
+    },
+    {
+      "id": "surface-money-ok",
+      "split": "development",
+      "family": "surface",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": true,
+      "actual_clean": true,
+      "matched": true
+    },
+    {
+      "id": "surface-money-changed",
+      "split": "development",
+      "family": "surface",
+      "status": "hold",
+      "risk_ids": [
+        "FID-6"
+      ],
+      "expected_clean": false,
+      "actual_clean": false,
+      "matched": true
+    },
+    {
+      "id": "surface-range-ok",
+      "split": "development",
+      "family": "surface",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": true,
+      "actual_clean": true,
+      "matched": true
+    },
+    {
+      "id": "surface-range-changed",
+      "split": "development",
+      "family": "surface",
+      "status": "hold",
+      "risk_ids": [
+        "FID-6"
+      ],
+      "expected_clean": false,
+      "actual_clean": false,
+      "matched": true
+    },
+    {
+      "id": "surface-date-ok",
+      "split": "development",
+      "family": "surface",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": true,
+      "actual_clean": true,
+      "matched": true
+    },
+    {
+      "id": "surface-date-changed",
+      "split": "development",
+      "family": "surface",
+      "status": "hold",
+      "risk_ids": [
+        "FID-6"
+      ],
+      "expected_clean": false,
+      "actual_clean": false,
+      "matched": true
+    },
+    {
+      "id": "surface-magnitude-ok",
+      "split": "verification",
+      "family": "surface",
+      "status": "warn",
+      "risk_ids": [
+        "FID-2"
+      ],
+      "expected_clean": true,
+      "actual_clean": true,
+      "matched": true
+    },
+    {
+      "id": "surface-magnitude-changed",
+      "split": "verification",
+      "family": "surface",
+      "status": "hold",
+      "risk_ids": [
+        "FID-6",
+        "FID-2"
+      ],
+      "expected_clean": false,
+      "actual_clean": false,
+      "matched": true
+    },
+    {
+      "id": "surface-percent-ok",
+      "split": "verification",
+      "family": "surface",
+      "status": "warn",
+      "risk_ids": [
+        "FID-2"
+      ],
+      "expected_clean": true,
+      "actual_clean": true,
+      "matched": true
+    },
+    {
+      "id": "surface-percent-point-changed",
+      "split": "verification",
+      "family": "surface",
+      "status": "hold",
+      "risk_ids": [
+        "FID-6",
+        "FID-2"
+      ],
+      "expected_clean": false,
+      "actual_clean": false,
+      "matched": true
+    },
+    {
+      "id": "surface-code-ok",
+      "split": "verification",
+      "family": "surface",
+      "status": "pass",
+      "risk_ids": [],
+      "expected_clean": true,
+      "actual_clean": true,
+      "matched": true
+    },
+    {
+      "id": "surface-code-changed",
+      "split": "verification",
+      "family": "surface",
+      "status": "hold",
+      "risk_ids": [
+        "FID-6"
+      ],
+      "expected_clean": false,
+      "actual_clean": false,
+      "matched": true
+    },
+    {
+      "id": "term-finance-ok",
+      "split": "development",
+      "family": "glossary",
+      "status": "warn",
+      "risk_ids": [
+        "FID-2"
+      ],
+      "expected_clean": true,
+      "actual_clean": true,
+      "matched": true
+    },
+    {
+      "id": "term-finance-wrong",
+      "split": "development",
+      "family": "glossary",
+      "status": "warn",
+      "risk_ids": [
+        "TERM-1",
+        "FID-2"
+      ],
+      "expected_clean": false,
+      "actual_clean": false,
+      "matched": true
+    },
+    {
+      "id": "term-geography-ok",
+      "split": "development",
+      "family": "glossary",
+      "status": "warn",
+      "risk_ids": [
+        "FID-2"
+      ],
+      "expected_clean": true,
+      "actual_clean": true,
+      "matched": true
+    },
+    {
+      "id": "term-geography-wrong",
+      "split": "verification",
+      "family": "glossary",
+      "status": "warn",
+      "risk_ids": [
+        "TERM-1",
+        "FID-2"
+      ],
+      "expected_clean": false,
+      "actual_clean": false,
+      "matched": true
+    },
+    {
+      "id": "term-phrase-ok",
+      "split": "verification",
+      "family": "glossary",
+      "status": "warn",
+      "risk_ids": [
+        "FID-2"
+      ],
+      "expected_clean": true,
+      "actual_clean": true,
+      "matched": true
+    },
+    {
+      "id": "term-phrase-wrong",
+      "split": "verification",
+      "family": "glossary",
+      "status": "warn",
+      "risk_ids": [
+        "TERM-1",
+        "FID-2"
+      ],
+      "expected_clean": false,
+      "actual_clean": false,
+      "matched": true
+    },
+    {
+      "id": "semantic-possibility",
+      "split": "development",
+      "family": "semantic_review",
+      "status": "pass",
+      "risk_ids": [],
+      "matched": null,
+      "review_reason": "가능성을 확정으로 바꿈",
+      "human_review_required": true
+    },
+    {
+      "id": "semantic-actor",
+      "split": "development",
+      "family": "semantic_review",
+      "status": "pass",
+      "risk_ids": [],
+      "matched": null,
+      "review_reason": "행위 주체를 바꿈",
+      "human_review_required": true
+    },
+    {
+      "id": "semantic-quantifier",
+      "split": "development",
+      "family": "semantic_review",
+      "status": "pass",
+      "risk_ids": [],
+      "matched": null,
+      "review_reason": "일부를 전체로 바꿈",
+      "human_review_required": true
+    },
+    {
+      "id": "semantic-negation",
+      "split": "verification",
+      "family": "semantic_review",
+      "status": "pass",
+      "risk_ids": [],
+      "matched": null,
+      "review_reason": "부정을 긍정으로 바꿈",
+      "human_review_required": true
+    },
+    {
+      "id": "semantic-causality",
+      "split": "verification",
+      "family": "semantic_review",
+      "status": "pass",
+      "risk_ids": [],
+      "matched": null,
+      "review_reason": "시간 순서를 인과로 바꿈",
+      "human_review_required": true
+    },
+    {
+      "id": "semantic-attribution",
+      "split": "verification",
+      "family": "semantic_review",
+      "status": "pass",
+      "risk_ids": [],
+      "matched": null,
+      "review_reason": "주장 귀속을 서술자의 사실로 바꿈",
+      "human_review_required": true
+    },
+    {
+      "id": "session-source_change",
+      "split": "development",
+      "family": "session",
+      "matched": true,
+      "next_stage": "analysis",
+      "status": "stale"
+    },
+    {
+      "id": "session-glossary_change",
+      "split": "development",
+      "family": "session",
+      "matched": true,
+      "next_stage": "analysis",
+      "status": "stale"
+    },
+    {
+      "id": "session-draft_change",
+      "split": "development",
+      "family": "session",
+      "matched": true,
+      "next_stage": "draft",
+      "status": "stale"
+    },
+    {
+      "id": "session-brief_change",
+      "split": "verification",
+      "family": "session",
+      "matched": true,
+      "next_stage": "analysis",
+      "status": "stale"
+    },
+    {
+      "id": "session-decision_change",
+      "split": "verification",
+      "family": "session",
+      "matched": true,
+      "next_stage": "draft",
+      "status": "ready"
+    },
+    {
+      "id": "session-resume",
+      "split": "verification",
+      "family": "session",
+      "matched": true,
+      "next_stage": "review",
+      "status": "ready"
+    }
+  ],
+  "fixtures_sha256_lf": "74bccf0b1a16cf58f4a8b0116a83c27fdc871490622305eee049e1f4fe0a558c",
+  "hash_note": "Original raw-byte fingerprint and results retained; LF-normalized fingerprint added for cross-platform comparison."
+}
