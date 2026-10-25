@@ -10,7 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 INCLUDE_DIRS = ("agents", "references", "scripts", "tests", "korean-writing", "prompts", "templates")
-INCLUDE_FILES = ("SKILL.md", "CHANGELOG.md", "ROADMAP.md")
+INCLUDE_FILES = ("SKILL.md", "CHANGELOG.md", "ROADMAP.md", "THIRD_PARTY_NOTICES.md")
 
 
 def package_entry(path: Path, target: str, root: Path = ROOT):

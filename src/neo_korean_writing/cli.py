@@ -27,6 +27,7 @@ TEMPLATES = {
     "editing-delivery": "editing-delivery.md",
     "writer-editor-handoff": "writer-editor-handoff.json",
     "translation-glossary": "translation-glossary.tsv",
+    "translation-glossary-scoped": "translation-glossary-scoped.json",
     "translation-review-brief": "translation-review-brief.md",
     "context-manifest": "context-manifest.json",
 }
@@ -153,6 +154,11 @@ def cmd_verify(args: argparse.Namespace) -> int:
 
 def cmd_translation_audit(args: argparse.Namespace) -> int:
     arguments = [args.source, args.target, "--direction", args.direction]
+    arguments.extend(["--format", args.format_profile])
+    if args.domain:
+        arguments.extend(["--domain", args.domain])
+    if args.segment_id:
+        arguments.extend(["--segment-id", args.segment_id])
     if args.literary:
         arguments.append("--literary")
     if args.json:
@@ -237,6 +243,9 @@ def build_parser() -> argparse.ArgumentParser:
     audit.add_argument("--literary", action="store_true")
     audit.add_argument("--json", action="store_true")
     audit.add_argument("--glossary")
+    audit.add_argument("--format", dest="format_profile", choices=("auto", "plain", "html", "xml", "icu"), default="auto")
+    audit.add_argument("--domain")
+    audit.add_argument("--segment-id")
     audit.add_argument("--strict", action="store_true")
     audit.add_argument("--baseline")
     audit.add_argument("--intensity", choices=("보수", "기본", "적극"), default="기본")

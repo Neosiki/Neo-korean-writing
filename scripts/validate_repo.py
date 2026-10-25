@@ -62,9 +62,13 @@ def main() -> int:
     mirrors = [
         (ROOT / "scripts/korean_writing.py", ROOT / "src/neo_korean_writing/engine/korean_writing.py"),
         (ROOT / "scripts/translation_audit.py", ROOT / "src/neo_korean_writing/engine/translation_audit.py"),
+        (ROOT / "scripts/translation_formats.py", ROOT / "src/neo_korean_writing/engine/translation_formats.py"),
         (ROOT / "scripts/context_audit.py", ROOT / "src/neo_korean_writing/engine/context_audit.py"),
         (ROOT / "scripts/patterns.json", ROOT / "src/neo_korean_writing/engine/patterns.json"),
     ]
+    for source in (ROOT / "scripts/_vendor").rglob("*"):
+        if source.is_file() and "__pycache__" not in source.parts:
+            mirrors.append((source, ROOT / "src/neo_korean_writing/engine/_vendor" / source.relative_to(ROOT / "scripts/_vendor")))
     for source, packaged in mirrors:
         a = source.read_text(encoding="utf-8")
         b = packaged.read_text(encoding="utf-8")

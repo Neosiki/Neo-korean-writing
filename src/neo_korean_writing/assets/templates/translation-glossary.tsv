@@ -1,4 +1,4 @@
-source	target	forbid	mode	context
+source	target	forbid	mode	context	domains	segments
 large language model	대규모 언어 모델|LLM	거대언어모델	strict	본문 첫 등장은 풀어쓰기, 이후 LLM 허용
 prompt	프롬프트|질문문		flex
 token	토큰		flex

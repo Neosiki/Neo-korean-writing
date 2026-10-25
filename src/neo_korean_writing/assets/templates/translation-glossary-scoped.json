@@ -1,0 +1,4 @@
+[
+  {"source": "bank", "target": ["은행"], "forbid": [], "mode": "flex", "context": "금융 기관", "domains": ["finance"], "segments": []},
+  {"source": "bank", "target": ["강둑"], "forbid": [], "mode": "flex", "context": "강가 지형", "domains": ["geography"], "segments": []}
+]

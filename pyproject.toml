@@ -50,4 +50,5 @@ neo_korean_writing = [
   "assets/templates/*.json",
   "assets/templates/*.tsv",
   "engine/*.json",
+  "engine/_vendor/pyicumessageformat/LICENSE",
 ]

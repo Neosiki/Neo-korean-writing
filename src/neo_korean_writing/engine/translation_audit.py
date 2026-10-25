@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""번역 후편집용 충실성·문체 위험 감사 도구 (표준 라이브러리만 사용).
+"""번역 후편집용 충실성·문체 위험 감사 도구 (표준 라이브러리 + 내장 MIT ICU 파서).
 
 이 도구는 번역 품질을 자동 판정하지 않는다. 공유 표면 토큰과 문서 구조를
 기계적으로 대조하고, 한국어 번역에서 자주 생기는 위험을 사람 검토 목록으로
@@ -55,12 +55,13 @@ from collections import Counter
 from datetime import date
 from decimal import Decimal, InvalidOperation
 
-VERSION = "9.5.0"
+VERSION = "9.6.0"
 SEVERITY_RANK = {"critical": 0, "major": 1, "minor": 2, "review": 3}
 MQM_WEIGHT = {"critical": 25, "major": 5, "minor": 1, "review": 0}
 HERE = os.path.dirname(os.path.abspath(__file__))
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
+from translation_formats import PROFILES, compare_formats, legacy_placeholder_text, resolve_profile
 
 URL_RE = re.compile(r"https?://[^\s)>'\"]+")
 # Canonicalize only explicit unit aliases; never erase units or convert amounts.
@@ -415,7 +416,7 @@ def surface_diff(source_locks, other_locks):
     return reconcile_conversions(missing, extra)
 
 
-def shared_locks(text):
+def shared_locks(text, format_profile="plain"):
     """번역되어도 그대로 남아야 하는 표면 토큰만 추출한다."""
     out = {}
     out["url"] = list(URL_RE.findall(text))
@@ -428,7 +429,7 @@ def shared_locks(text):
     out["acronym"] = [m.group() for m in ACRONYM_RE.finditer(text)
                       if not any(n.start() <= m.start() and m.end() <= n.end() for n in number_matches)]
     out["link_target"] = MARKDOWN_LINK_RE.findall(text)
-    out["placeholder"] = PLACEHOLDER_RE.findall(text)
+    out["placeholder"] = PLACEHOLDER_RE.findall(legacy_placeholder_text(text, format_profile))
     return out
 
 
@@ -624,18 +625,19 @@ def load_glossary(path):
         obj = json.loads(text)
         items = obj.items() if isinstance(obj, dict) else [(e["source"], e) for e in obj]
         for src, val in items:
-            mode, context, allowed = "flex", "", []
+            mode, context, allowed, domains, segments = "flex", "", [], [], []
             if isinstance(val, dict):
                 targets, forbid = val.get("target", []), val.get("forbid", [])
                 allowed = val.get("allowed", [])
                 mode = val.get("mode", "flex")
                 context = val.get("context", "")
+                domains, segments = val.get("domains", []), val.get("segments", [])
             else:
                 targets, forbid = val, []
             targets = _split_alts(targets) if isinstance(targets, str) else list(targets)
             forbid = _split_alts(forbid) if isinstance(forbid, str) else list(forbid)
             allowed = _split_alts(allowed) if isinstance(allowed, str) else list(allowed)
-            entries.append(_glossary_entry(src, targets + [a for a in allowed if a not in targets], forbid, mode, context))
+            entries.append(_glossary_entry(src, targets + [a for a in allowed if a not in targets], forbid, mode, context, domains, segments))
         return entries
     for line in text.splitlines():
         line = line.strip()
@@ -651,20 +653,51 @@ def load_glossary(path):
             continue
         entries.append(_glossary_entry(
             cols[0], _split_alts(cols[1] if len(cols) > 1 else ""), _split_alts(cols[2] if len(cols) > 2 else ""),
-            cols[3] if len(cols) > 3 else "flex", cols[4] if len(cols) > 4 else ""))
+            cols[3] if len(cols) > 3 else "flex", cols[4] if len(cols) > 4 else "",
+            cols[5] if len(cols) > 5 else [], cols[6] if len(cols) > 6 else []))
     return entries
 
 
-def _glossary_entry(source, targets, forbid, mode="flex", context=""):
+def _glossary_entry(source, targets, forbid, mode="flex", context="", domains=None, segments=None):
     """첫 역어는 권장어, 나머지는 허용 변형이다. mode=strict이면 한 문서에서 변형을 섞어 쓰면 경고한다."""
     mode = "strict" if str(mode).strip().lower() in ("strict", "고정") else "flex"
     return {"source": source, "targets": targets, "forbid": forbid, "mode": mode, "context": str(context).strip(),
-            "preferred": targets[0] if targets else ""}
+            "preferred": targets[0] if targets else "", "domains": _scope_values(domains), "segments": _scope_values(segments)}
 
 
-def glossary_check(source, target, entries):
+def _scope_values(value):
+    values = _split_alts(value) if isinstance(value, str) else list(value or [])
+    return sorted(set(str(v).strip() for v in values if str(v).strip()))
+
+
+def select_glossary(entries, domain=None, segment_id=None):
+    """Explicit scope only: context prose never acts as a semantic classifier."""
+    grouped, deferred, selected = {}, [], []
+    for entry in entries:
+        domains, segments = entry.get("domains", []), entry.get("segments", [])
+        if (domains and domain and domain not in domains) or (segments and segment_id and segment_id not in segments):
+            continue
+        if (domains and not domain) or (segments and not segment_id):
+            deferred.append({"term": entry["source"], "reason": "scope_required", "domains": domains, "segments": segments})
+            continue
+        grouped.setdefault(entry["source"].casefold(), []).append(entry)
+    for group in grouped.values():
+        # An explicitly selected scoped sense supersedes a general fallback.
+        scoped = [e for e in group if e.get("domains") or e.get("segments")]
+        candidates = scoped or group
+        signatures = {(tuple(e["targets"]), tuple(e["forbid"]), e.get("mode", "flex")) for e in candidates}
+        if len(signatures) > 1:
+            deferred.append({"term": group[0]["source"], "reason": "ambiguous_sense"})
+        else:
+            selected.append(candidates[0])
+    return selected, deferred
+
+
+def glossary_check(source, target, entries, domain=None, segment_id=None):
     issues, applicable, usage = [], 0, []
-    for e in entries:
+    selected, deferred = select_glossary(entries, domain, segment_id)
+    deferred = [d for d in deferred if _term_in(source, d["term"])]
+    for e in selected:
         if not e["source"] or not _term_in(source, e["source"]):
             continue
         applicable += 1
@@ -689,6 +722,7 @@ def glossary_check(source, target, entries):
                                "expected": e["targets"], "source_occurrences": n_src})
     variations = [u for u in usage if len(u["used"]) >= 2]
     return {"entries_total": len(entries), "applicable": applicable, "issues": issues,
+            "selection": {"domain": domain, "segment_id": segment_id}, "deferred": deferred,
             "usage": usage, "variations": variations,
             "note": "허용 변형은 오류가 아니다. 고정(strict) 용어의 혼용만 경고한다"}
 
@@ -953,7 +987,7 @@ def _translationese_counts(text):
     return {spec[0] + " " + spec[1]: (len(_type_hits(spec, body)), spec[4]) for spec in TRANSLATIONESE_TYPES}
 
 
-def baseline_delta(source, baseline, target, direction="en-to-ko"):
+def baseline_delta(source, baseline, target, direction="en-to-ko", format_profile="plain"):
     """초벌 → 후편집본에서 무엇이 사라지고 무엇이 새로 생겼는지. 점수가 아니라 검토 단서다."""
     out = {"translationese": {"fixed": [], "introduced": [], "remaining": []}}
     if direction in ("en-to-ko", "same"):
@@ -973,9 +1007,9 @@ def baseline_delta(source, baseline, target, direction="en-to-ko"):
     out["register"] = {"baseline_dominant": dom(reg_b), "final_dominant": dom(reg_a),
                        "dominant_changed": bool(dom(reg_b) and dom(reg_a) and dom(reg_b) != dom(reg_a)),
                        "honorific_markers": {"baseline": hon_b, "final": hon_a}}
-    src_locks = shared_locks(source)
+    src_locks = shared_locks(source, format_profile)
     def missing_keys(text):
-        missing, extra, _ = surface_diff(src_locks, shared_locks(text))
+        missing, extra, _ = surface_diff(src_locks, shared_locks(text, format_profile))
         if direction == "en-to-ko":
             missing, _, _ = reconcile_locks(missing, extra, text, source)
         return {(m["kind"], m["value"]) for m in missing}
@@ -997,12 +1031,14 @@ def _label_risks(risks):
 
 
 def audit_data(source, target, direction="auto", literary=False, glossary=None,
-               baseline=None, intensity="기본"):
+               baseline=None, intensity="기본", format_profile="auto", domain=None, segment_id=None):
     if direction == "auto":
         direction = "en-to-ko" if re.search(r"[A-Za-z]", source) and re.search(r"[가-힣]", target) else "same"
 
-    source_locks = shared_locks(source)
-    target_locks = shared_locks(target)
+    profile = resolve_profile(source, format_profile)
+    format_report = compare_formats(source, target, profile)
+    source_locks = shared_locks(source, profile)
+    target_locks = shared_locks(target, profile)
     missing_all, extra_all, converted = surface_diff(source_locks, target_locks)
     missing = [m for m in missing_all if m["kind"] != "placeholder"]
     extra = [m for m in extra_all if m["kind"] != "placeholder"]
@@ -1113,7 +1149,7 @@ def audit_data(source, target, direction="auto", literary=False, glossary=None,
                 severity="major" if abs(scope["size_delta"]) >= 0.4 else "minor",
                 mqm="Accuracy/Omission-Addition", count=1,
             ))
-        delta = baseline_delta(source, baseline, target, direction)
+        delta = baseline_delta(source, baseline, target, direction, profile)
         reg = delta["register"]
         hb, ha = reg["honorific_markers"]["baseline"], reg["honorific_markers"]["final"]
         if reg["dominant_changed"] or (abs(ha - hb) >= 3 and abs(ha - hb) >= 0.5 * max(hb, 1)):
@@ -1163,9 +1199,13 @@ def audit_data(source, target, direction="auto", literary=False, glossary=None,
     allowed_terms = []
     glossary_report = None
     if glossary:
-        for e in glossary:
+        for e in select_glossary(glossary, domain, segment_id)[0]:
             allowed_terms.extend(e["targets"] + [e["source"]])
-        glossary_report = glossary_check(source, target, glossary)
+        glossary_report = glossary_check(source, target, glossary, domain, segment_id)
+        if glossary_report["deferred"]:
+            risks.append(_risk("TERM-4", "review", "용어집 적용 범위 확인", glossary_report["deferred"],
+                               "분야(--domain)·구간(--segment-id)을 지정하거나 같은 원어의 뜻을 구분한다. 문맥 설명은 자동 분류하지 않는다",
+                               severity="review", mqm="Terminology", count=len(glossary_report["deferred"])))
         for issue in glossary_report["issues"]:
             if issue["kind"] == "mixed_variants":
                 label, act = "고정 용어 변형 혼용", f"{issue['found']}를 섞어 썼음 → 문서 안에서 하나로 통일(권장어 {issue['expected'][:1]})"
@@ -1193,13 +1233,13 @@ def audit_data(source, target, direction="auto", literary=False, glossary=None,
                 severity="major" if long_run else "minor", mqm="Accuracy/Untranslated", count=len(residue),
             ))
 
-    if ph_missing or ph_extra:
+    if ph_missing or ph_extra or not format_report["pass"]:
         risks.append(_risk(
             "FID-10", "hold", "자리표시자·태그 손상",
-            {"missing": ph_missing, "extra": ph_extra},
-            "{name}, %s, {{x}}, <b> 같은 자리표시자와 태그는 번역하거나 지우지 말고 원문과 같은 개수로 복구",
+            {"missing": ph_missing, "extra": ph_extra, "format_issues": format_report["issues"]},
+            "선택한 형식의 문법·태그 계층·보호 속성·변수를 대조한다. alt 등 텍스트 속성은 번역하되 내부 변수는 보존한다",
             severity="critical", mqm="Accuracy/Mistranslation(markup)",
-            count=sum(m["count"] for m in ph_missing + ph_extra),
+            count=sum(m["count"] for m in ph_missing + ph_extra) + len(format_report["issues"]),
         ))
     if missing:
         risks.append(_risk(
@@ -1273,7 +1313,8 @@ def audit_data(source, target, direction="auto", literary=False, glossary=None,
             "reconciled": reconciled,
             "number_policy": "값이 같은 표기만 같은 토큰으로 본다(단위 별칭, 천 단위 쉼표, 연도형 년 접미, %와 %p 구분, 날짜, 천·만·억·million·billion, 기간 단위, 범위, 영하, 명시적인 오전·오후 시각). 괄호 수치 생략은 면제하지 않는다. 통화·소수점 로캘은 변환하지 않는다. 마일·파운드·피트·인치·온스·화씨는 계산이 맞을 때만 환산 확인(review)으로 두고, 값이 어긋나면 FID-6 hold로 둔다",
         },
-        "placeholders": {"pass": not (ph_missing or ph_extra), "missing": ph_missing, "extra": ph_extra},
+        "placeholders": {"pass": not (ph_missing or ph_extra) and format_report["pass"], "missing": ph_missing, "extra": ph_extra},
+        "format_validation": format_report,
         "structure": {
             "pass": not structure_warnings,
             "source": source_structure,
@@ -1317,6 +1358,7 @@ def _print_report(data):
     lock = data["surface_lock"]
     print(f"표면 잠금: {'통과' if lock['pass'] else '실패'}  누락 {len(lock['missing'])}건 / 추가 토큰 {len(lock['extra'])}건")
     print(f"자리표시자·태그: {'통과' if data['placeholders']['pass'] else '손상'}")
+    print(f"형식 프로필: {data['format_validation']['profile']} · 형식 문제 {len(data['format_validation']['issues'])}건")
     structure = data["structure"]
     print(f"구조 대조: {'통과' if structure['pass'] else '확인 필요'}")
     gl = data["glossary"]
@@ -1354,6 +1396,9 @@ def main(args=None):
     parser.add_argument("target", nargs="?")
     parser.add_argument("--direction", default="auto", choices=["auto", "en-to-ko", "ko-to-en", "same"])
     parser.add_argument("--glossary")
+    parser.add_argument("--format", dest="format_profile", choices=PROFILES, default="auto")
+    parser.add_argument("--domain")
+    parser.add_argument("--segment-id")
     parser.add_argument("--literary", action="store_true")
     parser.add_argument("--strict", action="store_true")
     parser.add_argument("--baseline")
@@ -1377,7 +1422,8 @@ def main(args=None):
     except (OSError, ValueError, KeyError) as exc:
         print(f"입력 읽기 실패: {exc}", file=sys.stderr)
         return 3
-    data = audit_data(source, target, ns.direction, ns.literary, glossary, baseline, ns.intensity)
+    data = audit_data(source, target, ns.direction, ns.literary, glossary, baseline, ns.intensity,
+                      ns.format_profile, ns.domain, ns.segment_id)
     if ns.strict:
         data = _apply_strict(data)
     if ns.json:

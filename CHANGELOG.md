@@ -1,5 +1,13 @@
 # Changelog: neo-korean-writing
 
+## 번역 형식·용어집 범위 보강 (2026-10-25)
+
+- 스킬 지침 v10.3, 번역 점검기 9.6.0. Python 배포 패키지·기존 패턴 메타데이터는 10.0.0을 유지한다.
+- `--format auto|plain|html|xml|icu`: 태그 계층·보호 속성과 ICU MessageFormat 1 문법·변수를 확인한다. 번역 가능한 텍스트 속성과 언어별 복수 분기는 허용한다. 코드 잠금은 유지한다.
+- `--domain`, `--segment-id` 및 용어집 `domains`·`segments`: 선택된 뜻만 검사한다. 범위 미지정·다의어 충돌은 TERM-4 review로 분리한다. 기존 5열 용어집과 strict/flex는 호환된다.
+- Weblate 접근을 참고하고 MIT ICU 파서를 라이선스와 함께 내장했다. 별도 설치·모델·네트워크 호출 없이 실행한다. 형식·CLI·용어집 양방향 회귀를 추가했다.
+- 상세 정책과 한계: [번역 형식과 용어집 범위](references/translation-format-scope.md).
+
 ## 번역 점검기 9.5.0 통합 (2026-10-22)
 
 - Codex v9.4.1 위에 Grok v10.2 인계 제안을 병합했다. 날짜 결합·음수·코드 블록 보존과 표시 자릿수 기반 환산 검사를 유지했다. 스킬 지침은 v10.2, 번역 점검기는 9.5.0, Python 배포 패키지는 기존 10.0.0이다.

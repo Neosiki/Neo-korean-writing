@@ -156,6 +156,10 @@ v9.4.1에서는 양쪽의 인식된 날짜가 모두 연도를 명시했을 때 
 
 문학 번역에서 `creative rewriting`은 무제한 각색의 허가가 아니다. v7의 기본선은 **정조와 가독성은 개선할 수 있지만, 사건·화자·단서·불확실성은 보존한다**이다.
 
+## 형식·분야를 지정하는 번역 감사 9.6
+
+UI 메시지·마크업은 [번역 형식과 용어집 범위](translation-format-scope.md)를 따른다. `--format`은 태그 계층·속성 또는 ICU 문법과 변수를 대조하며, 텍스트 속성의 정상 번역을 허용한다. 용어집은 설명인 `context`와 실제 조건인 `domains`·`segments`를 분리한다. 선택되지 않은 다의어를 동시에 강제하지 않는다.
+
 ## 출처와 적용 범위
 
 - [Words Without Borders 인터뷰](https://wordswithoutborders.org/read/article/2016-04/2016-man-booker-international-qa-deborah-smith/): 서정성·거친 결·절제·분위기·톤, 한국어 모호성과 반복에 관한 번역가의 설명.

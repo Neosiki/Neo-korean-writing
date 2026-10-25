@@ -187,6 +187,10 @@ neo-korean-writing/
 ## 자료와 이력
 
 정밀 규칙과 장르별 처방은 [`references/`](references/)에, 바로 쓸 수 있는 프롬프트는 [`prompts/`](prompts/README.md)에, 작업 기록 템플릿은 [`templates/`](templates/README.md)에, 설치형 CLI 안내는 [`docs/cli.md`](docs/cli.md)에, 재현 가능한 연구 자료는 [`paper/`](paper/README.md)에, 변경 이력은 [`CHANGELOG.md`](CHANGELOG.md)에 정리했습니다. 프로젝트는 NextAI 윤영식이 개발·유지보수합니다.
+## 번역 형식·용어집 범위 보강 (2026-10-25)
+
+스킬 지침은 v10.3, 번역 점검기는 9.6.0입니다. 태그가 같은 개수여도 닫힘 순서가 틀리면 잡고, `alt`·`title` 같은 텍스트 속성은 번역할 수 있습니다. HTML·XML·ICU는 `--format`으로 선택합니다. 같은 `bank`라도 금융·지리 용어집을 `--domain`으로 나누어 검사하며, 범위가 불분명하면 오류 대신 검토 항목으로 남깁니다. [정책·실행 예시·한계](references/translation-format-scope.md)를 참고하세요. Python 패키지 버전은 10.0.0을 유지합니다.
+
 # 문서 간 맥락·번역 감수 보강 (2026-10-21)
 
 `context-audit`로 명시한 원고·참조 자료의 용어, 인물·조직 별칭, 범위와 기준일이 있는 주장, 근거 인용을 함께 점검합니다. 같은 이름을 자동 병합하거나 최신 문서로 덮어쓰지 않습니다. [사용 지침](references/document-context.md), [GitHub 조사와 적용 결정](references/github-writing-research-20261021.md)을 제공합니다.
