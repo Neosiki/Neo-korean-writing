@@ -21,9 +21,10 @@ VARIABLE = re.compile(r"\{\{[^{}\n]+\}\}|\$\{[^{}\n]+\}|\{[A-Za-z_][\w.]*\}|%\d*
 
 
 def protected_attributes(attrs):
-    return tuple(sorted((key, ("text", tuple(sorted(VARIABLE.findall(value or "")))))
-                        if key in TEXT_ATTRIBUTES else (key, ("locked", value))
-                        for key, value in attrs))
+    protected = [(key, ("text", tuple(sorted(VARIABLE.findall(value or "")))))
+                 if key in TEXT_ATTRIBUTES else (key, ("locked", value))
+                 for key, value in attrs]
+    return tuple(sorted(protected, key=lambda item: item[0]))
 
 
 def prose(text):
@@ -105,14 +106,14 @@ def markup_data(text, xml=False):
         except ET.ParseError as exc:
             return [], [str(exc)]
         nodes = []
-        def walk(node, parents, wrapper=False):
+        pending = [(root, (), wrapped)]
+        while pending:
+            node, parents, wrapper = pending.pop()
             if not wrapper:
                 attrs = protected_attributes(node.attrib.items())
                 nodes.append((parents, node.tag, attrs))
                 parents = parents + (node.tag,)
-            for child in node:
-                walk(child, parents)
-        walk(root, (), wrapped)
+            pending.extend((child, parents, False) for child in reversed(node))
         return nodes, []
     reader = Markup()
     try:

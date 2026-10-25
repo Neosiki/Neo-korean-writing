@@ -10,6 +10,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import sys
 import tempfile
@@ -23,6 +24,9 @@ KEY = "translation_workflow"
 STAGES = ("analysis", "draft", "review", "revision", "polish", "check")
 KINDS = ("term", "voice", "interpretation", "first_mention")
 STATES = ("provisional", "adopted", "deferred", "rejected")
+OWNERS = ("user", "editor", "model")
+FORMATS = ("auto", "plain", "html", "xml", "icu")
+DIRECTIONS = ("auto", "en-to-ko", "ko-to-en", "same")
 NOTE = "단계 기록은 파일·순서 확인이며 의미 정확성·사람 검수·출판 승인 증명이 아닙니다"
 
 
@@ -61,19 +65,81 @@ def brief_digest(data):
     return object_digest({k: v for k, v in data.items() if k != KEY})
 
 
+def require_text(value, field):
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError("비어 있지 않은 문자열이 필요합니다: " + field)
+
+
+def require_hash(value, field):
+    if not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{64}", value):
+        raise ValueError("SHA-256 기록 형식 오류: " + field)
+
+
+def validate_file(rec, field):
+    if not isinstance(rec, dict):
+        raise ValueError("파일 기록 형식 오류: " + field)
+    require_text(rec.get("path"), field + ".path")
+    require_hash(rec.get("sha256"), field + ".sha256")
+
+
+def validate_scope(scope):
+    if not isinstance(scope, dict) or set(scope) != {"domain", "segment_id"}:
+        raise ValueError("분야·구간 기록 형식 오류")
+    for name, value in scope.items():
+        if value is not None:
+            require_text(value, name)
+
+
+def validate_settings(settings):
+    if not isinstance(settings, dict) or set(settings) != {"direction", "format", "domain", "segment_id"}:
+        raise ValueError("작업 설정 필드 형식 오류")
+    if settings["direction"] not in DIRECTIONS or settings["format"] not in FORMATS:
+        raise ValueError("지원하지 않는 번역 방향·형식입니다")
+    validate_scope({k: settings[k] for k in ("domain", "segment_id")})
+
+
 def load_state(data):
     state = data.get(KEY)
-    if not isinstance(state, dict) or state.get("version") != 1:
+    if not isinstance(state, dict) or type(state.get("version")) is not int or state["version"] != 1:
         raise ValueError("먼저 translation-session init으로 작업을 등록하세요")
     if not isinstance(state.get("stages"), dict) or not isinstance(state.get("decisions"), list):
         raise ValueError("진행 단계·판단 기록 형식이 잘못되었습니다")
     if set(state["stages"]) - set(STAGES):
         raise ValueError("알 수 없는 진행 단계가 있습니다")
-    if not isinstance(state.get("settings"), dict) or not isinstance(state.get("source"), dict):
-        raise ValueError("작업 입력 형식이 잘못되었습니다")
+    validate_settings(state.get("settings"))
+    validate_file(state.get("source"), "source")
+    if state.get("glossary") is not None:
+        validate_file(state["glossary"], "glossary")
+    require_hash(state.get("brief_sha256"), "brief_sha256")
+    require_hash(state.get("context_sha256"), "context_sha256")
+    if not isinstance(state.get("history"), list) or any(not isinstance(h, dict) for h in state["history"]):
+        raise ValueError("이력은 객체 배열이어야 합니다")
+    identifiers = set()
     for row in state["decisions"]:
         if not isinstance(row, dict) or row.get("state") not in STATES or row.get("kind") not in KINDS:
             raise ValueError("판단 기록 형식이 잘못되었습니다")
+        for field in ("id", "target", "reason"):
+            require_text(row.get(field), "decision." + field)
+        if row["id"] in identifiers:
+            raise ValueError("중복 판단 ID: " + row["id"])
+        identifiers.add(row["id"])
+        if row.get("owner") not in OWNERS or not isinstance(row.get("source_text"), str):
+            raise ValueError("판단 주체·원문 구절 형식 오류")
+        if row["kind"] != "voice":
+            require_text(row["source_text"], "decision.source_text")
+        require_hash(row.get("context_sha256"), "decision.context_sha256")
+        validate_scope(row.get("scope"))
+    for name, rec in state["stages"].items():
+        if not isinstance(rec, dict):
+            raise ValueError("진행 단계 기록 형식 오류: " + name)
+        validate_file(rec.get("artifact"), name + ".artifact")
+        for field in ("context_sha256", "decisions_sha256"):
+            require_hash(rec.get(field), name + "." + field)
+        if name == "analysis":
+            if rec.get("parent_sha256") is not None:
+                raise ValueError("analysis에는 앞 단계가 없습니다")
+        else:
+            require_hash(rec.get("parent_sha256"), name + ".parent_sha256")
     return state
 
 
@@ -168,6 +234,10 @@ def initialize(data, path, source=None, glossary=None, settings=None, refresh=Fa
         raise ValueError("인계서를 용어집으로 등록할 수 없습니다")
     resolved = dict(old["settings"] if old else {"direction": "en-to-ko", "format": "auto", "domain": None, "segment_id": None})
     resolved.update({k: v for k, v in (settings or {}).items() if v is not None})
+    for key in ("domain", "segment_id"):
+        if resolved.get(key) == "":
+            resolved[key] = None
+    validate_settings(resolved)
     history = list(old.get("history", [])) if old else []
     if old:
         history.append({"event": "inputs_refreshed", "context_sha256": old["context_sha256"], "stages": old["stages"]})
@@ -209,6 +279,8 @@ def record_decision(data, path, identifier, kind, source_text, target, state_nam
     state = load_state(data)
     if current_inputs(data, state, path.parent):
         raise ValueError("변경된 입력을 먼저 다시 등록하세요")
+    if kind not in KINDS or state_name not in STATES or owner not in OWNERS:
+        raise ValueError("지원하지 않는 판단 종류·상태·주체입니다")
     if not identifier.strip() or not target.strip() or not reason.strip():
         raise ValueError("판단 ID·선택 표현·근거는 비울 수 없습니다")
     if kind != "voice":
@@ -252,8 +324,8 @@ def main(args=None):
             p.add_argument("--source")
             p.add_argument("--glossary")
             p.add_argument("--refresh", action="store_true")
-            p.add_argument("--format", choices=("auto", "plain", "html", "xml", "icu"))
-            p.add_argument("--direction", choices=("auto", "en-to-ko", "ko-to-en", "same"))
+            p.add_argument("--format", choices=FORMATS)
+            p.add_argument("--direction", choices=DIRECTIONS)
             p.add_argument("--domain")
             p.add_argument("--segment-id")
         elif name == "checkpoint":
@@ -265,7 +337,7 @@ def main(args=None):
             p.add_argument("--source-text", default="")
             p.add_argument("--target", required=True)
             p.add_argument("--state", choices=STATES, default="provisional")
-            p.add_argument("--owner", choices=("user", "editor", "model"), default="model")
+            p.add_argument("--owner", choices=OWNERS, default="model")
             p.add_argument("--reason", required=True)
     try:
         ns = parser.parse_args(args)

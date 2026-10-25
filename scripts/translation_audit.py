@@ -55,7 +55,7 @@ from collections import Counter
 from datetime import date
 from decimal import Decimal, InvalidOperation
 
-VERSION = "9.6.0"
+VERSION = "9.6.1"
 SEVERITY_RANK = {"critical": 0, "major": 1, "minor": 2, "review": 3}
 MQM_WEIGHT = {"critical": 25, "major": 5, "minor": 1, "review": 0}
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -611,6 +611,16 @@ def _split_alts(value):
     return [x.strip() for x in re.split(r"\s*\|\s*", value or "") if x.strip()]
 
 
+def _glossary_values(value, field):
+    if value is None:
+        return []
+    if isinstance(value, str):
+        return _split_alts(value)
+    if not isinstance(value, (list, tuple)) or any(not isinstance(v, str) or not v.strip() for v in value):
+        raise ValueError("용어집 " + field + "는 문자열 또는 문자열 배열이어야 합니다")
+    return [v.strip() for v in value]
+
+
 def load_glossary(path):
     """용어집 읽기. JSON 또는 TSV/CSV/`=>` 텍스트.
 
@@ -623,10 +633,16 @@ def load_glossary(path):
     entries = []
     if path.lower().endswith(".json"):
         obj = json.loads(text)
+        if not isinstance(obj, (dict, list)):
+            raise ValueError("용어집 JSON은 객체 또는 항목 배열이어야 합니다")
+        if isinstance(obj, list) and any(not isinstance(e, dict) or "source" not in e for e in obj):
+            raise ValueError("용어집 배열 항목에는 source가 필요합니다")
         items = obj.items() if isinstance(obj, dict) else [(e["source"], e) for e in obj]
         for src, val in items:
             mode, context, allowed, domains, segments = "flex", "", [], [], []
             if isinstance(val, dict):
+                if not {"target", "allowed", "forbid"}.intersection(val):
+                    raise ValueError("용어집 항목에는 target·allowed·forbid 중 하나가 필요합니다")
                 targets, forbid = val.get("target", []), val.get("forbid", [])
                 allowed = val.get("allowed", [])
                 mode = val.get("mode", "flex")
@@ -634,14 +650,13 @@ def load_glossary(path):
                 domains, segments = val.get("domains", []), val.get("segments", [])
             else:
                 targets, forbid = val, []
-            targets = _split_alts(targets) if isinstance(targets, str) else list(targets)
-            forbid = _split_alts(forbid) if isinstance(forbid, str) else list(forbid)
-            allowed = _split_alts(allowed) if isinstance(allowed, str) else list(allowed)
+            targets = _glossary_values(targets, "target")
+            forbid = _glossary_values(forbid, "forbid")
+            allowed = _glossary_values(allowed, "allowed")
             entries.append(_glossary_entry(src, targets + [a for a in allowed if a not in targets], forbid, mode, context, domains, segments))
         return entries
     for line in text.splitlines():
-        line = line.strip()
-        if not line or line.startswith("#"):
+        if not line.strip() or line.lstrip().startswith("#"):
             continue
         for sep in ("\t", "=>", "->", ","):
             if sep in line:
@@ -660,14 +675,21 @@ def load_glossary(path):
 
 def _glossary_entry(source, targets, forbid, mode="flex", context="", domains=None, segments=None):
     """첫 역어는 권장어, 나머지는 허용 변형이다. mode=strict이면 한 문서에서 변형을 섞어 쓰면 경고한다."""
-    mode = "strict" if str(mode).strip().lower() in ("strict", "고정") else "flex"
+    if not isinstance(source, str) or not source.strip():
+        raise ValueError("용어집 source는 비어 있지 않은 문자열이어야 합니다")
+    if not isinstance(mode, str) or mode.strip().lower() not in ("", "flex", "strict", "고정"):
+        raise ValueError("용어집 mode는 flex 또는 strict이어야 합니다")
+    if not isinstance(context, str):
+        raise ValueError("용어집 context는 설명 문자열이어야 합니다")
+    source = source.strip()
+    targets, forbid = _glossary_values(targets, "target"), _glossary_values(forbid, "forbid")
+    mode = "strict" if mode.strip().lower() in ("strict", "고정") else "flex"
     return {"source": source, "targets": targets, "forbid": forbid, "mode": mode, "context": str(context).strip(),
             "preferred": targets[0] if targets else "", "domains": _scope_values(domains), "segments": _scope_values(segments)}
 
 
 def _scope_values(value):
-    values = _split_alts(value) if isinstance(value, str) else list(value or [])
-    return sorted(set(str(v).strip() for v in values if str(v).strip()))
+    return sorted(set(_glossary_values(value, "domains/segments")))
 
 
 def select_glossary(entries, domain=None, segment_id=None):
