@@ -1,0 +1,93 @@
+{
+  "audit_version": "9.9.0",
+  "links": [
+    {
+      "id": "broken_fragment",
+      "expected": "hold",
+      "actual": "hold",
+      "matched": true,
+      "risk_ids": [
+        "LINK-1"
+      ]
+    },
+    {
+      "id": "translated_fragment",
+      "expected": "pass",
+      "actual": "pass",
+      "matched": true,
+      "risk_ids": []
+    }
+  ],
+  "impact": {
+    "status": "review_required",
+    "review": [
+      {
+        "id": "p0",
+        "reasons": [
+          "relevant_terms_changed"
+        ],
+        "changed_terms": [
+          "bank"
+        ]
+      },
+      {
+        "id": "p1",
+        "reasons": [
+          "adjacent_context:p0"
+        ],
+        "changed_terms": []
+      }
+    ],
+    "keep": [
+      "p2",
+      "p3"
+    ],
+    "removed": [],
+    "note": "재검토 범위 제안입니다. 번역·승인·원고 덮어쓰기를 실행하지 않습니다.",
+    "targets_unchanged": true,
+    "matched": true
+  },
+  "reader_record_replay": [
+    {
+      "id": "clear-actor-condition",
+      "status": "responses_recorded"
+    },
+    {
+      "id": "ambiguous-pronoun",
+      "status": "reviewed_with_gaps"
+    },
+    {
+      "id": "missing-condition",
+      "status": "reviewed_with_gaps"
+    },
+    {
+      "id": "outside-scope",
+      "status": "no_in_scope_answers"
+    },
+    {
+      "id": "table-condition",
+      "status": "responses_recorded"
+    }
+  ],
+  "note": "자체 작성 예문·같은 세션의 독자 응답 기록을 재생합니다. 독립 정확도 평가나 새 모델 실행이 아닙니다.",
+  "unit_tests": {
+    "tests": 315,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": true
+  },
+  "round2_mechanical_regression": {
+    "matched": 60,
+    "total": 60,
+    "crashes": 0,
+    "false_blocks": 0,
+    "missed_damage": 0
+  },
+  "semantic_review_record_replay": {
+    "case_count": 30,
+    "report_label_agreement": 30,
+    "method": "Explicit current-session model review, not an external API run.",
+    "independence": "Same session authored the examples and reviewed them. Labels were not hidden. No general accuracy claim."
+  }
+}

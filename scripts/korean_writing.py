@@ -722,6 +722,14 @@ def cmd_translation_session(args):
     from translation_session import main
     sys.exit(main(args))
 
+def cmd_translation_impact(args):
+    from translation_impact import main
+    sys.exit(main(args))
+
+def cmd_translation_reader(args):
+    from translation_reader import main
+    sys.exit(main(args))
+
 def cmd_context_audit(args):
     from context_audit import main
     sys.exit(main(args))
@@ -732,6 +740,8 @@ CMDS = {"diagnose": cmd_diagnose, "sunny": cmd_sunny, "connectives": cmd_connect
         "handoff-validate": cmd_handoff_validate,
         "taxonomy": cmd_taxonomy, "translation-audit": cmd_translation_audit,
         "translation-session": cmd_translation_session,
+        "translation-impact": cmd_translation_impact,
+        "translation-reader": cmd_translation_reader,
         "context-audit": cmd_context_audit}
 
 if __name__ == "__main__":

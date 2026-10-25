@@ -54,3 +54,6 @@ F. 후편집 범위 보고: 실제로 측정한 바뀐 문장 수·전체 문장
 ```
 
 번역 후편집은 자연스러움만으로 판단하지 않습니다. 수정 뒤에는 `python3 scripts/korean_writing.py translation-audit 원문.md 번역문.md --direction en-to-ko --json`을 실행해 표면·구조 대조 결과를 보조적으로 확인할 수 있습니다. 용어집이 있으면 `--glossary 용어집.tsv`를, 치명·주요 위험에서 멈추려면 `--strict`를 붙입니다. 출력의 `fix_order`는 치명 → 주요 → 경미 순서의 수정 순서입니다. 초벌 번역이 있으면 `--baseline 초벌번역.md --intensity 기본`을 붙여 후편집 범위와 과편집 경고(EDIT-1·EDIT-2), 어체·높임말 변화(EDIT-3), 후편집으로 새로 생긴 번역투(EDIT-4)와 `baseline_delta`를 확인하고, 번역투 유형별 교정 쌍은 `references/translationese-guide.md`를 봅니다.
+
+
+Markdown 제목·상대 링크, 용어 변경의 구간별 재검토, 번역문만 읽는 독자 질문이 필요하면 references/october-translation-upgrade.md를 따른다. translation-impact는 계획만 제공하며, 독자 응답은 translation-reader로 기록한다. 원문에 없는 설명으로 독자 공백을 메우지 않는다.

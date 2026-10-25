@@ -17,6 +17,7 @@ PROMPTS = {
     "translation-postediting": "translation-postediting.md",
     "translation-continuation": "translation-continuation.md",
     "translation-semantic-review": "translation-semantic-review.md",
+    "translation-reader-review": "translation-reader-review.md",
     "translation-draft-critique-edit": "translation-draft-critique-edit.md",
     "translation-craft-review": "translation-craft-review.md",
     "news-translation-review": "news-translation-review.md",
@@ -31,14 +32,16 @@ TEMPLATES = {
     "translation-glossary": "translation-glossary.tsv",
     "translation-glossary-scoped": "translation-glossary-scoped.json",
     "translation-review-brief": "translation-review-brief.md",
+    "translation-segments": "translation-segments.json",
+    "translation-reader-questions": "translation-reader-questions.json",
     "context-manifest": "context-manifest.json",
 }
 PROFILES = {
     "general": ("standard-editing",),
     "press-release": ("press-release-editing",),
     "longform": ("longform-editing",),
-    "translation": ("translation-postediting", "translation-draft-critique-edit", "translation-craft-review", "translation-continuation", "translation-semantic-review"),
-    "news-translation": ("translation-postediting", "translation-draft-critique-edit", "news-translation-review", "translation-continuation", "translation-semantic-review"),
+    "translation": ("translation-postediting", "translation-draft-critique-edit", "translation-craft-review", "translation-continuation", "translation-semantic-review", "translation-reader-review"),
+    "news-translation": ("translation-postediting", "translation-draft-critique-edit", "news-translation-review", "translation-continuation", "translation-semantic-review", "translation-reader-review"),
     "context": ("cross-document-editing",),
     "detect": ("detect-only",),
 }
@@ -156,6 +159,11 @@ def cmd_verify(args: argparse.Namespace) -> int:
 
 def cmd_translation_audit(args: argparse.Namespace) -> int:
     arguments = [args.source, args.target, "--direction", args.direction]
+    for key in ("reader_review", "link_root", "link_map"):
+        if getattr(args, key):
+            arguments.extend(["--" + key.replace("_", "-"), getattr(args, key)])
+    if args.require_reader_review:
+        arguments.append("--require-reader-review")
     if args.semantic_review:
         arguments.extend(["--semantic-review", args.semantic_review])
     if args.semantic_packet:
@@ -183,6 +191,12 @@ def cmd_translation_audit(args: argparse.Namespace) -> int:
 
 def cmd_translation_session(args: argparse.Namespace) -> int:
     return _engine_call("translation-session", args.arguments)
+
+def cmd_translation_impact(args: argparse.Namespace) -> int:
+    return _engine_call("translation-impact", args.arguments)
+
+def cmd_translation_reader(args: argparse.Namespace) -> int:
+    return _engine_call("translation-reader", args.arguments)
 
 
 def cmd_context_audit(args: argparse.Namespace) -> int:
@@ -258,6 +272,10 @@ def build_parser() -> argparse.ArgumentParser:
     audit.add_argument("--semantic-review")
     audit.add_argument("--semantic-packet")
     audit.add_argument("--require-semantic-review", action="store_true")
+    audit.add_argument("--reader-review")
+    audit.add_argument("--require-reader-review", action="store_true")
+    audit.add_argument("--link-root")
+    audit.add_argument("--link-map")
     audit.add_argument("--format", dest="format_profile", choices=("auto", "plain", "html", "xml", "icu"), default="auto")
     audit.add_argument("--domain")
     audit.add_argument("--segment-id")
@@ -269,6 +287,10 @@ def build_parser() -> argparse.ArgumentParser:
     session = subparsers.add_parser("translation-session", help="번역 인계서의 단계·표현 선택을 기록하고 이어가기")
     session.add_argument("arguments", nargs=argparse.REMAINDER)
     session.set_defaults(handler=cmd_translation_session)
+    for command, handler in (("translation-impact", cmd_translation_impact), ("translation-reader", cmd_translation_reader)):
+        sub = subparsers.add_parser(command, help="번역 구간 재검토 / 독자 질문 증거 기록")
+        sub.add_argument("arguments", nargs=argparse.REMAINDER)
+        sub.set_defaults(handler=handler)
 
     context = subparsers.add_parser("context-audit", help="명시한 문서 간 용어·개체·주장 근거 대조")
     context.add_argument("manifest")

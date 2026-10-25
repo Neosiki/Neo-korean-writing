@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "glossary": "translation-glossary.tsv",
+  "segments": [
+    {
+      "id": "p1",
+      "source": "source.md",
+      "target": "target.md",
+      "source_paragraph": 1,
+      "target_paragraph": 1,
+      "depends_on": []
+    },
+    {
+      "id": "p2",
+      "source": "source.md",
+      "target": "target.md",
+      "source_paragraph": 2,
+      "target_paragraph": 2,
+      "depends_on": [
+        "p1"
+      ]
+    },
+    {
+      "id": "p3",
+      "source": "source.md",
+      "target": "target.md",
+      "source_paragraph": 3,
+      "target_paragraph": 3,
+      "depends_on": []
+    }
+  ]
+}
+

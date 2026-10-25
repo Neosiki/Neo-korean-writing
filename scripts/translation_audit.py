@@ -55,7 +55,7 @@ from collections import Counter
 from datetime import date
 from decimal import Decimal, InvalidOperation
 
-VERSION = "9.8.0"
+VERSION = "9.9.0"
 SEVERITY_RANK = {"critical": 0, "major": 1, "minor": 2, "review": 3}
 MQM_WEIGHT = {"critical": 25, "major": 5, "minor": 1, "review": 0}
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -63,6 +63,8 @@ if HERE not in sys.path:
     sys.path.insert(0, HERE)
 from translation_formats import PROFILES, compare_formats, legacy_placeholder_text, resolve_profile
 from translation_semantics import DIMENSIONS, packet as semantic_packet, review_data as semantic_review_data
+from translation_links import links as markdown_links, compare_links
+from translation_reader import review_data as reader_review_data
 
 URL_RE = re.compile(r"https?://[^\s)>'\"]+")
 # Canonicalize only explicit unit aliases; never erase units or convert amounts.
@@ -429,7 +431,7 @@ def shared_locks(text, format_profile="plain"):
     # A standalone KRW or an acronym spanning beyond a number stays locked.
     out["acronym"] = [m.group() for m in ACRONYM_RE.finditer(text)
                       if not any(n.start() <= m.start() and m.end() <= n.end() for n in number_matches)]
-    out["link_target"] = MARKDOWN_LINK_RE.findall(text)
+    out["link_target"] = [row["destination"] for row in markdown_links(text)]
     out["placeholder"] = PLACEHOLDER_RE.findall(legacy_placeholder_text(text, format_profile))
     return out
 
@@ -535,7 +537,7 @@ def structure_data(text):
         "bullet_items": len(re.findall(r"^\s*[-*+]\s+", text, re.M)),
         "table_rows": len(re.findall(r"^\s*\|", text, re.M)),
         "code_blocks": text.count("```") // 2,
-        "links": len(MARKDOWN_LINK_RE.findall(text)),
+        "links": len(markdown_links(text)),
         "paragraphs": len([p for p in re.split(r"\n\s*\n", text) if p.strip()]),
         "sentences": len([s for s in re.split(r"(?<=[.!?다요임함])\s+", text) if len(s.strip()) >= 5]),
     }
@@ -1010,7 +1012,7 @@ def _translationese_counts(text):
     return {spec[0] + " " + spec[1]: (len(_type_hits(spec, body)), spec[4]) for spec in TRANSLATIONESE_TYPES}
 
 
-def baseline_delta(source, baseline, target, direction="en-to-ko", format_profile="plain"):
+def baseline_delta(source, baseline, target, direction="en-to-ko", format_profile="plain", link_options=None):
     """초벌 → 후편집본에서 무엇이 사라지고 무엇이 새로 생겼는지. 점수가 아니라 검토 단서다."""
     out = {"translationese": {"fixed": [], "introduced": [], "remaining": []}}
     if direction in ("en-to-ko", "same"):
@@ -1032,7 +1034,12 @@ def baseline_delta(source, baseline, target, direction="en-to-ko", format_profil
                        "honorific_markers": {"baseline": hon_b, "final": hon_a}}
     src_locks = shared_locks(source, format_profile)
     def missing_keys(text):
-        missing, extra, _ = surface_diff(src_locks, shared_locks(text, format_profile))
+        local_source, local_target = dict(src_locks), shared_locks(text, format_profile)
+        if format_profile in ("plain", "html"):
+            report = compare_links(source, text, **(link_options or {}))
+            local_source["link_target"] = report["source_targets"]
+            local_target["link_target"] = report["target_targets"]
+        missing, extra, _ = surface_diff(local_source, local_target)
         if direction == "en-to-ko":
             missing, _, _ = reconcile_locks(missing, extra, text, source)
         return {(m["kind"], m["value"]) for m in missing}
@@ -1048,14 +1055,15 @@ BASIS_BY_ID = {"FID-5": "mechanical-check", "FID-6": "mechanical-check", "FID-10
 def _label_risks(risks):
     """기계적 차단은 MQM Critical 확정이 아니다. 근거 종류와 확정 상태를 위험마다 밝힌다."""
     for r in risks:
-        r["basis"] = ("mechanical-check" if r["id"] == "SEM-0" else "model-or-human-review") if r["id"].startswith("SEM-") else BASIS_BY_ID.get(r["id"], "heuristic-candidate")
+        r["basis"] = ("mechanical-check" if r["id"] in ("SEM-0", "READ-0") else "model-or-human-review") if r["id"].startswith(("SEM-", "READ-")) else ("mechanical-check" if r["id"] == "LINK-1" else BASIS_BY_ID.get(r["id"], "heuristic-candidate"))
         r["state"] = "검토 후보"
     return risks
 
 
 def audit_data(source, target, direction="auto", literary=False, glossary=None,
                baseline=None, intensity="기본", format_profile="auto", domain=None, segment_id=None,
-               semantic_review=None, require_semantic_review=False):
+               semantic_review=None, require_semantic_review=False, link_options=None,
+               reader_review=None, require_reader_review=False):
     if direction == "auto":
         direction = "en-to-ko" if re.search(r"[A-Za-z]", source) and re.search(r"[가-힣]", target) else "same"
 
@@ -1063,6 +1071,10 @@ def audit_data(source, target, direction="auto", literary=False, glossary=None,
     format_report = compare_formats(source, target, profile)
     source_locks = shared_locks(source, profile)
     target_locks = shared_locks(target, profile)
+    link_report = compare_links(source, target, **(link_options or {})) if profile in ("plain", "html") else None
+    if link_report is not None:
+        source_locks["link_target"] = link_report["source_targets"]
+        target_locks["link_target"] = link_report["target_targets"]
     missing_all, extra_all, converted = surface_diff(source_locks, target_locks)
     missing = [m for m in missing_all if m["kind"] != "placeholder"]
     extra = [m for m in extra_all if m["kind"] != "placeholder"]
@@ -1173,7 +1185,7 @@ def audit_data(source, target, direction="auto", literary=False, glossary=None,
                 severity="major" if abs(scope["size_delta"]) >= 0.4 else "minor",
                 mqm="Accuracy/Omission-Addition", count=1,
             ))
-        delta = baseline_delta(source, baseline, target, direction, profile)
+        delta = baseline_delta(source, baseline, target, direction, profile, link_options)
         reg = delta["register"]
         hb, ha = reg["honorific_markers"]["baseline"], reg["honorific_markers"]["final"]
         if reg["dominant_changed"] or (abs(ha - hb) >= 3 and abs(ha - hb) >= 0.5 * max(hb, 1)):
@@ -1314,6 +1326,10 @@ def audit_data(source, target, direction="auto", literary=False, glossary=None,
             severity="review", mqm="Style/Literary",
         ))
 
+    if link_report and link_report["issues"]:
+        risks.append(_risk("LINK-1", "hold", "번역본 링크 목적지 손상", link_report["issues"],
+                           "번역본의 제목 앵커·상대 파일·이미지 경로를 복구한다. 외부 URL 잠금은 유지한다",
+                           severity="major", mqm="Design/Markup", count=len(link_report["issues"])))
     mechanical_status = "hold" if any(r["level"] == "hold" for r in risks) else ("warn" if risks else "pass")
     meaning = semantic_review_data(source, target, semantic_review)
     if meaning['status'] in ('stale', 'partial') or (require_semantic_review and meaning['status'] == 'not_checked'):
@@ -1326,20 +1342,27 @@ def audit_data(source, target, direction="auto", literary=False, glossary=None,
         risks.append(_risk(identifier, 'warn', label, finding,
                            '검토자의 근거를 원문과 확인한 뒤 수정한다. 모델 판단을 확정 오류로 자동 채택하지 않는다',
                            severity='major', mqm='Accuracy/Semantic'))
+    reading = reader_review_data(target, reader_review)
+    if reading["status"] in ("stale", "partial", "no_in_scope_answers") or (require_reader_review and reading["status"] == "not_checked"):
+        risks.append(_risk("READ-0", "hold" if require_reader_review or reading["status"] == "stale" else "warn",
+                           "독자 응답 미완료·재검토 필요", reading["status"],
+                           "현재 번역문과 목적별 질문으로 실제 읽고 답한 보고서를 연결한다",
+                           severity="major", mqm="Review coverage"))
+    if reading["status"] == "reviewed_with_gaps":
+        risks.append(_risk("READ-1", "hold" if require_reader_review else "warn", "독자가 답하지 못한 질문",
+                           reading["gaps"], "원문의 정보 부족인지 번역문의 설명·지시 대상 문제인지 대조한다. 원문에 없는 설명은 추가하지 않는다",
+                           severity="major", mqm="Reader review"))
     _label_risks(risks)
     risks.sort(key=lambda r: (SEVERITY_RANK[r["severity"]], -r["count"], r["id"]))
-    fix_order = []
-    for r in risks:
-        if r["severity"] != "review" and r["id"] not in fix_order:
-            fix_order.append(r["id"])
-
-    penalty = sum(MQM_WEIGHT[r["severity"]] * min(r["count"], 10) for r in risks if not r['id'].startswith('SEM-'))
+    fix_order = list(dict.fromkeys(r["id"] for r in risks if r["severity"] != "review"))
+    penalty = sum(MQM_WEIGHT[r["severity"]] * min(r["count"], 10) for r in risks if not r['id'].startswith(('SEM-', 'READ-')))
     by_severity = Counter(r["severity"] for r in risks)
     status = "hold" if any(r["level"] == "hold" for r in risks) else ("warn" if risks else "pass")
     return {
         "tool_version": VERSION,
         "mechanical_status": mechanical_status,
         "semantic_review": meaning,
+        "reader_review": reading,
         "direction": direction,
         "source_chars": len(source),
         "target_chars": len(target),
@@ -1353,6 +1376,7 @@ def audit_data(source, target, direction="auto", literary=False, glossary=None,
         },
         "placeholders": {"pass": not (ph_missing or ph_extra) and format_report["pass"], "missing": ph_missing, "extra": ph_extra},
         "format_validation": format_report,
+        "link_validation": link_report,
         "structure": {
             "pass": not structure_warnings,
             "source": source_structure,
@@ -1398,6 +1422,9 @@ def _print_report(data):
     print(f"표면 잠금: {'통과' if lock['pass'] else '실패'}  누락 {len(lock['missing'])}건 / 추가 토큰 {len(lock['extra'])}건")
     print(f"자리표시자·태그: {'통과' if data['placeholders']['pass'] else '손상'}")
     print(f"형식 프로필: {data['format_validation']['profile']} · 형식 문제 {len(data['format_validation']['issues'])}건")
+    if data.get("link_validation"):
+        print(f"링크 목적지: 확인 {len(data['link_validation']['checked'])}건 / 미검사 {len(data['link_validation']['unchecked'])}건 / 문제 {len(data['link_validation']['issues'])}건")
+    print(f"독자 질문: {data['reader_review']['status']} (기계·의미 검사와 별도)")
     structure = data["structure"]
     print(f"구조 대조: {'통과' if structure['pass'] else '확인 필요'}")
     gl = data["glossary"]
@@ -1438,6 +1465,10 @@ def main(args=None):
     parser.add_argument("--semantic-review")
     parser.add_argument("--semantic-packet")
     parser.add_argument("--require-semantic-review", action="store_true")
+    parser.add_argument("--reader-review")
+    parser.add_argument("--require-reader-review", action="store_true")
+    parser.add_argument("--link-root")
+    parser.add_argument("--link-map")
     parser.add_argument("--format", dest="format_profile", choices=PROFILES, default="auto")
     parser.add_argument("--domain")
     parser.add_argument("--segment-id")
@@ -1462,15 +1493,21 @@ def main(args=None):
         glossary = load_glossary(ns.glossary) if ns.glossary else None
         baseline = read_text(ns.baseline) if ns.baseline else None
         meaning = json.loads(read_text(ns.semantic_review)) if ns.semantic_review else None
+        reading = json.loads(read_text(ns.reader_review)) if ns.reader_review else None
+        if ns.reader_review and reading is None:
+            raise ValueError('독자 검토 보고서는 null이 아닌 객체여야 합니다')
+        link_options = {"source_path": ns.source, "target_path": ns.target,
+                        "root": ns.link_root, "mapping": json.loads(read_text(ns.link_map)) if ns.link_map else None}
         if ns.semantic_review and meaning is None:
             raise ValueError('의미 검토 보고서는 null이 아닌 객체여야 합니다')
         data = audit_data(source, target, ns.direction, ns.literary, glossary, baseline, ns.intensity,
-                          ns.format_profile, ns.domain, ns.segment_id, meaning, ns.require_semantic_review)
+                          ns.format_profile, ns.domain, ns.segment_id, meaning, ns.require_semantic_review,
+                          link_options, reading, ns.require_reader_review)
         if ns.semantic_packet:
             bundle = semantic_packet(source, target)
             with open(ns.semantic_packet, 'x', encoding='utf-8') as stream:
                 json.dump(bundle, stream, ensure_ascii=False, indent=2)
-    except (OSError, ValueError, KeyError) as exc:
+    except (OSError, ValueError, KeyError, TypeError) as exc:
         print(f"입력 읽기 실패: {exc}", file=sys.stderr)
         return 3
     if ns.strict:

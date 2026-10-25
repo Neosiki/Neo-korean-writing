@@ -21,6 +21,8 @@ class NeoKoreanWritingCliTests(unittest.TestCase):
         packaged = packaged.replace("from .translation_audit import main", "from translation_audit import main")
         packaged = packaged.replace("from .context_audit import main", "from context_audit import main")
         packaged = packaged.replace("from .translation_session import main", "from translation_session import main")
+        packaged = packaged.replace("from .translation_impact import main", "from translation_impact import main")
+        packaged = packaged.replace("from .translation_reader import main", "from translation_reader import main")
         self.assertEqual(source, packaged)
         self.assertEqual(
             (ROOT / "scripts" / "translation_session.py").read_text(encoding="utf-8"),

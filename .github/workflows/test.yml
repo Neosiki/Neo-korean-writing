@@ -39,6 +39,8 @@ jobs:
           "$venv_dir/bin/neo-korean-writing" show prompt translation-draft-critique-edit
           "$venv_dir/bin/neo-korean-writing" show prompt translation-continuation
           "$venv_dir/bin/neo-korean-writing" show prompt translation-semantic-review
+          "$venv_dir/bin/neo-korean-writing" show prompt translation-reader-review
+          "$venv_dir/bin/neo-korean-writing" show template translation-segments
           "$venv_dir/bin/neo-korean-writing" show prompt news-translation-review
           "$venv_dir/bin/neo-korean-writing" show template translation-review-brief
           "$venv_dir/bin/neo-korean-writing" context-audit --help
@@ -50,6 +52,11 @@ jobs:
           "$venv_dir/bin/neo-korean-writing" translation-session init "$workspace/templates/writer-editor-handoff.json" --source "$workspace/source.md" --domain finance
           "$venv_dir/bin/neo-korean-writing" translation-session inspect "$workspace/templates/writer-editor-handoff.json" --json
           "$venv_dir/bin/neo-korean-writing" translation-audit "$workspace/source.md" "$workspace/source.md" --semantic-packet "$workspace/semantic-packet.json" --json
+          printf '%s\n' '[{"id":"main","question":"What does this document say?"}]' > "$workspace/questions.json"
+          "$venv_dir/bin/neo-korean-writing" translation-reader packet "$workspace/source.md" --questions "$workspace/questions.json" --output "$workspace/reader-packet.json"
+          printf '%s\n' '{"schema_version":1,"segments":[{"id":"one","source":"source.md","target":"source.md"}]}' > "$workspace/segments.json"
+          "$venv_dir/bin/neo-korean-writing" translation-impact snapshot "$workspace/segments.json" --output "$workspace/segments-baseline.json"
+          "$venv_dir/bin/neo-korean-writing" translation-impact plan "$workspace/segments.json" --baseline "$workspace/segments-baseline.json" --json
           mkdir -p "$RUNNER_TEMP/neo-korean-writing-package"
           cp "$package_dir"/* "$RUNNER_TEMP/neo-korean-writing-package/"
       - name: CLI 배포본 아티팩트 보관
