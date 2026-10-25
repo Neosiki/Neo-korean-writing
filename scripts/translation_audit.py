@@ -55,13 +55,14 @@ from collections import Counter
 from datetime import date
 from decimal import Decimal, InvalidOperation
 
-VERSION = "9.7.0"
+VERSION = "9.8.0"
 SEVERITY_RANK = {"critical": 0, "major": 1, "minor": 2, "review": 3}
 MQM_WEIGHT = {"critical": 25, "major": 5, "minor": 1, "review": 0}
 HERE = os.path.dirname(os.path.abspath(__file__))
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
 from translation_formats import PROFILES, compare_formats, legacy_placeholder_text, resolve_profile
+from translation_semantics import DIMENSIONS, packet as semantic_packet, review_data as semantic_review_data
 
 URL_RE = re.compile(r"https?://[^\s)>'\"]+")
 # Canonicalize only explicit unit aliases; never erase units or convert amounts.
@@ -1047,13 +1048,14 @@ BASIS_BY_ID = {"FID-5": "mechanical-check", "FID-6": "mechanical-check", "FID-10
 def _label_risks(risks):
     """기계적 차단은 MQM Critical 확정이 아니다. 근거 종류와 확정 상태를 위험마다 밝힌다."""
     for r in risks:
-        r["basis"] = BASIS_BY_ID.get(r["id"], "heuristic-candidate")
+        r["basis"] = ("mechanical-check" if r["id"] == "SEM-0" else "model-or-human-review") if r["id"].startswith("SEM-") else BASIS_BY_ID.get(r["id"], "heuristic-candidate")
         r["state"] = "검토 후보"
     return risks
 
 
 def audit_data(source, target, direction="auto", literary=False, glossary=None,
-               baseline=None, intensity="기본", format_profile="auto", domain=None, segment_id=None):
+               baseline=None, intensity="기본", format_profile="auto", domain=None, segment_id=None,
+               semantic_review=None, require_semantic_review=False):
     if direction == "auto":
         direction = "en-to-ko" if re.search(r"[A-Za-z]", source) and re.search(r"[가-힣]", target) else "same"
 
@@ -1312,6 +1314,18 @@ def audit_data(source, target, direction="auto", literary=False, glossary=None,
             severity="review", mqm="Style/Literary",
         ))
 
+    mechanical_status = "hold" if any(r["level"] == "hold" for r in risks) else ("warn" if risks else "pass")
+    meaning = semantic_review_data(source, target, semantic_review)
+    if meaning['status'] in ('stale', 'partial') or (require_semantic_review and meaning['status'] == 'not_checked'):
+        risks.append(_risk('SEM-0', 'hold' if require_semantic_review or meaning['status']=='stale' else 'warn',
+                           '의미 검토 미완료·재검토 필요', meaning['status'],
+                           '현재 원문·번역문 전체와 6개 의미 차원을 대조한 보고서를 연결한다. 파일 해시가 바뀌면 새로 검토한다',
+                           severity='major', mqm='Review coverage'))
+    for finding in meaning['findings']:
+        identifier, label = DIMENSIONS[finding['dimension']]
+        risks.append(_risk(identifier, 'warn', label, finding,
+                           '검토자의 근거를 원문과 확인한 뒤 수정한다. 모델 판단을 확정 오류로 자동 채택하지 않는다',
+                           severity='major', mqm='Accuracy/Semantic'))
     _label_risks(risks)
     risks.sort(key=lambda r: (SEVERITY_RANK[r["severity"]], -r["count"], r["id"]))
     fix_order = []
@@ -1319,11 +1333,13 @@ def audit_data(source, target, direction="auto", literary=False, glossary=None,
         if r["severity"] != "review" and r["id"] not in fix_order:
             fix_order.append(r["id"])
 
-    penalty = sum(MQM_WEIGHT[r["severity"]] * min(r["count"], 10) for r in risks)
+    penalty = sum(MQM_WEIGHT[r["severity"]] * min(r["count"], 10) for r in risks if not r['id'].startswith('SEM-'))
     by_severity = Counter(r["severity"] for r in risks)
     status = "hold" if any(r["level"] == "hold" for r in risks) else ("warn" if risks else "pass")
     return {
         "tool_version": VERSION,
+        "mechanical_status": mechanical_status,
+        "semantic_review": meaning,
         "direction": direction,
         "source_chars": len(source),
         "target_chars": len(target),
@@ -1360,7 +1376,7 @@ def audit_data(source, target, direction="auto", literary=False, glossary=None,
         "mqm_heuristic": {
             "penalty": penalty,
             "per_1000_chars": round(penalty / max(len(target), 1) * 1000, 1),
-            "note": "참고용 휴리스틱(치명 25·주요 5·경미 1). 사람이 하는 MQM 평가의 대체물이 아님",
+            "note": "참고용 휴리스틱(치명 25·주요 5·경미 1). 의미 검토 SEM 항목은 합산하지 않으며 사람이 하는 MQM 평가의 대체물이 아님",
         },
         "literary_profile": literary_profile,
         "human_review_required": True,
@@ -1376,7 +1392,8 @@ def _apply_strict(data):
 
 
 def _print_report(data):
-    print(f"번역 충실성 감사: {data['status'].upper()}  방향={data['direction']}")
+    print(f"번역 검사 결과: {data['status'].upper()}  방향={data['direction']}")
+    print(f"기계 검사: {data['mechanical_status']} / 의미 검토: {data['semantic_review']['status']}")
     lock = data["surface_lock"]
     print(f"표면 잠금: {'통과' if lock['pass'] else '실패'}  누락 {len(lock['missing'])}건 / 추가 토큰 {len(lock['extra'])}건")
     print(f"자리표시자·태그: {'통과' if data['placeholders']['pass'] else '손상'}")
@@ -1418,6 +1435,9 @@ def main(args=None):
     parser.add_argument("target", nargs="?")
     parser.add_argument("--direction", default="auto", choices=["auto", "en-to-ko", "ko-to-en", "same"])
     parser.add_argument("--glossary")
+    parser.add_argument("--semantic-review")
+    parser.add_argument("--semantic-packet")
+    parser.add_argument("--require-semantic-review", action="store_true")
     parser.add_argument("--format", dest="format_profile", choices=PROFILES, default="auto")
     parser.add_argument("--domain")
     parser.add_argument("--segment-id")
@@ -1441,11 +1461,18 @@ def main(args=None):
         source, target = read_text(ns.source), read_text(ns.target)
         glossary = load_glossary(ns.glossary) if ns.glossary else None
         baseline = read_text(ns.baseline) if ns.baseline else None
+        meaning = json.loads(read_text(ns.semantic_review)) if ns.semantic_review else None
+        if ns.semantic_review and meaning is None:
+            raise ValueError('의미 검토 보고서는 null이 아닌 객체여야 합니다')
+        data = audit_data(source, target, ns.direction, ns.literary, glossary, baseline, ns.intensity,
+                          ns.format_profile, ns.domain, ns.segment_id, meaning, ns.require_semantic_review)
+        if ns.semantic_packet:
+            bundle = semantic_packet(source, target)
+            with open(ns.semantic_packet, 'x', encoding='utf-8') as stream:
+                json.dump(bundle, stream, ensure_ascii=False, indent=2)
     except (OSError, ValueError, KeyError) as exc:
         print(f"입력 읽기 실패: {exc}", file=sys.stderr)
         return 3
-    data = audit_data(source, target, ns.direction, ns.literary, glossary, baseline, ns.intensity,
-                      ns.format_profile, ns.domain, ns.segment_id)
     if ns.strict:
         data = _apply_strict(data)
     if ns.json:

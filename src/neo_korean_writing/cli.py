@@ -16,6 +16,7 @@ PROMPTS = {
     "longform-editing": "longform-editing.md",
     "translation-postediting": "translation-postediting.md",
     "translation-continuation": "translation-continuation.md",
+    "translation-semantic-review": "translation-semantic-review.md",
     "translation-draft-critique-edit": "translation-draft-critique-edit.md",
     "translation-craft-review": "translation-craft-review.md",
     "news-translation-review": "news-translation-review.md",
@@ -36,8 +37,8 @@ PROFILES = {
     "general": ("standard-editing",),
     "press-release": ("press-release-editing",),
     "longform": ("longform-editing",),
-    "translation": ("translation-postediting", "translation-draft-critique-edit", "translation-craft-review", "translation-continuation"),
-    "news-translation": ("translation-postediting", "translation-draft-critique-edit", "news-translation-review", "translation-continuation"),
+    "translation": ("translation-postediting", "translation-draft-critique-edit", "translation-craft-review", "translation-continuation", "translation-semantic-review"),
+    "news-translation": ("translation-postediting", "translation-draft-critique-edit", "news-translation-review", "translation-continuation", "translation-semantic-review"),
     "context": ("cross-document-editing",),
     "detect": ("detect-only",),
 }
@@ -155,6 +156,12 @@ def cmd_verify(args: argparse.Namespace) -> int:
 
 def cmd_translation_audit(args: argparse.Namespace) -> int:
     arguments = [args.source, args.target, "--direction", args.direction]
+    if args.semantic_review:
+        arguments.extend(["--semantic-review", args.semantic_review])
+    if args.semantic_packet:
+        arguments.extend(["--semantic-packet", args.semantic_packet])
+    if args.require_semantic_review:
+        arguments.append("--require-semantic-review")
     arguments.extend(["--format", args.format_profile])
     if args.domain:
         arguments.extend(["--domain", args.domain])
@@ -248,6 +255,9 @@ def build_parser() -> argparse.ArgumentParser:
     audit.add_argument("--literary", action="store_true")
     audit.add_argument("--json", action="store_true")
     audit.add_argument("--glossary")
+    audit.add_argument("--semantic-review")
+    audit.add_argument("--semantic-packet")
+    audit.add_argument("--require-semantic-review", action="store_true")
     audit.add_argument("--format", dest="format_profile", choices=("auto", "plain", "html", "xml", "icu"), default="auto")
     audit.add_argument("--domain")
     audit.add_argument("--segment-id")

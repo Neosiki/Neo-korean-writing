@@ -1,0 +1,441 @@
+{
+  "schema_version": 1,
+  "tool_version": "9.8.0",
+  "fixture_sha256_lf": "65ed2dcf1bf63387893bb4b5c36f68ccf51490ff957e541ef0966724c2914396",
+  "review_sha256_lf": "cdf33f1df0db90268680ed832942a8419fcf2520ccffe32fb320c57b58e045ed",
+  "method": "Explicit current-session model review, not an external API run.",
+  "independence": "Same session authored the examples and reviewed them. Labels were not hidden. No general accuracy claim.",
+  "external_api_calls": 0,
+  "case_count": 30,
+  "report_label_agreement": 30,
+  "error_pairs": {
+    "total": 12,
+    "flagged_by_recorded_review": 12
+  },
+  "correct_pairs": {
+    "total": 18,
+    "false_flags_by_recorded_review": 0
+  },
+  "original_six": {
+    "total": 6,
+    "mechanical_passes": 6,
+    "review_flags": 6
+  },
+  "note": "Recorded current-session self-review, not an independently measured semantic detector. A fresh input needs a fresh model/human review.",
+  "cases": [
+    {
+      "id": "poss-original",
+      "origin": "round2",
+      "expected_issue": true,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_with_findings",
+      "combined_status": "warn",
+      "findings": [
+        {
+          "dimension": "modality",
+          "source_quote": "The clinic may reopen.",
+          "target_quote": "병원이 다시 문을 연다.",
+          "reason": "may의 가능성이 번역에서 확정 서술로 바뀌었다."
+        }
+      ],
+      "matched": true
+    },
+    {
+      "id": "poss-new",
+      "origin": "new",
+      "expected_issue": true,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_with_findings",
+      "combined_status": "warn",
+      "findings": [
+        {
+          "dimension": "modality",
+          "source_quote": "Deliveries might be delayed.",
+          "target_quote": "배송이 지연된다.",
+          "reason": "might가 나타내는 지연 가능성이 실제 지연의 단정으로 바뀌었다."
+        }
+      ],
+      "matched": true
+    },
+    {
+      "id": "poss-good-a",
+      "origin": "new",
+      "expected_issue": false,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_no_findings",
+      "combined_status": "pass",
+      "findings": [],
+      "matched": true
+    },
+    {
+      "id": "poss-good-b",
+      "origin": "new",
+      "expected_issue": false,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_no_findings",
+      "combined_status": "pass",
+      "findings": [],
+      "matched": true
+    },
+    {
+      "id": "poss-permission",
+      "origin": "new",
+      "expected_issue": false,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_no_findings",
+      "combined_status": "pass",
+      "findings": [],
+      "matched": true
+    },
+    {
+      "id": "actor-original",
+      "origin": "round2",
+      "expected_issue": true,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_with_findings",
+      "combined_status": "warn",
+      "findings": [
+        {
+          "dimension": "actor",
+          "source_quote": "Mina questioned Joon.",
+          "target_quote": "준이 미나에게 질문했다.",
+          "reason": "원문은 미나가 질문하고 준이 질문을 받지만 번역은 준을 질문 주체로 바꿨다."
+        }
+      ],
+      "matched": true
+    },
+    {
+      "id": "actor-new",
+      "origin": "new",
+      "expected_issue": true,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_with_findings",
+      "combined_status": "warn",
+      "findings": [
+        {
+          "dimension": "actor",
+          "source_quote": "Sara thanked David.",
+          "target_quote": "데이비드가 사라에게 감사했다.",
+          "reason": "감사한 사람은 Sara인데 번역은 David를 감사한 사람으로 놓았다."
+        }
+      ],
+      "matched": true
+    },
+    {
+      "id": "actor-good-a",
+      "origin": "new",
+      "expected_issue": false,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_no_findings",
+      "combined_status": "pass",
+      "findings": [],
+      "matched": true
+    },
+    {
+      "id": "actor-passive",
+      "origin": "new",
+      "expected_issue": false,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_no_findings",
+      "combined_status": "pass",
+      "findings": [],
+      "matched": true
+    },
+    {
+      "id": "actor-ellipsis",
+      "origin": "new",
+      "expected_issue": false,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_no_findings",
+      "combined_status": "pass",
+      "findings": [],
+      "matched": true
+    },
+    {
+      "id": "quant-original",
+      "origin": "round2",
+      "expected_issue": true,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_with_findings",
+      "combined_status": "warn",
+      "findings": [
+        {
+          "dimension": "quantifier",
+          "source_quote": "Some shops close early.",
+          "target_quote": "모든 가게가 일찍 닫는다.",
+          "reason": "some의 일부 범위를 모든 가게로 넓혔다."
+        }
+      ],
+      "matched": true
+    },
+    {
+      "id": "quant-new",
+      "origin": "new",
+      "expected_issue": true,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_with_findings",
+      "combined_status": "warn",
+      "findings": [
+        {
+          "dimension": "quantifier",
+          "source_quote": "Most tickets are refundable.",
+          "target_quote": "모든 티켓을 환불할 수 있다.",
+          "reason": "most는 대부분이며 전부가 아니다. 번역은 모든 티켓으로 환불 범위를 확대했다."
+        }
+      ],
+      "matched": true
+    },
+    {
+      "id": "quant-good-a",
+      "origin": "new",
+      "expected_issue": false,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_no_findings",
+      "combined_status": "pass",
+      "findings": [],
+      "matched": true
+    },
+    {
+      "id": "quant-good-b",
+      "origin": "new",
+      "expected_issue": false,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_no_findings",
+      "combined_status": "pass",
+      "findings": [],
+      "matched": true
+    },
+    {
+      "id": "quant-not-all",
+      "origin": "new",
+      "expected_issue": false,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_no_findings",
+      "combined_status": "pass",
+      "findings": [],
+      "matched": true
+    },
+    {
+      "id": "neg-original",
+      "origin": "round2",
+      "expected_issue": true,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_with_findings",
+      "combined_status": "warn",
+      "findings": [
+        {
+          "dimension": "negation",
+          "source_quote": "The plan is not approved.",
+          "target_quote": "계획이 승인되었다.",
+          "reason": "not approved라는 미승인 상태를 승인 상태로 반전했다."
+        }
+      ],
+      "matched": true
+    },
+    {
+      "id": "neg-new",
+      "origin": "new",
+      "expected_issue": true,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_with_findings",
+      "combined_status": "warn",
+      "findings": [
+        {
+          "dimension": "negation",
+          "source_quote": "The gate does not open automatically.",
+          "target_quote": "문이 자동으로 열린다.",
+          "reason": "does not open의 부정이 빠져 자동으로 열린다는 반대 의미가 됐다."
+        }
+      ],
+      "matched": true
+    },
+    {
+      "id": "neg-good-a",
+      "origin": "new",
+      "expected_issue": false,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_no_findings",
+      "combined_status": "pass",
+      "findings": [],
+      "matched": true
+    },
+    {
+      "id": "neg-good-b",
+      "origin": "new",
+      "expected_issue": false,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_no_findings",
+      "combined_status": "pass",
+      "findings": [],
+      "matched": true
+    },
+    {
+      "id": "neg-not-only",
+      "origin": "new",
+      "expected_issue": false,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_no_findings",
+      "combined_status": "pass",
+      "findings": [],
+      "matched": true
+    },
+    {
+      "id": "cause-original",
+      "origin": "round2",
+      "expected_issue": true,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_with_findings",
+      "combined_status": "warn",
+      "findings": [
+        {
+          "dimension": "causality",
+          "source_quote": "Sales rose after the campaign.",
+          "target_quote": "캠페인 때문에 매출이 올랐다.",
+          "reason": "after는 시간 순서만 명시한다. 때문에는 캠페인을 원인으로 추가한다."
+        }
+      ],
+      "matched": true
+    },
+    {
+      "id": "cause-new",
+      "origin": "new",
+      "expected_issue": true,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_with_findings",
+      "combined_status": "warn",
+      "findings": [
+        {
+          "dimension": "causality",
+          "source_quote": "Visits fell while the fee increased.",
+          "target_quote": "요금이 올라 방문이 줄었다.",
+          "reason": "while은 두 변화의 동시성을 말한다. 요금이 올라 방문이 줄었다는 번역은 원인을 요금 인상으로 정한다."
+        }
+      ],
+      "matched": true
+    },
+    {
+      "id": "cause-good-a",
+      "origin": "new",
+      "expected_issue": false,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_no_findings",
+      "combined_status": "pass",
+      "findings": [],
+      "matched": true
+    },
+    {
+      "id": "cause-good-b",
+      "origin": "new",
+      "expected_issue": false,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_no_findings",
+      "combined_status": "pass",
+      "findings": [],
+      "matched": true
+    },
+    {
+      "id": "cause-procedure",
+      "origin": "new",
+      "expected_issue": false,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_no_findings",
+      "combined_status": "pass",
+      "findings": [],
+      "matched": true
+    },
+    {
+      "id": "attr-original",
+      "origin": "round2",
+      "expected_issue": true,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_with_findings",
+      "combined_status": "warn",
+      "findings": [
+        {
+          "dimension": "attribution",
+          "source_quote": "The supplier says the item is safe.",
+          "target_quote": "이 제품은 안전하다.",
+          "reason": "안전하다는 말의 주체가 공급사라는 귀속이 빠져 서술자가 안전성을 확정한 문장으로 바뀌었다."
+        }
+      ],
+      "matched": true
+    },
+    {
+      "id": "attr-new",
+      "origin": "new",
+      "expected_issue": true,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_with_findings",
+      "combined_status": "warn",
+      "findings": [
+        {
+          "dimension": "attribution",
+          "source_quote": "According to the operator, the network is stable.",
+          "target_quote": "네트워크는 안정적이다.",
+          "reason": "according to the operator를 빼서 운영사의 진술이라는 출처와 한정이 사라졌다."
+        }
+      ],
+      "matched": true
+    },
+    {
+      "id": "attr-good-a",
+      "origin": "new",
+      "expected_issue": false,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_no_findings",
+      "combined_status": "pass",
+      "findings": [],
+      "matched": true
+    },
+    {
+      "id": "attr-good-b",
+      "origin": "new",
+      "expected_issue": false,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_no_findings",
+      "combined_status": "pass",
+      "findings": [],
+      "matched": true
+    },
+    {
+      "id": "attr-reorder",
+      "origin": "new",
+      "expected_issue": false,
+      "mechanical_status": "pass",
+      "without_review": "not_checked",
+      "with_review": "reviewed_no_findings",
+      "combined_status": "pass",
+      "findings": [],
+      "matched": true
+    }
+  ]
+}

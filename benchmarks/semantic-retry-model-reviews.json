@@ -1,0 +1,812 @@
+{
+  "schema_version": 1,
+  "reviewed_on": "2026-10-25",
+  "method": "Explicit current-session model review, not an external API run.",
+  "independence": "Same session authored the examples and reviewed them. Labels were not hidden. No general accuracy claim.",
+  "reviews": [
+    {
+      "id": "poss-original",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "264866484be15c4743dca5f217c8764cef0bc0b9b406a60629636ba89206774d",
+        "target_sha256": "5f64fdc33baf227bc3dd7dba3a6f8d3019927495dfc098dca06be29784b45493",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "may의 가능성이 번역에서 확정 서술로 바뀌었다.",
+        "findings": [
+          {
+            "dimension": "modality",
+            "source_quote": "The clinic may reopen.",
+            "target_quote": "병원이 다시 문을 연다.",
+            "reason": "may의 가능성이 번역에서 확정 서술로 바뀌었다."
+          }
+        ]
+      }
+    },
+    {
+      "id": "poss-new",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "3e3e65926a1bd46f018f2b6369b1692b0124672758aa1b7291430140fc463712",
+        "target_sha256": "de65a4b62b50e4c9f8cb9920a4b741e4e906d2764e589896cb29bff08725b2c6",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "might가 나타내는 지연 가능성이 실제 지연의 단정으로 바뀌었다.",
+        "findings": [
+          {
+            "dimension": "modality",
+            "source_quote": "Deliveries might be delayed.",
+            "target_quote": "배송이 지연된다.",
+            "reason": "might가 나타내는 지연 가능성이 실제 지연의 단정으로 바뀌었다."
+          }
+        ]
+      }
+    },
+    {
+      "id": "poss-good-a",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "264866484be15c4743dca5f217c8764cef0bc0b9b406a60629636ba89206774d",
+        "target_sha256": "479a29feb7508479d20d0f4305972b64454218184324116c79bc6012fc059117",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "가능성이 있다는 표현이 may를 보존한다. 재개 주체와 사건도 같다.",
+        "findings": []
+      }
+    },
+    {
+      "id": "poss-good-b",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "3e3e65926a1bd46f018f2b6369b1692b0124672758aa1b7291430140fc463712",
+        "target_sha256": "0f6dda22963f7b34fd672a408f206968afb9fc2faa0969b44c678796ed059c9b",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "늦어질 수도 있다는 유보가 might와 대응한다. 지연이 확정됐다고 하지 않는다.",
+        "findings": []
+      }
+    },
+    {
+      "id": "poss-permission",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "8238303a30e271153324c8fe6540fd7068daf1f2e3cf312ee872f4c07bd96c55",
+        "target_sha256": "0a90dfb2e947c71f2204685c8bd51ac245379439763c50ad2592fbcecf715afa",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "이 문장의 May I는 허가를 구하는 질문이다. 열어도 될까요가 그 기능을 보존한다.",
+        "findings": []
+      }
+    },
+    {
+      "id": "actor-original",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "3c228821b6bf05b9522cf5ad02d25d1ad1b6aec0e59e48f64b32f75f0b7a9f68",
+        "target_sha256": "4bd64bea24852f32f7eaf71851eeb0fc90cd4e2693ecfa6258f05ef5865488da",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "원문은 미나가 질문하고 준이 질문을 받지만 번역은 준을 질문 주체로 바꿨다.",
+        "findings": [
+          {
+            "dimension": "actor",
+            "source_quote": "Mina questioned Joon.",
+            "target_quote": "준이 미나에게 질문했다.",
+            "reason": "원문은 미나가 질문하고 준이 질문을 받지만 번역은 준을 질문 주체로 바꿨다."
+          }
+        ]
+      }
+    },
+    {
+      "id": "actor-new",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "8af0acf8bc35f8ccaf8eb74b786c3ce40e1a8ca43fbb80da92697c8426402ecc",
+        "target_sha256": "aac07b8a122a8d678f49b40eaa754fd492ed111278ea93629a14fb738c8d3252",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "감사한 사람은 Sara인데 번역은 David를 감사한 사람으로 놓았다.",
+        "findings": [
+          {
+            "dimension": "actor",
+            "source_quote": "Sara thanked David.",
+            "target_quote": "데이비드가 사라에게 감사했다.",
+            "reason": "감사한 사람은 Sara인데 번역은 David를 감사한 사람으로 놓았다."
+          }
+        ]
+      }
+    },
+    {
+      "id": "actor-good-a",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "3c228821b6bf05b9522cf5ad02d25d1ad1b6aec0e59e48f64b32f75f0b7a9f68",
+        "target_sha256": "dcce945ebcda1e7faf177c0b894659a3d1b890365b61a9af62539309cd8bfa4a",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "미나가 행위 주체이고 준이 질문 대상이라는 관계가 같다.",
+        "findings": []
+      }
+    },
+    {
+      "id": "actor-passive",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "01b0c842950fd4214b9ec2f95bd647cbd83272cfea7d2927d15c42d72eb25855",
+        "target_sha256": "d6b012d0fc4e295809f9affff7f1f63235579ff23ae8ebcc7821c8a60211baef",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "영문 수동태를 능동태로 바꿨지만 사라가 감사하고 데이비드가 감사를 받는 관계는 같다.",
+        "findings": []
+      }
+    },
+    {
+      "id": "actor-ellipsis",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "ef922441cd235fb50dcc561c646f003477df1eff89a65b2dd13292158bf7ac55",
+        "target_sha256": "dc1f8a4ea0e2ab342e703eb51715bd89474e4aecf41ae06f52aa346efd93e68d",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "한국어 두 번째 절에서 주어를 반복하지 않았어도 미나가 도착하고 전화한다는 연결이 유지된다.",
+        "findings": []
+      }
+    },
+    {
+      "id": "quant-original",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "f578fd72813e4203db68973ebebee0d2f8031e85ada58901319a4904ed2f922f",
+        "target_sha256": "588810913e06719ea107c0a1ede55b627a89c7a3a6a99d8383d1d1d4b42b4fcf",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "some의 일부 범위를 모든 가게로 넓혔다.",
+        "findings": [
+          {
+            "dimension": "quantifier",
+            "source_quote": "Some shops close early.",
+            "target_quote": "모든 가게가 일찍 닫는다.",
+            "reason": "some의 일부 범위를 모든 가게로 넓혔다."
+          }
+        ]
+      }
+    },
+    {
+      "id": "quant-new",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "60449ac69d9b057ff443896dc58e1ef12e27f06a7f76338adf703c3cc8c025db",
+        "target_sha256": "080182ee6465c6457a5a8b4d45dbdc673b28e79563172ae332be00d97dc96fa9",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "most는 대부분이며 전부가 아니다. 번역은 모든 티켓으로 환불 범위를 확대했다.",
+        "findings": [
+          {
+            "dimension": "quantifier",
+            "source_quote": "Most tickets are refundable.",
+            "target_quote": "모든 티켓을 환불할 수 있다.",
+            "reason": "most는 대부분이며 전부가 아니다. 번역은 모든 티켓으로 환불 범위를 확대했다."
+          }
+        ]
+      }
+    },
+    {
+      "id": "quant-good-a",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "f578fd72813e4203db68973ebebee0d2f8031e85ada58901319a4904ed2f922f",
+        "target_sha256": "dcc09e2239ed9a4a1dae1aeabec874a9713f8ad5b5fcc0866c01bd1dea864609",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "일부 가게라는 범위와 일찍 닫는 사건이 보존됐다.",
+        "findings": []
+      }
+    },
+    {
+      "id": "quant-good-b",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "60449ac69d9b057ff443896dc58e1ef12e27f06a7f76338adf703c3cc8c025db",
+        "target_sha256": "dfcc4bef818430af34b0c3325e4f5160b44abc61d96fa895d327678c78df5097",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "대부분이라는 범위를 유지했다. 모든 티켓이 환불된다고 넓히지 않았다.",
+        "findings": []
+      }
+    },
+    {
+      "id": "quant-not-all",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "985a1cbec10102d77d0ce1d757b67352683f6919f367d3baeb51ee0c796e340f",
+        "target_sha256": "cf743f30b586989d3738efffdaf5660024798422d890686d5819463787725781",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "모든 좌석이 예약된 것은 아니라는 문장은 not all의 부분 부정을 보존한다.",
+        "findings": []
+      }
+    },
+    {
+      "id": "neg-original",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "79ad15cc316cb3545900424f427b285621b63da8a4f1795a3454b24096804e65",
+        "target_sha256": "f42553faaf909073946db8d8c3625fd7013d9cea1124906b0992497d0b1d1d03",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "not approved라는 미승인 상태를 승인 상태로 반전했다.",
+        "findings": [
+          {
+            "dimension": "negation",
+            "source_quote": "The plan is not approved.",
+            "target_quote": "계획이 승인되었다.",
+            "reason": "not approved라는 미승인 상태를 승인 상태로 반전했다."
+          }
+        ]
+      }
+    },
+    {
+      "id": "neg-new",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "0c53ca21ebc180747962c6ef0ca143b7d01ddf48530a80a84ef4c5c84f418055",
+        "target_sha256": "61f8a3b443a515ae31708d8a79975e158d9c2e69fd80230aebaf4d2678f18499",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "does not open의 부정이 빠져 자동으로 열린다는 반대 의미가 됐다.",
+        "findings": [
+          {
+            "dimension": "negation",
+            "source_quote": "The gate does not open automatically.",
+            "target_quote": "문이 자동으로 열린다.",
+            "reason": "does not open의 부정이 빠져 자동으로 열린다는 반대 의미가 됐다."
+          }
+        ]
+      }
+    },
+    {
+      "id": "neg-good-a",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "79ad15cc316cb3545900424f427b285621b63da8a4f1795a3454b24096804e65",
+        "target_sha256": "20957cc1091163b5ce9dc77784ba7db3612fe096e4c523ef97ce6d5293b97365",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "승인되지 않았다는 부정과 계획의 상태가 유지됐다.",
+        "findings": []
+      }
+    },
+    {
+      "id": "neg-good-b",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "0c53ca21ebc180747962c6ef0ca143b7d01ddf48530a80a84ef4c5c84f418055",
+        "target_sha256": "54c438da06cfa97c824f66192cae571d9445073f1fadc5bd215187aab5074885",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "자동으로 열리지 않는다는 성질을 그대로 옮겼다.",
+        "findings": []
+      }
+    },
+    {
+      "id": "neg-not-only",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "bafc47d5ab8b83d4a4893da8a092b549b7ab3975afb7d34cc11406ac1ae48440",
+        "target_sha256": "a3f0b67190a6dc21ed1e4e7b31e147d2b40234981a7bb4b94cf8fd9ab297c7b1",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "not only는 여기서 동의 사실의 부정이 아니라 두 대상을 함께 포함하는 구문이다. 뿐 아니라가 맞다.",
+        "findings": []
+      }
+    },
+    {
+      "id": "cause-original",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "2e948c2accc7b0e80906d661e3c0376d90f396a42fa3ec7cb501ffe10b8a8f9f",
+        "target_sha256": "cf285ef11bfff361b38c54a09b7abee3abd0815dc02db1ba058942ead2ae7591",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "after는 시간 순서만 명시한다. 때문에는 캠페인을 원인으로 추가한다.",
+        "findings": [
+          {
+            "dimension": "causality",
+            "source_quote": "Sales rose after the campaign.",
+            "target_quote": "캠페인 때문에 매출이 올랐다.",
+            "reason": "after는 시간 순서만 명시한다. 때문에는 캠페인을 원인으로 추가한다."
+          }
+        ]
+      }
+    },
+    {
+      "id": "cause-new",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "879bcd00b217b6aa125ed07cda99d2d86266d5df266f2f4fe6aef821bc376c94",
+        "target_sha256": "af6a2839b11f2e7b9325838141179a4cd846a98cfa5dc614069b9b750122d5c5",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "while은 두 변화의 동시성을 말한다. 요금이 올라 방문이 줄었다는 번역은 원인을 요금 인상으로 정한다.",
+        "findings": [
+          {
+            "dimension": "causality",
+            "source_quote": "Visits fell while the fee increased.",
+            "target_quote": "요금이 올라 방문이 줄었다.",
+            "reason": "while은 두 변화의 동시성을 말한다. 요금이 올라 방문이 줄었다는 번역은 원인을 요금 인상으로 정한다."
+          }
+        ]
+      }
+    },
+    {
+      "id": "cause-good-a",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "2e948c2accc7b0e80906d661e3c0376d90f396a42fa3ec7cb501ffe10b8a8f9f",
+        "target_sha256": "3cf857fecb2a14e43097ddcc49da948a1d5ada2070973eacf880444e7cee3016",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "이후라는 시간 순서를 보존하며 매출 증가의 원인까지 확정하지 않는다.",
+        "findings": []
+      }
+    },
+    {
+      "id": "cause-good-b",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "d9d025f2d19569b09da6a3f66b055d6a2e99bf2325a4fa2b8a68781fcf5fe25b",
+        "target_sha256": "af6a2839b11f2e7b9325838141179a4cd846a98cfa5dc614069b9b750122d5c5",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "원문 because가 이미 인과를 명시한다. 요금이 올라라는 인과 연결은 이 경우에 맞다.",
+        "findings": []
+      }
+    },
+    {
+      "id": "cause-procedure",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "2b91fc5494e88baa7ab7e5bccbb952d4a1a942746602b4ac9fb84910b33c613c",
+        "target_sha256": "aeb44e01145b9a9508bb961755477d3f500e6303072775387c2fcc5faf7262a3",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "서류 확인 다음 제출이라는 절차 순서를 유지했다. 원인에 관한 주장을 추가하지 않았다.",
+        "findings": []
+      }
+    },
+    {
+      "id": "attr-original",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "aa6cbcbd25b74294362f9f50a168b1a88c39d2f3d48e2d75c85dfe3a79f7a0a8",
+        "target_sha256": "eafb9199bbe5503f4fad31bae771de2f3aef013829506a1f30ba1c8ad573a9ef",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "안전하다는 말의 주체가 공급사라는 귀속이 빠져 서술자가 안전성을 확정한 문장으로 바뀌었다.",
+        "findings": [
+          {
+            "dimension": "attribution",
+            "source_quote": "The supplier says the item is safe.",
+            "target_quote": "이 제품은 안전하다.",
+            "reason": "안전하다는 말의 주체가 공급사라는 귀속이 빠져 서술자가 안전성을 확정한 문장으로 바뀌었다."
+          }
+        ]
+      }
+    },
+    {
+      "id": "attr-new",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "f4c5a15045c90ea7a5cd7b9bc37584f39b066d3a0663bdebb50e4b25ed06ac08",
+        "target_sha256": "676fac6e58619b4e1827475df55e7bcffeb679a2419c657e4ce7488532d175ae",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "according to the operator를 빼서 운영사의 진술이라는 출처와 한정이 사라졌다.",
+        "findings": [
+          {
+            "dimension": "attribution",
+            "source_quote": "According to the operator, the network is stable.",
+            "target_quote": "네트워크는 안정적이다.",
+            "reason": "according to the operator를 빼서 운영사의 진술이라는 출처와 한정이 사라졌다."
+          }
+        ]
+      }
+    },
+    {
+      "id": "attr-good-a",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "aa6cbcbd25b74294362f9f50a168b1a88c39d2f3d48e2d75c85dfe3a79f7a0a8",
+        "target_sha256": "68f58ac192e27a055fa1a2ceb45e8c433e4c327f0be35e6b02fcd7e1e985e41c",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "안전성은 공급사의 발언으로 남아 있다. 서술자의 별도 검증 사실로 바꾸지 않았다.",
+        "findings": []
+      }
+    },
+    {
+      "id": "attr-good-b",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "49daa6c5524711f1c3154148af8445707cac0755a051f20c322ad4e15ae02b45",
+        "target_sha256": "69ba8deac4eea5589e0ee895076c7f5ec7cd1020e6361f3e674cc46a63ff062d",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "확인했다는 행위를 운영사에 귀속시켜 원문과 같은 확인 주체를 유지했다.",
+        "findings": []
+      }
+    },
+    {
+      "id": "attr-reorder",
+      "report": {
+        "schema_version": 1,
+        "source_sha256": "48885d5421ca1a4bb0ab8eb35fe524ed8ea6c5f3d2978d7603b02192e6436bee",
+        "target_sha256": "68f58ac192e27a055fa1a2ceb45e8c433e4c327f0be35e6b02fcd7e1e985e41c",
+        "reviewer": {
+          "kind": "model",
+          "name": "ChatGPT — current Codex session",
+          "independent": false
+        },
+        "coverage": "full_pair",
+        "dimensions_reviewed": [
+          "modality",
+          "actor",
+          "quantifier",
+          "negation",
+          "causality",
+          "attribution"
+        ],
+        "summary": "발언 주체를 문장 앞에 놓았지만 공급사의 말이라는 귀속이 보존됐다.",
+        "findings": []
+      }
+    }
+  ]
+}

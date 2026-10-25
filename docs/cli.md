@@ -1,5 +1,15 @@
 # Neo-korean-writing CLI
 
+## 의미 검토 연결 (v10.6)
+
+```bash
+neo-korean-writing translation-audit source.md target.md --semantic-packet packet.json --json
+# 현재 모델/검토자가 packet의 입력을 실제 대조해 review.json을 작성한 뒤:
+neo-korean-writing translation-audit source.md target.md --semantic-review review.json --require-semantic-review --strict --json
+```
+
+CLI는 모델을 호출하지 않습니다. 실제 수행한 검토 보고서를 입력 해시·근거·범위와 연결합니다. 기계 검사와 의미 검토 상태를 구분하며 미검토·부분 검토·오래된 보고서를 검수 완료로 쓰지 않습니다. [상태·보고서 형식](../references/translation-semantic-review.md)을 참고하세요.
+
 ## 번역 작업 이어가기 (스킬 v10.4)
 
 번역 프로필은 이어가기 프롬프트도 제공합니다. 작업 폴더의 Writer–Editor 인계서에 입력과 단계를 기록합니다.

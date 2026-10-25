@@ -63,6 +63,7 @@ def main() -> int:
         (ROOT / "scripts/korean_writing.py", ROOT / "src/neo_korean_writing/engine/korean_writing.py"),
         (ROOT / "scripts/translation_audit.py", ROOT / "src/neo_korean_writing/engine/translation_audit.py"),
         (ROOT / "scripts/translation_formats.py", ROOT / "src/neo_korean_writing/engine/translation_formats.py"),
+        (ROOT / "scripts/translation_semantics.py", ROOT / "src/neo_korean_writing/engine/translation_semantics.py"),
         (ROOT / "scripts/translation_session.py", ROOT / "src/neo_korean_writing/engine/translation_session.py"),
         (ROOT / "scripts/context_audit.py", ROOT / "src/neo_korean_writing/engine/context_audit.py"),
         (ROOT / "scripts/patterns.json", ROOT / "src/neo_korean_writing/engine/patterns.json"),

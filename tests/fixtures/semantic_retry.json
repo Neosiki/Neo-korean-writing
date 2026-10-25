@@ -1,0 +1,248 @@
+{
+  "schema_version": 1,
+  "created_on": "2026-10-25",
+  "baseline_commit": "867448aa3b4ad6faddf8e4831e265abb6e16cbd4",
+  "provenance": "Authored synthetic examples and labels; not independent or blinded evaluation.",
+  "cases": [
+    {
+      "id": "poss-original",
+      "dimension": "modality",
+      "source": "The clinic may reopen.",
+      "target": "병원이 다시 문을 연다.",
+      "expected_issue": true,
+      "origin": "round2"
+    },
+    {
+      "id": "poss-new",
+      "dimension": "modality",
+      "source": "Deliveries might be delayed.",
+      "target": "배송이 지연된다.",
+      "expected_issue": true,
+      "origin": "new"
+    },
+    {
+      "id": "poss-good-a",
+      "dimension": "modality",
+      "source": "The clinic may reopen.",
+      "target": "병원이 다시 문을 열 가능성이 있다.",
+      "expected_issue": false,
+      "origin": "new"
+    },
+    {
+      "id": "poss-good-b",
+      "dimension": "modality",
+      "source": "Deliveries might be delayed.",
+      "target": "배송이 늦어질 수도 있다.",
+      "expected_issue": false,
+      "origin": "new"
+    },
+    {
+      "id": "poss-permission",
+      "dimension": "modality",
+      "source": "May I open the window?",
+      "target": "창문을 열어도 될까요?",
+      "expected_issue": false,
+      "origin": "new"
+    },
+    {
+      "id": "actor-original",
+      "dimension": "actor",
+      "source": "Mina questioned Joon.",
+      "target": "준이 미나에게 질문했다.",
+      "expected_issue": true,
+      "origin": "round2"
+    },
+    {
+      "id": "actor-new",
+      "dimension": "actor",
+      "source": "Sara thanked David.",
+      "target": "데이비드가 사라에게 감사했다.",
+      "expected_issue": true,
+      "origin": "new"
+    },
+    {
+      "id": "actor-good-a",
+      "dimension": "actor",
+      "source": "Mina questioned Joon.",
+      "target": "미나가 준에게 질문했다.",
+      "expected_issue": false,
+      "origin": "new"
+    },
+    {
+      "id": "actor-passive",
+      "dimension": "actor",
+      "source": "David was thanked by Sara.",
+      "target": "사라가 데이비드에게 감사했다.",
+      "expected_issue": false,
+      "origin": "new"
+    },
+    {
+      "id": "actor-ellipsis",
+      "dimension": "actor",
+      "source": "Mina arrived and called Joon.",
+      "target": "미나가 도착해 준에게 전화했다.",
+      "expected_issue": false,
+      "origin": "new"
+    },
+    {
+      "id": "quant-original",
+      "dimension": "quantifier",
+      "source": "Some shops close early.",
+      "target": "모든 가게가 일찍 닫는다.",
+      "expected_issue": true,
+      "origin": "round2"
+    },
+    {
+      "id": "quant-new",
+      "dimension": "quantifier",
+      "source": "Most tickets are refundable.",
+      "target": "모든 티켓을 환불할 수 있다.",
+      "expected_issue": true,
+      "origin": "new"
+    },
+    {
+      "id": "quant-good-a",
+      "dimension": "quantifier",
+      "source": "Some shops close early.",
+      "target": "일부 가게는 일찍 문을 닫는다.",
+      "expected_issue": false,
+      "origin": "new"
+    },
+    {
+      "id": "quant-good-b",
+      "dimension": "quantifier",
+      "source": "Most tickets are refundable.",
+      "target": "대부분의 티켓은 환불할 수 있다.",
+      "expected_issue": false,
+      "origin": "new"
+    },
+    {
+      "id": "quant-not-all",
+      "dimension": "quantifier",
+      "source": "Not all seats are reserved.",
+      "target": "모든 좌석이 예약된 것은 아니다.",
+      "expected_issue": false,
+      "origin": "new"
+    },
+    {
+      "id": "neg-original",
+      "dimension": "negation",
+      "source": "The plan is not approved.",
+      "target": "계획이 승인되었다.",
+      "expected_issue": true,
+      "origin": "round2"
+    },
+    {
+      "id": "neg-new",
+      "dimension": "negation",
+      "source": "The gate does not open automatically.",
+      "target": "문이 자동으로 열린다.",
+      "expected_issue": true,
+      "origin": "new"
+    },
+    {
+      "id": "neg-good-a",
+      "dimension": "negation",
+      "source": "The plan is not approved.",
+      "target": "계획은 승인되지 않았다.",
+      "expected_issue": false,
+      "origin": "new"
+    },
+    {
+      "id": "neg-good-b",
+      "dimension": "negation",
+      "source": "The gate does not open automatically.",
+      "target": "문은 자동으로 열리지 않는다.",
+      "expected_issue": false,
+      "origin": "new"
+    },
+    {
+      "id": "neg-not-only",
+      "dimension": "negation",
+      "source": "Not only the manager but also the team agreed.",
+      "target": "관리자뿐 아니라 팀도 동의했다.",
+      "expected_issue": false,
+      "origin": "new"
+    },
+    {
+      "id": "cause-original",
+      "dimension": "causality",
+      "source": "Sales rose after the campaign.",
+      "target": "캠페인 때문에 매출이 올랐다.",
+      "expected_issue": true,
+      "origin": "round2"
+    },
+    {
+      "id": "cause-new",
+      "dimension": "causality",
+      "source": "Visits fell while the fee increased.",
+      "target": "요금이 올라 방문이 줄었다.",
+      "expected_issue": true,
+      "origin": "new"
+    },
+    {
+      "id": "cause-good-a",
+      "dimension": "causality",
+      "source": "Sales rose after the campaign.",
+      "target": "캠페인 이후 매출이 올랐다.",
+      "expected_issue": false,
+      "origin": "new"
+    },
+    {
+      "id": "cause-good-b",
+      "dimension": "causality",
+      "source": "Visits fell because the fee increased.",
+      "target": "요금이 올라 방문이 줄었다.",
+      "expected_issue": false,
+      "origin": "new"
+    },
+    {
+      "id": "cause-procedure",
+      "dimension": "causality",
+      "source": "After checking the form, submit it.",
+      "target": "서류를 확인한 뒤 제출하세요.",
+      "expected_issue": false,
+      "origin": "new"
+    },
+    {
+      "id": "attr-original",
+      "dimension": "attribution",
+      "source": "The supplier says the item is safe.",
+      "target": "이 제품은 안전하다.",
+      "expected_issue": true,
+      "origin": "round2"
+    },
+    {
+      "id": "attr-new",
+      "dimension": "attribution",
+      "source": "According to the operator, the network is stable.",
+      "target": "네트워크는 안정적이다.",
+      "expected_issue": true,
+      "origin": "new"
+    },
+    {
+      "id": "attr-good-a",
+      "dimension": "attribution",
+      "source": "The supplier says the item is safe.",
+      "target": "공급사는 이 제품이 안전하다고 말한다.",
+      "expected_issue": false,
+      "origin": "new"
+    },
+    {
+      "id": "attr-good-b",
+      "dimension": "attribution",
+      "source": "The operator confirmed that the network is stable.",
+      "target": "운영사는 네트워크가 안정적이라고 확인했다.",
+      "expected_issue": false,
+      "origin": "new"
+    },
+    {
+      "id": "attr-reorder",
+      "dimension": "attribution",
+      "source": "The item is safe, the supplier says.",
+      "target": "공급사는 이 제품이 안전하다고 말한다.",
+      "expected_issue": false,
+      "origin": "new"
+    }
+  ]
+}

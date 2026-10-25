@@ -12,6 +12,7 @@
 | 보도자료·공식 안내문 | [`press-release-editing.md`](press-release-editing.md) | 격식 유지 윤문본, 확인 필요 항목 |
 | 긴 보고서·칼럼·강의 원고 | [`longform-editing.md`](longform-editing.md) | 섹션별 윤문 계획, 일관성 점검표 |
 | 번역문 후편집 | [`translation-postediting.md`](translation-postediting.md) | 수정본, 의미 보존 위험, 원문 대조 기록 |
+| 원문·번역문 의미 대조 | [`translation-semantic-review.md`](translation-semantic-review.md) | 현재 모델의 실제 대조, 근거·범위·주체가 있는 별도 보고서 |
 | 번역·감수·윤문 이어가기 | [`translation-continuation.md`](translation-continuation.md) | 유효한 단계와 표현 선택 인계, 변경 입력 재검토 |
 | 원문부터 번역(초안→비평→수정) | [`translation-draft-critique-edit.md`](translation-draft-critique-edit.md) | 최종 번역문, 범주·심각도별 비평 표 |
 | 진단만 | [`detect-only.md`](detect-only.md) | 위치·이유·유지 조건, 명백/문맥 판단 분리 |
