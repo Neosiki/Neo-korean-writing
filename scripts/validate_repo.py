@@ -60,6 +60,7 @@ def main() -> int:
                 fail(f"broken reference: {skill.relative_to(ROOT)} -> {target}", errors)
 
     mirrors = [
+        (ROOT / "scripts/editing_audit.py", ROOT / "src/neo_korean_writing/engine/editing_audit.py"),
         (ROOT / "scripts/korean_writing.py", ROOT / "src/neo_korean_writing/engine/korean_writing.py"),
         (ROOT / "scripts/translation_audit.py", ROOT / "src/neo_korean_writing/engine/translation_audit.py"),
         (ROOT / "scripts/translation_formats.py", ROOT / "src/neo_korean_writing/engine/translation_formats.py"),

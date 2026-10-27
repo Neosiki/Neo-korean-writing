@@ -1,5 +1,16 @@
 # Neo-korean-writing CLI
 
+## 윤문 최종본 감사 (v10.8)
+
+```bash
+neo-korean-writing editing-audit original.md final.md --json
+neo-korean-writing editing-audit original.md final.md --delivery-template delivery.json
+# 실제 diff의 reason을 채운 뒤:
+neo-korean-writing editing-audit original.md final.md --delivery delivery.json --json
+```
+
+보존·말투·명시한 수치 귀속 후보와 최종 수정 내역을 확인합니다. 종료 코드는 0 이상 후보 없음, 1 검토 필요, 2 자동 채택 보류, 3 입력 오류입니다. 기계 통과는 의미 정확성 인증이 아닙니다. `--semantic-review`·`--require-semantic-review`로 실제 의미 검토를, `--solar-record`로 응답에서 확인한 호출·토큰을 연결할 수 있습니다. 로컬 CLI는 Solar를 호출하지 않습니다. [입력 형식과 한계](../references/solar-editing-review.md)를 참고하세요.
+
 ## 의미 검토 연결 (v10.6)
 
 ```bash

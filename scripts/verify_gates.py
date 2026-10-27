@@ -8,7 +8,7 @@ ending_comma -86%, C-8 대구 -75%가 숨어 있었다. 이 스크립트는 문�
 문자율의 사각지대를 보완한다. 기존 verify_change_rate.py는 그대로 두고
 (하위 호환), 신규 게이트는 이 파일이 담당한다.
 
-4축 + 리포트:
+4축 + 보존 통합 + 리포트:
     P0 문자율   — change_rate() vs WARN 30% / ABORT 50% (기존과 동일 판정)
     P1 목표달성 — before z > +2.0인 어휘 S1 지표가 after에서 z <= +1.0으로
                   내려왔는가. 미달(> +2.0)·과교정(< -1.5)은 WARN.
@@ -22,7 +22,7 @@ ending_comma -86%, C-8 대구 -75%가 숨어 있었다. 이 스크립트는 문�
 Exit code (verify_change_rate.py와 의미 동일):
     0 — 수렴 (전 축 통과)
     1 — 경고 (문자율 30~50% / 목표 미달·과교정 / 전멸 / golden FAIL)
-    2 — 중단 (문자율 >= 50%). 윤문본 채택 금지 — 최우선.
+    2 — 중단 (문자율 >= 50% 또는 보존 손상·문체 전환 후보). 자동 채택 보류.
     3 — 실행 오류 (입력 파일 없음 등). 게이트 판정 불가.
 
 CLI:
@@ -51,6 +51,7 @@ for _p in (_REFS, _GOLDEN):
 
 import checks as _checks  # noqa: E402  (sys.path mutation is intentional)
 import metrics_v2 as _m  # noqa: E402
+import korean_writing as _writing  # noqa: E402
 
 # final.md 본문 끝의 메타데이터 주석 블록. 여는 마커부터 파일 끝까지.
 _SUMMARY_BLOCK_RE = re.compile(r"<!--\s*KOREAN-WRITING-SUMMARY\b.*", re.DOTALL)
@@ -264,9 +265,22 @@ def main(argv: list[str] | None = None) -> int:
                             "verdict": size_verdict}
     print(f"[P5 분량] {delta * 100:+.1f}% (공백 제외 {b_len}→{a_len}자, 문장 {len(b_sents)}→{len(a_sents)}) — {size_verdict}")
 
+    # P6 unifies the separate preserve contract. A golden PASS alone is insufficient.
+    preservation = _writing.preserve_data(before, after)
+    findings = preservation["editing_review"]["findings"]
+    preserve_hold = (not preservation["surface_pass"] or not preservation["protected_pass"]
+                     or bool(preservation["residual_growth"])
+                     or any(f["action"] == "hold_for_review" for f in findings))
+    preserve_review = bool(preservation["meaning_warnings"] or findings)
+    abort = abort or preserve_hold
+    warn = warn or preserve_review
+    report["preservation"] = preservation
+    verdict_p6 = "HOLD" if preserve_hold else "REVIEW" if preserve_review else "PASS"
+    print(f"[P6 보존 통합] {verdict_p6} — 기계 검사 통과는 의미 정확성 인증이 아닙니다")
+
     # --- 통합 판정 --------------------------------------------------------
     if abort:
-        verdict, code = "ABORT — 강제 중단. 윤문본 채택 금지", 2
+        verdict, code = "ABORT — 변경률 또는 보존 계약 보류. 자동 채택 금지", 2
     elif warn:
         verdict, code = "WARN — 경고. 사용자 고지 + finalize 승급", 1
     else:

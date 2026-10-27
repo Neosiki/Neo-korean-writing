@@ -208,6 +208,18 @@ def cmd_context_audit(args: argparse.Namespace) -> int:
     return _engine_call("context-audit", arguments)
 
 
+def cmd_editing_audit(args: argparse.Namespace) -> int:
+    arguments = [args.original, args.final]
+    for key in ("delivery", "delivery_template", "semantic_review", "solar_record"):
+        if getattr(args, key):
+            arguments.extend(["--" + key.replace("_", "-"), getattr(args, key)])
+    if args.require_semantic_review:
+        arguments.append("--require-semantic-review")
+    if args.json:
+        arguments.append("--json")
+    return _engine_call("editing-audit", arguments)
+
+
 def cmd_structure(args: argparse.Namespace) -> int:
     arguments = [args.file]
     if args.json:
@@ -261,6 +273,17 @@ def build_parser() -> argparse.ArgumentParser:
     verify.add_argument("--strict", action="store_true")
     verify.add_argument("--json", action="store_true")
     verify.set_defaults(handler=cmd_verify)
+
+    editing = subparsers.add_parser("editing-audit", help="윤문 보존·말투·내용 후보·최종 전달 기록 검사")
+    editing.add_argument("original")
+    editing.add_argument("final")
+    editing.add_argument("--json", action="store_true")
+    editing.add_argument("--delivery")
+    editing.add_argument("--delivery-template")
+    editing.add_argument("--semantic-review")
+    editing.add_argument("--solar-record")
+    editing.add_argument("--require-semantic-review", action="store_true")
+    editing.set_defaults(handler=cmd_editing_audit)
 
     audit = subparsers.add_parser("translation-audit", help="원문·번역문 충실성 및 위험 감사")
     audit.add_argument("source")

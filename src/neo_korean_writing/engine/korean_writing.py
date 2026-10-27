@@ -602,9 +602,14 @@ def preserve_data(a, b):
             warns.append({"type": k, "before": sa[k], "after": sb[k], "note": "구조 요소 개수 변화"})
     protected = _compare_protected(a, b)
     residual = _residual_growth(a, b)
+    try:
+        from .editing_audit import review_signals
+    except ImportError:
+        from editing_audit import review_signals
+    editing_review = review_signals(a, b)
     return {"surface_pass": not miss, "missing": miss, "meaning_warnings": warns,
             "protected_pass": protected["pass"], "protected_changes": protected["changes"],
-            "residual_growth": residual}
+            "residual_growth": residual, "editing_review": editing_review}
 
 def cmd_preserve(args):
     a, b = read(args, 2)
@@ -632,7 +637,13 @@ def cmd_preserve(args):
             print(f"  경고 [{w['type']}] {w['before']} → {w['after']}: {w['note']}")
         if not d["meaning_warnings"] and not d["missing"]:
             print("의미 동등성 휴리스틱 경고 없음. 인과·주체·비교 조건은 육안 검토를 병행할 것.")
-    if d["missing"] or not d["protected_pass"] or d["residual_growth"] or (strict and d["meaning_warnings"]):
+    findings = d["editing_review"]["findings"]
+    if not opt(args, "--json"):
+        for finding in findings:
+            print(f"  검토 [{finding['code']}] {finding['message']}")
+    if (d["missing"] or not d["protected_pass"] or d["residual_growth"]
+            or any(f["action"] == "hold_for_review" for f in findings)
+            or (strict and (d["meaning_warnings"] or findings))):
         sys.exit(1)
 
 # ---------------- diffrate ----------------
@@ -734,6 +745,14 @@ def cmd_context_audit(args):
     from .context_audit import main
     sys.exit(main(args))
 
+
+def cmd_editing_audit(args):
+    try:
+        from .editing_audit import main
+    except ImportError:
+        from editing_audit import main
+    sys.exit(main(args))
+
 CMDS = {"diagnose": cmd_diagnose, "sunny": cmd_sunny, "connectives": cmd_connectives, "preserve": cmd_preserve,
         "diffrate": cmd_diffrate, "consistency": cmd_consistency, "format": cmd_format,
         "structure": cmd_structure, "morphology": cmd_morphology,
@@ -742,7 +761,7 @@ CMDS = {"diagnose": cmd_diagnose, "sunny": cmd_sunny, "connectives": cmd_connect
         "translation-session": cmd_translation_session,
         "translation-impact": cmd_translation_impact,
         "translation-reader": cmd_translation_reader,
-        "context-audit": cmd_context_audit}
+        "context-audit": cmd_context_audit, "editing-audit": cmd_editing_audit}
 
 if __name__ == "__main__":
     if len(sys.argv) < 2 or sys.argv[1] not in CMDS:
