@@ -68,6 +68,7 @@ python3 -m pip install -e .
 | `neo-korean-writing structure 원문.md --json` | 고정 슬롯 누출·과도한 헤딩·공식적 도입과 결론을 진단합니다. |
 | `neo-korean-writing handoff-validate 인계.json --json` | 작성 의도·출처·LOCK·변경 예산 인계 계약을 검사합니다. |
 | `neo-korean-writing channel-check 최종본.txt --channel threads --json` | 발행 채널 형식을 검사합니다. 플랫폼 한도와 평문 채널의 Markdown 잔존은 `hold`, 가정값은 `warn`입니다. `--title`, `--keyword`, `--meta`, `--tags`, `--strict`를 지원합니다. 채널은 `facebook`, `naver-blog`, `blog`, `threads`, `instagram`, `brunch`, `newsletter`입니다. |
+| `neo-korean-writing bizplan-check 사업계획서.md --outline 양식목차.json --json` | 사업계획서의 자리표시자 잔존, 양식 항목 누락, 표 합계, 시장 규모 순서를 점검합니다. 형식·산술만 보며 사업성은 판정하지 않습니다. |
 | `neo-korean-writing voice-profile 표본1.md 표본2.md --compare 초안.md --json` | 문체 표본의 종결·길이·장치 통계와 초안의 차이를 편집 후보로 냅니다. |
 | `neo-korean-writing morphology 원문.md --json` | `kiwipiepy` 설치 시 형태소·종결·조사 분포를 보조 진단합니다. |
 | `neo-korean-writing translation-audit 원문.md 번역문.md --direction en-to-ko --literary --json` | 번역문 충실성·문학적 위험을 확인합니다. |

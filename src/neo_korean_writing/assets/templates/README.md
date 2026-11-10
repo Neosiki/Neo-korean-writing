@@ -9,6 +9,8 @@
 | 번역 용어집 | [`translation-glossary.tsv`](translation-glossary.tsv) | 번역 감사의 `--glossary`에 넣는 원어·역어·금지 역어 목록입니다. |
 | 분야별 용어집 | [`translation-glossary-scoped.json`](translation-glossary-scoped.json) | 같은 원어의 뜻을 domains·segments로 나눠 선택하는 예시입니다. |
 | 문체 표본 정리 | [`voice-profile.md`](voice-profile.md) | 표본 통계·핵심 규칙·이탈 징후를 적어 `custom` voice의 근거로 씁니다. |
+| 사업계획서 근거 | [`bizplan-evidence-cards.md`](bizplan-evidence-cards.md) | 시장·문제, 유사 사례, 자금·지원, 경쟁, 신청자 정보 카드와 맞물림 점검표입니다. |
+| 사업계획서 양식 목차 | [`bizplan-outline.json`](bizplan-outline.json) | 공고 양식의 항목·분량을 옮겨 적어 `bizplan-check --outline`에 넘깁니다. |
 | 발행 준비 | [`publish-package.md`](publish-package.md) | 제목 후보, 채널별 항목(메타 설명·태그·사진 자리), 검사 결과, 발행 전 확인 사항을 한 장에 모읍니다. |
 | 발행 뒤 기록 | [`performance-log.md`](performance-log.md) | 채널별 반응을 직접 확인해 적고 가정값 조정 근거로 씁니다. |
 | 결과 검토 | [`editing-delivery.md`](editing-delivery.md) | 윤문본, 변경 근거, 보존 확인, 미확정 항목과 승인 상태를 함께 전달합니다. |

@@ -1,9 +1,9 @@
 ---
 name: korean-writing
-description: 주제·메모·자료를 목적과 독자에 맞는 한국어 초안으로 발전시키고, 작성 의도·출처·LOCK을 윤문 단계에 인계하는 neo-korean-writing v10 작성 경로다. 칼럼, 기사, 보고서, 보도자료, 에세이, SNS, 강의 원고와 장문을 처리한다. 페이스북·블로그(네이버·자체)·브런치는 전용 절차로 주제에서 발행 패키지까지 만들고, 스레드·인스타그램·뉴스레터를 포함해 발행 형식을 검사한다. 기존 원고가 있으면 사실·인용·수치·문체를 보존하며 원문에 없는 경험·감정·근거를 만들지 않는다.
+description: 주제·메모·자료를 목적과 독자에 맞는 한국어 초안으로 발전시키고, 작성 의도·출처·LOCK을 윤문 단계에 인계하는 neo-korean-writing v10 작성 경로다. 칼럼, 기사, 보고서, 보도자료, 에세이, SNS, 강의 원고와 장문을 처리한다. 페이스북·블로그(네이버·자체)·브런치는 전용 절차로 주제에서 발행 패키지까지 만들고, 스레드·인스타그램·뉴스레터를 포함해 발행 형식을 검사한다. 사업계획서(PSST)는 근거 카드, 본문, 발표 원고를 전용 절차로 만들고 기계 점검한다. 기존 원고가 있으면 사실·인용·수치·문체를 보존하며 원문에 없는 경험·감정·근거를 만들지 않는다.
 ---
 
-# 한글 글쓰기 워크플로우 v10.10
+# 한글 글쓰기 워크플로우 v10.11
 
 주제나 메모를 목적 정의 → 구조 선택 → 초안 → 편집자 인계·리라이팅 → 최종 출력으로 발전시킨다. 글쓰기와 번역 후편집을 한 생성 지시에 섞지 않는다.
 
@@ -33,6 +33,9 @@ description: 주제·메모·자료를 목적과 독자에 맞는 한국어 초�
 | 내 문체로·문체 표본 제공 | [`references/voice-profile.md`](references/voice-profile.md) |
 | 윤기자 voice 요청 | [`references/yoon-reporter-style.md`](references/yoon-reporter-style.md) |
 | 에세이 | [`references/essay-gaze.md`](references/essay-gaze.md) |
+| 사업계획서·PSST·예비창업패키지·초기창업패키지 | [`references/bizplan-workflow.md`](references/bizplan-workflow.md) |
+| 사업계획서 시장 조사·경쟁 조사·근거 정리 | [`references/bizplan-evidence.md`](references/bizplan-evidence.md) |
+| 사업계획서 발표·피치덱·IR 원고 | [`references/bizplan-pitch.md`](references/bizplan-pitch.md) |
 | 다른 채널용으로 변환 | [`references/repurposing.md`](references/repurposing.md) |
 | 발행 뒤 반응 기록 | [`references/performance-log.md`](references/performance-log.md) |
 | 채널 포맷 결정 | [`references/publish-format.md`](references/publish-format.md) |
@@ -53,6 +56,7 @@ description: 주제·메모·자료를 목적과 독자에 맞는 한국어 초�
 - 초안이 있으면 루트 윤문 경로 또는 Step 4로 간다.
 - 원문과 번역문이 함께 있으면 번역 후편집 레인으로 분리한다.
 - 페이스북·블로그·브런치 글 요청이면 해당 채널 전용 절차를 읽고 그 Step을 따른다. 아래 Step 1~5의 계약(LOCK, provenance, 인계, 검증)은 그대로 적용한다.
+- 사업계획서 요청이면 [`references/bizplan-workflow.md`](references/bizplan-workflow.md)의 순서를 따른다. 공고 양식이 항목과 분량을 정한다. 신청자의 실적·경력·수치는 만들지 않는다.
 - 완성된 글을 다른 채널용으로 바꾸는 요청이면 [`references/repurposing.md`](references/repurposing.md)의 변환 절차로 간다.
 - 8,000자 이상이면 장문 가이드를 읽는다. 실제 청킹은 15,000자 초과 또는 사용자 요청일 때만 한다.
 
@@ -152,7 +156,13 @@ python ../scripts/korean_writing.py voice-profile 표본1.md 표본2.md --compar
 
 블로그는 `--meta`로 메타 설명, `--tags`로 태그 수를 함께 검사한다. 페이스북·블로그·브런치 글은 [`../templates/publish-package.md`](../templates/publish-package.md)에 제목 후보·채널별 항목·검사 결과·`[확인 필요]`를 모아 본문과 함께 낸다. 사용자가 본문만 원하면 본문만 낸다.
 
-스레드 초안은 `---` 한 줄로 포스트를 나눈다. 기본 구성은 3포스트다. `voice-profile` 대조는 표본이 20문장 이상일 때만 판정하며, 차이는 편집 후보다.
+사업계획서는 `bizplan-check`로 점검한다. 자리표시자 잔존, 양식 항목 누락, 표 합계 불일치, 시장 규모 순서 위반은 `hold`다. 이 점검은 형식·산술·표기만 보며 사업성이나 선정 가능성을 판정하지 않는다.
+
+```text
+python ../scripts/korean_writing.py bizplan-check 사업계획서.md --outline 양식목차.json --json
+```
+
+스레드 초안은 `---` 한 줄로 포스트를 나눈다. 기본 구성은 3포스트다. `voice-profile` 대조는 표본이 20문장 이상일 때만 판정한다. 차이는 편집 후보다.
 
 ## 번역 후편집
 
@@ -191,4 +201,5 @@ python ../scripts/korean_writing.py morphology draft.md --json
 - [ ] 수정 후 새 P0/P1 패턴이 증가하지 않았는가
 - [ ] 발행 채널이 있으면 `channel-check`의 `hold`를 해소하고 유지한 `warn`을 알렸는가
 - [ ] 채널 변환이면 빠진 조건 때문에 단정이 세지지 않았는가
+- [ ] 사업계획서면 타사 사례를 신청자의 실적·계획으로 옮기지 않았고 `bizplan-check`의 `hold`를 해소했는가
 - [ ] 기준 미달 결과를 통과로 포장하지 않았는가

@@ -15,6 +15,8 @@
   python3 korean_writing.py channel-check 최종본.txt --channel threads|facebook|naver-blog|blog|instagram|brunch|newsletter
                                            [--title 제목] [--keyword 핵심어] [--meta 메타설명] [--tags 태그1,태그2] [--strict] [--json]
                                                       # v10.9 채널 형식 검사 (플랫폼 한도=hold, 가정값=warn)
+  python3 korean_writing.py bizplan-check 사업계획서.md [--outline 양식목차.json] [--strict] [--json]
+                                                      # v10.11 사업계획서 기계 점검 (자리표시자·표 합계·시장 규모 순서=hold)
   python3 korean_writing.py voice-profile 표본1.md [표본2.md ...] [--compare 초안.md] [--json]
                                                       # v10.9 문체 표본 통계와 초안 이탈 후보
   python3 korean_writing.py taxonomy [--check]                   # patterns.json → 마크다운 표 / 무결성 검사
@@ -85,7 +87,7 @@ def load_patterns():
 
 def read(args, n=1):
     files, skip_next = [], False
-    value_options = {"--profile", "--voice", "--direction", "--channel", "--title", "--keyword", "--compare", "--meta", "--tags"}
+    value_options = {"--profile", "--voice", "--direction", "--channel", "--title", "--keyword", "--compare", "--meta", "--tags", "--outline"}
     for a in args:
         if skip_next:
             skip_next = False
@@ -948,6 +950,208 @@ def cmd_channel_check(args):
         sys.exit(1)
 
 
+# ---------------- bizplan-check (v10.11) ----------------
+KRW_UNITS = {"조": 10 ** 12, "억": 10 ** 8, "천만": 10 ** 7, "백만": 10 ** 6, "만": 10 ** 4, "천": 10 ** 3}
+KRW_PIECE = r"(\d[\d,]*(?:\.\d+)?)\s*(조|억|천만|백만|만|천)"
+KRW_RE = re.compile(r"(?:" + KRW_PIECE + r"\s*)+원?|\d[\d,]*(?:\.\d+)?\s*원")
+BIZPLAN_PLACEHOLDER_RE = re.compile(
+    r"\[\s*(?:확인 필요|입력 필요|의미 확인|추가 리서치 필요|사용자 입력 필요|링크:|TODO|⚠)[^\]\n]*\]"
+    r"|\{[^{}\n|]{1,30}\}|TODO|(?<![가-힣A-Za-z])(?:○○+|OOO+|XX+)(?=[가-힣\s,.)]|$)")
+BIZPLAN_SECTIONS = (("문제인식", r"문제\s*인식"), ("실현가능성", r"실현\s*가능성"),
+                    ("성장전략", r"성장\s*전략"), ("팀 구성", r"팀\s*구성|팀\s*\(Team\)|\bTeam\b"))
+BIZPLAN_STAT_WORDS = re.compile(r"시장\s*규모|성장률|점유율|통계|인구|가구\s*수|사업체\s*수|이용자\s*수|이용률|비중|TAM|SAM|SOM")
+BIZPLAN_FIGURE_RE = re.compile(r"\d[\d,]*(?:\.\d+)?\s*(?:조|억|만)?\s*(?:원|명|%|개사|곳|건|가구)")
+BIZPLAN_SOURCE_RE = re.compile(r"출처|자료\s*[:：]|자체\s*(?:조사|집계|추정|산정)|\[확인 필요")
+TOTAL_LABEL_RE = re.compile(r"^(?:합\s*계|총\s*계|총\s*액|계)$")
+SUBTOTAL_LABEL_RE = re.compile(r"^소\s*계")
+
+
+def parse_krw(text):
+    """Return the first Korean won amount in text as an integer number of won, or None."""
+    m = KRW_RE.search(text)
+    if not m:
+        return None
+    chunk = m.group(0)
+    total, found = 0.0, False
+    for number, unit in re.findall(KRW_PIECE, chunk):
+        total += float(number.replace(",", "")) * KRW_UNITS[unit]
+        found = True
+    if not found:
+        plain = re.match(r"\d[\d,]*(?:\.\d+)?", chunk)
+        total = float(plain.group(0).replace(",", ""))
+    return int(round(total))
+
+
+def _cell_number(cell):
+    text = re.sub(r"[*_`]", "", cell).strip()
+    if not text or text in {"-", "–", "—"}:
+        return None
+    if re.search(r"\d\s*(?:조|억|천만|백만|만|천)", text):
+        return float(parse_krw(text))
+    m = re.fullmatch(r"(-?\d[\d,]*(?:\.\d+)?)\s*(?:원|천원|만원|백만원|억원|%|명|개|건|개월|M/M)?", text)
+    return float(m.group(1).replace(",", "")) if m else None
+
+
+def _markdown_tables(t):
+    tables, current, start = [], [], 0
+    for number, line in enumerate(t.splitlines(), 1):
+        if re.match(r"^\s*\|.*\|\s*$", line):
+            if not current:
+                start = number
+            if not re.match(r"^\s*\|[\s:|-]+\|\s*$", line):
+                current.append([c.strip() for c in line.strip().strip("|").split("|")])
+        elif current:
+            tables.append({"line": start, "rows": current}); current = []
+    if current:
+        tables.append({"line": start, "rows": current})
+    return tables
+
+
+def bizplan_data(t, outline=None):
+    findings = []
+
+    def add(fid, severity, basis, message, **extra):
+        findings.append({"id": fid, "severity": severity, "basis": basis, "message": message, **extra})
+
+    lines = t.splitlines()
+    body = mask_protected(t) if "```" in t else t
+
+    # BP-1 자리표시자
+    holders = []
+    for number, line in enumerate(lines, 1):
+        for m in BIZPLAN_PLACEHOLDER_RE.finditer(line):
+            holders.append({"line": number, "span": m.group(0)})
+    if holders:
+        add("BP-1", "hold", "mechanical", f"채우지 않은 자리표시자 {len(holders)}건", items=holders[:20])
+
+    # BP-2 양식 항목, BP-6 항목별 분량
+    sections = []
+    if outline:
+        positions = []
+        flat = [re.sub(r"\s+", "", line) for line in lines]
+        for item in outline.get("sections", []):
+            title = str(item.get("title", "")).strip()
+            key = re.sub(r"\s+", "", title)
+            index = next((i for i, line in enumerate(flat) if key and key in line), None)
+            if index is None:
+                if item.get("required", True):
+                    add("BP-2", "hold", "form", f"양식 항목이 원고에 없음: {title}")
+            else:
+                positions.append((index, item))
+        positions.sort(key=lambda pair: pair[0])
+        for order, (index, item) in enumerate(positions):
+            end = positions[order + 1][0] if order + 1 < len(positions) else len(lines)
+            chars = len(re.sub(r"\s", "", "\n".join(lines[index + 1:end])))
+            sections.append({"title": item["title"], "chars": chars})
+            limit = item.get("max_chars")
+            if isinstance(limit, (int, float)) and chars > limit:
+                add("BP-6", "warn", "form", f"'{item['title']}' 분량 {chars}자 — 기준 {int(limit)}자", value=chars, limit=int(limit))
+            if chars == 0:
+                add("BP-2", "hold", "form", f"양식 항목의 본문이 비어 있음: {item['title']}")
+    else:
+        missing = [name for name, pattern in BIZPLAN_SECTIONS if not re.search(pattern, t)]
+        if missing:
+            add("BP-2", "warn", "heuristic", "PSST 기본 영역이 보이지 않음: " + ", ".join(missing),
+                keep="공고 양식의 항목 이름이 다르면 --outline으로 양식 목차를 넘긴다")
+
+    # BP-4 표 합계
+    tables = _markdown_tables(t)
+    for table in tables:
+        rows = table["rows"]
+        if len(rows) < 3:
+            continue
+        header, data = rows[0], rows[1:]
+        label = lambda row: re.sub(r"[*_`\s]", "", row[0]) if row else ""
+        total_rows = [row for row in data if TOTAL_LABEL_RE.match(label(row))]
+        if len(total_rows) != 1:
+            continue
+        if any(SUBTOTAL_LABEL_RE.match(label(row)) for row in data):
+            add("BP-4", "warn", "heuristic", f"{table['line']}행 표에 소계가 있어 합계를 자동 대조하지 않음 — 사람이 확인")
+            continue
+        total = total_rows[0]
+        items = [row for row in data if row is not total]
+        for col in range(1, min(len(header), len(total))):
+            expected = _cell_number(total[col])
+            values = [_cell_number(row[col]) for row in items if col < len(row)]
+            numbers = [v for v in values if v is not None]
+            if expected is None or len(numbers) < 2 or len(numbers) != len(values):
+                continue  # 숫자가 아닌 칸이 섞인 열은 대조하지 않는다
+            actual = sum(numbers)
+            if round(actual, 2) != round(expected, 2):
+                add("BP-4", "hold", "mechanical",
+                    f"{table['line']}행 표 '{header[col]}' 열: 항목 합 {actual:g} ≠ 합계 {expected:g}",
+                    line=table["line"], column=header[col], sum=actual, total=expected)
+
+    # BP-9 시장 규모 순서
+    market = {}
+    for number, line in enumerate(lines, 1):
+        for name in ("TAM", "SAM", "SOM"):
+            if name in line and name not in market:
+                rest = line.split(name, 1)[1]
+                cut = min([rest.find(other) for other in ("TAM", "SAM", "SOM") if other in rest] or [len(rest)])
+                amount = parse_krw(rest[:cut])
+                if amount:
+                    market[name] = {"line": number, "won": amount}
+    order = [market[name]["won"] for name in ("TAM", "SAM", "SOM") if name in market]
+    if len(order) >= 2 and any(a < b for a, b in zip(order, order[1:])):
+        add("BP-9", "hold", "mechanical", "시장 규모가 TAM ≥ SAM ≥ SOM 순서가 아님", market=market)
+
+    # BP-3 출처 없는 통계 수치 후보
+    blocks, start, buffer = [], 1, []
+    for number, line in enumerate(lines + [""], 1):
+        if line.strip():
+            if not buffer:
+                start = number
+            buffer.append(line)
+        elif buffer:
+            blocks.append((start, "\n".join(buffer))); buffer = []
+    unsourced = []
+    for index, (start, block) in enumerate(blocks):
+        if not (BIZPLAN_STAT_WORDS.search(block) and BIZPLAN_FIGURE_RE.search(block)):
+            continue
+        following = blocks[index + 1][1] if index + 1 < len(blocks) else ""
+        near = block + "\n" + (following if len(following) < 200 else "")
+        if not BIZPLAN_SOURCE_RE.search(near):
+            unsourced.append({"line": start, "excerpt": re.sub(r"\s+", " ", block)[:60]})
+    if unsourced:
+        add("BP-3", "warn", "heuristic", f"출처 표기가 없는 시장·통계 수치 문단 {len(unsourced)}곳", items=unsourced[:20],
+            keep="신청자가 직접 조사·산정한 값이면 '자체 조사'와 산정 방식을 적는다")
+
+    # BP-5 서술체 혼용
+    prose = [line.strip() for line in lines if line.strip() and not line.lstrip().startswith(("|", "#", ">", "```"))]
+    nominal = sum(bool(re.search(r"[가-힣](?:함|임|음|됨)[.)]?$", line)) for line in prose)
+    formal = sum(bool(re.search(r"(?:니다|니까)[.)]?$", line)) for line in prose)
+    if nominal + formal >= 10 and min(nominal, formal) / (nominal + formal) >= 0.2:
+        add("BP-5", "warn", "heuristic", f"개조식(~함·~임) {nominal}줄과 합니다체 {formal}줄이 섞임",
+            keep="요약·인용처럼 의도한 구간이면 유지")
+
+    severities = {item["severity"] for item in findings}
+    status = "hold" if "hold" in severities else "warn" if "warn" in severities else "pass"
+    return {"status": status, "findings": findings,
+            "metrics": {"chars_no_space": len(re.sub(r"\s", "", t)), "tables": len(tables), "sections": sections,
+                        "market": market, "endings": {"nominal": nominal, "formal": formal}},
+            "policy": "기계 점검은 형식·산술·표기만 본다. 사업성, 수치의 사실 여부, 선정 가능성은 판정하지 않음"}
+
+
+def cmd_bizplan_check(args):
+    outline_path = opt(args, "--outline", True)
+    outline = None
+    if isinstance(outline_path, str):
+        with io.open(outline_path, encoding="utf-8") as stream:
+            outline = json.load(stream)
+    (t,) = read(args)
+    d = bizplan_data(t, outline)
+    if opt(args, "--json"):
+        print(json.dumps(d, ensure_ascii=False, indent=1))
+    else:
+        print(f"사업계획서 점검: {d['status']} — {d['metrics']['chars_no_space']}자, 표 {d['metrics']['tables']}개")
+        for f in d["findings"]:
+            print(f"  [{f['severity']}/{f['basis']}] {f['id']} {f['message']}")
+        print("  " + d["policy"])
+    if d["status"] == "hold" or (d["status"] == "warn" and opt(args, "--strict")):
+        sys.exit(1)
+
+
 # ---------------- voice-profile (v10.9) ----------------
 VOICE_MIN_SENTENCES = 20
 FIRST_PERSON_RE = re.compile(r"(?<![가-힣])(?:저는|제가|저도|나는|내가|나도|우리는|우리가|필자는)(?![가-힣])")
@@ -1116,6 +1320,7 @@ CMDS = {"diagnose": cmd_diagnose, "sunny": cmd_sunny, "connectives": cmd_connect
         "structure": cmd_structure, "morphology": cmd_morphology,
         "handoff-validate": cmd_handoff_validate,
         "channel-check": cmd_channel_check, "voice-profile": cmd_voice_profile,
+        "bizplan-check": cmd_bizplan_check,
         "taxonomy": cmd_taxonomy, "translation-audit": cmd_translation_audit,
         "translation-session": cmd_translation_session,
         "translation-impact": cmd_translation_impact,

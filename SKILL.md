@@ -4,10 +4,11 @@ description: >-
   한글 글쓰기(윤문)를 위한 구조화된 작성·진단·윤문 스킬이다. 사용자가 "글을 써줘", "윤문해줘", "다듬어줘",
   "최강 윤문", "번역투 고쳐줘", "진단만 해줘", "내 문체로 고쳐줘"라고 하거나 한국어 기사·칼럼·에세이·리뷰·보도자료·리포트·기술문서·원고를 작성하거나 고칠 때 사용한다.
   "페이스북 글", "블로그 글", "네이버 블로그", "브런치 글", "스레드로 바꿔줘"처럼 발행 채널에 맞춘 글을 쓰거나 변환할 때도 사용한다.
+  "사업계획서", "PSST", "예비창업패키지·초기창업패키지 계획서", "시장·경쟁 조사 정리", "사업계획서 발표 원고" 요청에도 사용한다.
   새 글은 korean-writing 워크플로우로 연결하고, 기존 원고는 사실·인용·숫자·화자를 보존하면서 거시 패턴, 장문 무손실 청킹, 4축 검증 게이트를 적용해 윤문한다. 번역 감수·용어 통일·여러 문서의 인물과 주장·근거 대조도 지원한다. 구조 진단·완독률 개선·칼럼 고도화 요청에서는 Editorial Audit을 분리 실행한다. 단순 맞춤법 교정이나 원문에 없는 내용을 추가하는 작업에는 사용하지 않는다.
 ---
 
-# 한글 글쓰기(윤문) — 진단 증거·작성 의도·보존 계약 스킬 v10.10
+# 한글 글쓰기(윤문) — 진단 증거·작성 의도·보존 계약 스킬 v10.11
 
 원칙은 **글은 더 분명하게, 문체는 더 자연스럽게, 사실은 원문 그대로**다. 새 글은 `korean-writing/SKILL.md`로 연결하고, 초안에서 윤문으로 넘어갈 때 작성 의도·출처·LOCK·변경 예산을 Writer–Editor 계약으로 전달한다. 기존 원고는 위치 기반 진단·국소 윤문·보호 구간 검증을 적용한다. 진단 신호는 편집 후보이며 AI 작성 여부의 판정이 아니다.
 
@@ -50,6 +51,7 @@ description: >-
 | 번역문 감수·번역투·문학 번역 | 번역 검토 | 원문–번역문 대조 → 표면 잠금·구조 감사 → FID/LIT 위험 검토 |
 | 장문·장편·롱폼 | 장문 | 경로 판별 후 필요할 때만 무손실 청킹 |
 | 페이스북 글·블로그 글·브런치 글 써줘 | 채널 글쓰기 | `korean-writing/SKILL.md` → 채널 전용 절차 → 초안 → 윤문 → `channel-check` → 발행 패키지 |
+| 사업계획서·PSST·지원사업 계획서 | 사업계획서 | `korean-writing/references/bizplan-workflow.md`: 양식 확인 → 근거 카드 → 본문 → `bizplan-check` → 발표 원고. 신청자의 사실은 만들지 않음 |
 | 스레드용으로·블로그용으로 바꿔줘 | 채널 변환 | 원본 대조 → 채널 형식에 맞춰 재구성 → `preserve` → `channel-check` |
 
 ### 3단 경로
@@ -254,6 +256,7 @@ python scripts/korean_writing.py consistency 장문.md
 python scripts/korean_writing.py format 평문.txt
 python scripts/korean_writing.py channel-check 최종본.txt --channel threads|facebook|naver-blog|blog|instagram|brunch|newsletter [--title 제목] [--keyword 핵심어] [--meta 메타설명] [--tags 태그1,태그2] [--strict] [--json]
 python scripts/korean_writing.py voice-profile 표본1.md 표본2.md [--compare 초안.md] [--json]
+python scripts/korean_writing.py bizplan-check 사업계획서.md [--outline 양식목차.json] [--strict] [--json]
 python scripts/korean_writing.py taxonomy --check
 python scripts/korean_writing.py translation-audit 원문.md 번역문.md --direction en-to-ko --literary --json
 
