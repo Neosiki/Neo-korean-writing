@@ -19,7 +19,7 @@ description: >-
 - 장르와 문체를 정할 때는 [`references/context-voice-matrix.md`](references/context-voice-matrix.md)를 읽는다.
 - 새 글을 윤문 단계로 넘길 때는 [`references/writer-editor-handoff.md`](references/writer-editor-handoff.md)를 읽는다.
 - `--audit`·`--editorial`·`--full-edit`, “구조까지”, “완독률”, “칼럼 고도화” 요청에서는 [`references/editorial-audit.md`](references/editorial-audit.md)를 읽는다.
-- 발행 채널(페이스북·네이버 블로그·자체 블로그·스레드·인스타그램·브런치·뉴스레터)이 정해진 글, 채널 변환, 문체 표본 대조는 `korean-writing/SKILL.md`의 채널 자료를 따른다. 페이스북·블로그·브런치는 전용 절차(`korean-writing/references/channel-facebook.md`, `channel-blog.md`, `channel-brunch.md`)가 있다.
+- 발행 채널(페이스북·네이버 블로그·자체 블로그·스레드·인스타그램·브런치·뉴스레터)이 정해진 글, 채널 변환, 문체 표본 대조는 `korean-writing/SKILL.md`의 채널 자료를 따른다. 페이스북·블로그·브런치는 전용 절차(`korean-writing/references/channel-facebook.md`, `channel-blog.md`, `channel-brunch.md`)가 있다. 스레드는 반말 「어」체(~했어, ~같아, ~거든)로 쓰고 합니다체를 섞지 않는다.
 
 ## 1. 네 가지 철칙
 
