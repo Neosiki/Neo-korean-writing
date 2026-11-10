@@ -37,6 +37,7 @@ TEMPLATES = {
     "context-manifest": "context-manifest.json",
     "voice-profile": "voice-profile.md",
     "performance-log": "performance-log.md",
+    "publish-package": "publish-package.md",
 }
 PROFILES = {
     "general": ("standard-editing",),
@@ -245,7 +246,7 @@ def cmd_handoff_validate(args: argparse.Namespace) -> int:
 
 def cmd_channel_check(args: argparse.Namespace) -> int:
     arguments = [args.file, "--channel", args.channel]
-    for key in ("title", "keyword"):
+    for key in ("title", "keyword", "meta", "tags"):
         if getattr(args, key):
             arguments.extend(["--" + key, getattr(args, key)])
     if args.strict:
@@ -364,6 +365,8 @@ def build_parser() -> argparse.ArgumentParser:
     channel.add_argument("--channel", required=True)
     channel.add_argument("--title")
     channel.add_argument("--keyword")
+    channel.add_argument("--meta")
+    channel.add_argument("--tags")
     channel.add_argument("--strict", action="store_true")
     channel.add_argument("--json", action="store_true")
     channel.set_defaults(handler=cmd_channel_check)

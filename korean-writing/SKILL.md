@@ -1,9 +1,9 @@
 ---
 name: korean-writing
-description: 주제·메모·자료를 목적과 독자에 맞는 한국어 초안으로 발전시키고, 작성 의도·출처·LOCK을 윤문 단계에 인계하는 neo-korean-writing v10 작성 경로다. 칼럼, 기사, 보고서, 보도자료, 에세이, SNS, 강의 원고와 장문을 처리하고 페이스북·네이버 블로그·스레드·인스타그램·브런치·뉴스레터 발행 형식을 검사한다. 기존 원고가 있으면 사실·인용·수치·문체를 보존하며 원문에 없는 경험·감정·근거를 만들지 않는다.
+description: 주제·메모·자료를 목적과 독자에 맞는 한국어 초안으로 발전시키고, 작성 의도·출처·LOCK을 윤문 단계에 인계하는 neo-korean-writing v10 작성 경로다. 칼럼, 기사, 보고서, 보도자료, 에세이, SNS, 강의 원고와 장문을 처리한다. 페이스북·블로그(네이버·자체)·브런치는 전용 절차로 주제에서 발행 패키지까지 만들고, 스레드·인스타그램·뉴스레터를 포함해 발행 형식을 검사한다. 기존 원고가 있으면 사실·인용·수치·문체를 보존하며 원문에 없는 경험·감정·근거를 만들지 않는다.
 ---
 
-# 한글 글쓰기 워크플로우 v10.9
+# 한글 글쓰기 워크플로우 v10.10
 
 주제나 메모를 목적 정의 → 구조 선택 → 초안 → 편집자 인계·리라이팅 → 최종 출력으로 발전시킨다. 글쓰기와 번역 후편집을 한 생성 지시에 섞지 않는다.
 
@@ -27,6 +27,9 @@ description: 주제·메모·자료를 목적과 독자에 맞는 한국어 초�
 | 구조·톤 선택 | [`references/tone-guide.md`](references/tone-guide.md) |
 | 도입·마무리·제목 | [`references/opening-closing.md`](references/opening-closing.md) |
 | 발행 채널이 정해짐 | [`references/channel-playbooks.md`](references/channel-playbooks.md) |
+| 페이스북 글·페북 글·카카오톡 평문 | [`references/channel-facebook.md`](references/channel-facebook.md) |
+| 블로그 글(네이버·워드프레스·티스토리·자체 블로그) | [`references/channel-blog.md`](references/channel-blog.md) |
+| 브런치 글·매거진·브런치북 | [`references/channel-brunch.md`](references/channel-brunch.md) |
 | 내 문체로·문체 표본 제공 | [`references/voice-profile.md`](references/voice-profile.md) |
 | 윤기자 voice 요청 | [`references/yoon-reporter-style.md`](references/yoon-reporter-style.md) |
 | 에세이 | [`references/essay-gaze.md`](references/essay-gaze.md) |
@@ -49,6 +52,7 @@ description: 주제·메모·자료를 목적과 독자에 맞는 한국어 초�
 - 확정된 아웃라인이 있으면 Step 3부터 시작한다.
 - 초안이 있으면 루트 윤문 경로 또는 Step 4로 간다.
 - 원문과 번역문이 함께 있으면 번역 후편집 레인으로 분리한다.
+- 페이스북·블로그·브런치 글 요청이면 해당 채널 전용 절차를 읽고 그 Step을 따른다. 아래 Step 1~5의 계약(LOCK, provenance, 인계, 검증)은 그대로 적용한다.
 - 완성된 글을 다른 채널용으로 바꾸는 요청이면 [`references/repurposing.md`](references/repurposing.md)의 변환 절차로 간다.
 - 8,000자 이상이면 장문 가이드를 읽는다. 실제 청킹은 15,000자 초과 또는 사용자 요청일 때만 한다.
 
@@ -145,6 +149,8 @@ python ../scripts/korean_writing.py channel-check final.txt --channel threads --
 python ../scripts/korean_writing.py channel-check final.txt --channel naver-blog --title "제목" --keyword "핵심어" --json
 python ../scripts/korean_writing.py voice-profile 표본1.md 표본2.md --compare final.md --json
 ```
+
+블로그는 `--meta`로 메타 설명, `--tags`로 태그 수를 함께 검사한다. 페이스북·블로그·브런치 글은 [`../templates/publish-package.md`](../templates/publish-package.md)에 제목 후보·채널별 항목·검사 결과·`[확인 필요]`를 모아 본문과 함께 낸다. 사용자가 본문만 원하면 본문만 낸다.
 
 스레드 초안은 `---` 한 줄로 포스트를 나눈다. 기본 구성은 3포스트다. `voice-profile` 대조는 표본이 20문장 이상일 때만 판정하며, 차이는 편집 후보다.
 

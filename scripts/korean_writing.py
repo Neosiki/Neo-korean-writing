@@ -12,8 +12,8 @@
   python3 korean_writing.py format    기본본.txt                  # SNS/카톡 평문 포맷 검사
   python3 korean_writing.py connectives 원문.md [--remove-redundant] [--json]
                                                       # 접속 부사 후보 진단·선택적 축약
-  python3 korean_writing.py channel-check 최종본.txt --channel threads|facebook|naver-blog|instagram|brunch|newsletter
-                                           [--title 제목] [--keyword 핵심어] [--strict] [--json]
+  python3 korean_writing.py channel-check 최종본.txt --channel threads|facebook|naver-blog|blog|instagram|brunch|newsletter
+                                           [--title 제목] [--keyword 핵심어] [--meta 메타설명] [--tags 태그1,태그2] [--strict] [--json]
                                                       # v10.9 채널 형식 검사 (플랫폼 한도=hold, 가정값=warn)
   python3 korean_writing.py voice-profile 표본1.md [표본2.md ...] [--compare 초안.md] [--json]
                                                       # v10.9 문체 표본 통계와 초안 이탈 후보
@@ -85,7 +85,7 @@ def load_patterns():
 
 def read(args, n=1):
     files, skip_next = [], False
-    value_options = {"--profile", "--voice", "--direction", "--channel", "--title", "--keyword", "--compare"}
+    value_options = {"--profile", "--voice", "--direction", "--channel", "--title", "--keyword", "--compare", "--meta", "--tags"}
     for a in args:
         if skip_next:
             skip_next = False
@@ -714,7 +714,8 @@ CHANNEL_ALIASES = {
     "naver-blog": "naver-blog", "naver": "naver-blog", "네이버": "naver-blog", "네이버블로그": "naver-blog",
     "threads": "threads", "스레드": "threads", "쓰레드": "threads",
     "instagram": "instagram", "인스타그램": "instagram", "인스타": "instagram",
-    "brunch": "brunch", "브런치": "brunch",
+    "blog": "blog", "블로그": "blog", "wordpress": "blog", "워드프레스": "blog", "티스토리": "blog",
+    "brunch": "brunch", "브런치": "brunch", "브런치스토리": "brunch",
     "newsletter": "newsletter", "뉴스레터": "newsletter",
 }
 
@@ -734,6 +735,7 @@ MARKDOWN_RESIDUE = (
     ("quote", r"(?m)^\s*>\s"),
 )
 HASHTAG_RE = re.compile(r"(?<![\w&])#[0-9A-Za-z가-힣_]+")
+VAGUE_LINK_RE = re.compile(r"\[\s*(?:여기|여기를 클릭|클릭|이 글|이 링크|링크|바로가기)\s*\]\([^)\n]+\)")
 
 
 def load_channel_specs():
@@ -745,7 +747,7 @@ def _plain_sentences(t):
     return [s.strip() for s in re.split(r"(?<=[.!?])\s+|\n+", t) if len(s.strip()) >= 2]
 
 
-def channel_data(t, channel, title=None, keyword=None):
+def channel_data(t, channel, title=None, keyword=None, meta=None, tags=None):
     specs = load_channel_specs()
     key = CHANNEL_ALIASES.get((channel or "").strip().lower(), (channel or "").strip().lower())
     if key not in specs["channels"]:
@@ -866,9 +868,53 @@ def channel_data(t, channel, title=None, keyword=None):
                 add("CH-8", density_basis, "핵심어가 제목에 없음", keyword)
             if keyword not in first_paragraph:
                 add("CH-8", density_basis, "핵심어가 첫 문단에 없음", keyword)
-            if per_1000 > density_max:
+            if count >= 5 and per_1000 > density_max:  # 짧은 글의 두세 번 언급은 반복으로 보지 않는다
                 add("CH-8", density_basis, f"핵심어 반복이 1,000자당 {per_1000}회 — 기계적 반복 후보", per_1000, density_max,
                     keep="문맥상 필요한 반복이면 유지")
+
+    # CH-11 메타 설명
+    meta_min, meta_min_basis = limit("meta_min_chars")
+    meta_max, meta_max_basis = limit("meta_max_chars")
+    if meta_min or meta_max:
+        if meta is None:
+            notes.append("메타 설명 미검사: --meta로 넘기면 길이를 검사함")
+        else:
+            metrics["meta_chars"] = len(meta)
+            if meta_max and len(meta) > meta_max:
+                add("CH-11", meta_max_basis, f"메타 설명이 기준 {meta_max}자를 넘음", len(meta), meta_max)
+            if meta_min and len(meta) < meta_min:
+                add("CH-11", meta_min_basis, f"메타 설명이 기준 {meta_min}자보다 짧음", len(meta), meta_min)
+            if keyword and keyword not in meta:
+                add("CH-11", "assumption", "핵심어가 메타 설명에 없음", keyword)
+
+    # CH-12 소제목 구성, CH-13 링크 문구 (Markdown을 쓰는 채널)
+    if not spec.get("plain_text"):
+        h2 = re.findall(r"(?m)^##\s+(.+)$", text)
+        metrics["h2"] = len(h2)
+        if keyword:
+            metrics["keyword"]["in_h2"] = any(keyword in h for h in h2)
+        from_chars, heading_basis = limit("headings_from_chars")
+        h2_min, _ = limit("h2_min")
+        h2_max, _ = limit("h2_max")
+        if from_chars and len(text) >= from_chars and h2_min and len(h2) < h2_min:
+            add("CH-12", heading_basis, f"{from_chars}자 이상인데 소제목(##)이 {len(h2)}개", len(h2), h2_min,
+                keep="에세이처럼 소제목 없이 읽히는 글이면 유지")
+        if h2_max and len(h2) > h2_max:
+            add("CH-12", heading_basis, f"소제목(##)이 {len(h2)}개 — 기준 {h2_max}개", len(h2), h2_max)
+        vague = VAGUE_LINK_RE.findall(text)
+        if vague:
+            add("CH-13", "editorial", f"링크 문구가 대상을 알려 주지 않음 {len(vague)}건", len(vague),
+                keep="링크 문구를 글 제목이나 대상 이름으로 바꾼다")
+
+    # CH-14 태그·키워드 수
+    tags_max, tags_basis = limit("tags_max")
+    if tags is not None:
+        tag_list = [x.strip() for x in re.split(r"[,，]", tags) if x.strip()]
+        metrics["tags"] = len(tag_list)
+        if tags_max is not None and len(tag_list) > tags_max:
+            add("CH-14", tags_basis, f"태그 {len(tag_list)}개 — 기준 {tags_max}개", len(tag_list), tags_max)
+        if len(set(tag_list)) < len(tag_list):
+            add("CH-14", "editorial", "중복된 태그가 있음", len(tag_list) - len(set(tag_list)))
 
     severities = {item["severity"] for item in findings}
     status = "hold" if "hold" in severities else "warn" if "warn" in severities else "pass"
@@ -881,12 +927,11 @@ def channel_data(t, channel, title=None, keyword=None):
 def cmd_channel_check(args):
     channel = opt(args, "--channel", True)
     if not channel or channel is True:
-        sys.exit("--channel 값이 필요합니다 (threads, facebook, naver-blog, instagram, brunch, newsletter)")
-    title = opt(args, "--title", True)
-    keyword = opt(args, "--keyword", True)
+        sys.exit("--channel 값이 필요합니다 (threads, facebook, naver-blog, blog, instagram, brunch, newsletter)")
+    values = {name: opt(args, "--" + name, True) for name in ("title", "keyword", "meta", "tags")}
+    values = {name: value if isinstance(value, str) else None for name, value in values.items()}
     (t,) = read(args)
-    d = channel_data(t, channel, title if isinstance(title, str) else None,
-                     keyword if isinstance(keyword, str) else None)
+    d = channel_data(t, channel, **values)
     if opt(args, "--json"):
         print(json.dumps(d, ensure_ascii=False, indent=1))
     elif d["status"] == "error":

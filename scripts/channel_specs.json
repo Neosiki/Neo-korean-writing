@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "checked_on": "2026-11-10",
   "basis_levels": {
     "platform": "플랫폼 공식 공지 또는 여러 출처로 확인한 한도. 넘으면 hold",
@@ -57,6 +57,46 @@
       "hashtags_max": {
         "value": 10,
         "basis": "assumption"
+      },
+      "tags_max": {
+        "value": 30,
+        "basis": "reported"
+      }
+    },
+    "blog": {
+      "label": "자체 블로그·워드프레스",
+      "plain_text": false,
+      "title_max_chars": {
+        "value": 50,
+        "basis": "assumption"
+      },
+      "meta_min_chars": {
+        "value": 80,
+        "basis": "assumption"
+      },
+      "meta_max_chars": {
+        "value": 150,
+        "basis": "assumption"
+      },
+      "paragraph_max_chars": {
+        "value": 400,
+        "basis": "assumption"
+      },
+      "headings_from_chars": {
+        "value": 1500,
+        "basis": "assumption"
+      },
+      "h2_min": {
+        "value": 2,
+        "basis": "assumption"
+      },
+      "h2_max": {
+        "value": 6,
+        "basis": "assumption"
+      },
+      "keyword_per_1000_max": {
+        "value": 8,
+        "basis": "assumption"
       }
     },
     "threads": {
@@ -105,6 +145,18 @@
       },
       "paragraph_max_chars": {
         "value": 300,
+        "basis": "assumption"
+      },
+      "tags_max": {
+        "value": 3,
+        "basis": "reported"
+      },
+      "headings_from_chars": {
+        "value": 1500,
+        "basis": "assumption"
+      },
+      "h2_max": {
+        "value": 5,
         "basis": "assumption"
       }
     },

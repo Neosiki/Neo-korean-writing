@@ -16,6 +16,14 @@
 
 `channel-check` 통과는 형식 점검 통과다. 반응이나 노출을 보증하지 않는다.
 
+이 문서는 채널별 요약이다. 페이스북·블로그·브런치는 주제에서 발행본까지 가는 전용 절차가 있다.
+
+| 채널 | 전용 절차 |
+|---|---|
+| 페이스북·카카오톡 평문 | [페이스북 글쓰기](channel-facebook.md) |
+| 네이버 블로그, 자체 블로그·워드프레스 | [블로그 글쓰기](channel-blog.md) |
+| 브런치스토리 | [브런치 글쓰기](channel-brunch.md) |
+
 ## 공통 설계
 
 1. 접힘 전 첫 화면에서 글의 내용이 드러나야 한다. 첫 문장은 접힘 기준 안에서 끝낸다.
@@ -60,6 +68,13 @@
 
 협찬·제공을 받은 글은 그 사실을 글 앞쪽에 밝힌다.
 
+## 자체 블로그·워드프레스 (`blog`)
+
+- 서식: Markdown 소제목·목록·링크.
+- 제목 50자 이내, 메타 설명 80~150자, 문단 400자 이내(모두 가정값).
+- 1,500자 이상이면 `##` 소제목 2~6개(가정값). 소제목만 읽어도 순서가 보이게 쓴다.
+- 링크 문구는 대상의 제목이나 이름으로 쓴다.
+
 ## 스레드 (`threads`)
 
 - 포스트 하나는 500자(플랫폼 한도). 초안에서는 `---` 한 줄로 포스트를 나눈다.
@@ -91,6 +106,8 @@
 ```text
 python ../scripts/korean_writing.py channel-check final.txt --channel threads
 python ../scripts/korean_writing.py channel-check final.txt --channel naver-blog --title "제목" --keyword "핵심어" --json
+python ../scripts/korean_writing.py channel-check post.md --channel blog --title "제목" --keyword "핵심어" --meta "메타 설명" --json
+python ../scripts/korean_writing.py channel-check brunch.md --channel brunch --title "제목" --tags "키워드1,키워드2" --json
 ```
 
 `hold`가 있으면 고친 뒤 발행본으로 낸다. `warn`은 유지 조건을 보고 판단하며 유지한 항목은 사용자에게 알린다. `--strict`는 `warn`도 종료 코드 1로 돌려준다.
