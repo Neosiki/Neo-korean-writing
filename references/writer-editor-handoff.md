@@ -5,7 +5,7 @@
 ## 필드
 
 - `context`: 장르, 채널, 독자, 글의 목적. 편집 강도를 결정한다.
-- `voice`: `preserve`가 기본이다. `yoon-reporter`, `professional`, `warm`, `blunt`, `technical`은 명시 선택일 때만 쓴다.
+- `voice`: `preserve`가 기본이다. `yoon-reporter`, `professional`, `warm`, `blunt`, `technical`은 명시 선택일 때만 쓴다. 문체 표본으로 만든 프로파일을 쓸 때는 `custom`으로 두고 `voice.sample`에 프로파일 경로를 적는다.
 - `intentional_devices`: 의도적 반복, 반문, 파편문, 열린 결말처럼 진단기가 지우면 안 되는 장치를 적는다.
 - `provenance.sourced_claims`: 주장과 출처를 묶는다. 출처가 없는 구체적 수치나 사례를 편집기가 만들어서는 안 된다.
 - `author_interpretations`: 출처 사실과 구분해야 할 글쓴이의 해석이다.

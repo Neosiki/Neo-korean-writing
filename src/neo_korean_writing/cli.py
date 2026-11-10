@@ -35,6 +35,11 @@ TEMPLATES = {
     "translation-segments": "translation-segments.json",
     "translation-reader-questions": "translation-reader-questions.json",
     "context-manifest": "context-manifest.json",
+    "voice-profile": "voice-profile.md",
+    "performance-log": "performance-log.md",
+    "publish-package": "publish-package.md",
+    "bizplan-evidence-cards": "bizplan-evidence-cards.md",
+    "bizplan-outline": "bizplan-outline.json",
 }
 PROFILES = {
     "general": ("standard-editing",),
@@ -241,6 +246,38 @@ def cmd_handoff_validate(args: argparse.Namespace) -> int:
     return _engine_call("handoff-validate", arguments)
 
 
+def cmd_channel_check(args: argparse.Namespace) -> int:
+    arguments = [args.file, "--channel", args.channel]
+    for key in ("title", "keyword", "meta", "tags"):
+        if getattr(args, key):
+            arguments.extend(["--" + key, getattr(args, key)])
+    if args.strict:
+        arguments.append("--strict")
+    if args.json:
+        arguments.append("--json")
+    return _engine_call("channel-check", arguments)
+
+
+def cmd_bizplan_check(args: argparse.Namespace) -> int:
+    arguments = [args.file]
+    if args.outline:
+        arguments.extend(["--outline", args.outline])
+    if args.strict:
+        arguments.append("--strict")
+    if args.json:
+        arguments.append("--json")
+    return _engine_call("bizplan-check", arguments)
+
+
+def cmd_voice_profile(args: argparse.Namespace) -> int:
+    arguments = list(args.samples)
+    if args.compare:
+        arguments.extend(["--compare", args.compare])
+    if args.json:
+        arguments.append("--json")
+    return _engine_call("voice-profile", arguments)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="neo-korean-writing",
@@ -335,6 +372,30 @@ def build_parser() -> argparse.ArgumentParser:
     handoff.add_argument("file")
     handoff.add_argument("--json", action="store_true")
     handoff.set_defaults(handler=cmd_handoff_validate)
+
+    channel = subparsers.add_parser("channel-check", help="발행 채널 형식 검사 (플랫폼 한도=hold, 가정값=warn)")
+    channel.add_argument("file")
+    channel.add_argument("--channel", required=True)
+    channel.add_argument("--title")
+    channel.add_argument("--keyword")
+    channel.add_argument("--meta")
+    channel.add_argument("--tags")
+    channel.add_argument("--strict", action="store_true")
+    channel.add_argument("--json", action="store_true")
+    channel.set_defaults(handler=cmd_channel_check)
+
+    bizplan = subparsers.add_parser("bizplan-check", help="사업계획서 기계 점검 (자리표시자·표 합계·시장 규모 순서)")
+    bizplan.add_argument("file")
+    bizplan.add_argument("--outline")
+    bizplan.add_argument("--strict", action="store_true")
+    bizplan.add_argument("--json", action="store_true")
+    bizplan.set_defaults(handler=cmd_bizplan_check)
+
+    voice = subparsers.add_parser("voice-profile", help="문체 표본 통계와 초안 이탈 후보")
+    voice.add_argument("samples", nargs="+")
+    voice.add_argument("--compare")
+    voice.add_argument("--json", action="store_true")
+    voice.set_defaults(handler=cmd_voice_profile)
     return parser
 
 

@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+  "note": "예시입니다. 그해 공고의 양식 파일을 보고 항목 이름·순서·분량을 그대로 옮겨 적은 뒤 사용하세요. max_chars는 공백 제외 글자 수이며 양식에 제한이 없으면 지웁니다.",
+  "program": "공고명",
+  "form_checked_on": "YYYY-MM-DD",
+  "sections": [
+    {
+      "title": "일반현황",
+      "required": true
+    },
+    {
+      "title": "개요(요약)",
+      "required": true,
+      "max_chars": 1200
+    },
+    {
+      "title": "문제인식",
+      "required": true
+    },
+    {
+      "title": "실현가능성",
+      "required": true
+    },
+    {
+      "title": "성장전략",
+      "required": true
+    },
+    {
+      "title": "팀 구성",
+      "required": true
+    }
+  ]
+}

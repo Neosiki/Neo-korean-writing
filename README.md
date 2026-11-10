@@ -90,6 +90,8 @@ neo-korean-writing diagnose 원문.md --profile official --json
 neo-korean-writing verify 원문.md 수정본.md --strict
 neo-korean-writing structure 원문.md --json
 neo-korean-writing handoff-validate templates/writer-editor-handoff.json
+neo-korean-writing channel-check 최종본.txt --channel threads --json
+neo-korean-writing voice-profile 표본1.md 표본2.md --compare 초안.md
 neo-korean-writing morphology 원문.md --json  # 선택형 kiwipiepy
 ```
 
@@ -112,6 +114,8 @@ neo-korean-writing morphology 원문.md --json  # 선택형 kiwipiepy
 ```
 
 새 글은 `korean-writing/SKILL.md`의 5단계 흐름(목적 정의 → 구조 설계 → 초안 작성 → 리라이팅 → 최종 출력)으로 작성합니다. 기존 원고는 루트 `SKILL.md`의 light·standard·heavy 윤문 경로를 사용합니다. 번역문은 일반 윤문과 분리된 후편집 경로에서 검토합니다.
+
+v10.9부터 새 글 작성 경로는 글 유형별 기본 분량, 채널 플레이북(페이스북·네이버 블로그·자체 블로그·스레드·인스타그램·브런치·뉴스레터)과 페이스북·블로그·브런치 전용 절차, 도입·마무리 유형, 문체 프로파일, 원소스 변환, 발행 성과 기록 자료를 함께 제공합니다. 사업계획서(PSST)는 근거 카드·본문·발표 원고 절차와 `bizplan-check`를 제공합니다. `channel-check`는 발행 형식만 검사합니다. 플랫폼 한도는 막고 운영 가정값은 경고로 둡니다.
 
 ## 정량 진단과 검증
 
@@ -166,9 +170,11 @@ python3 -m unittest discover -s tests -v
 neo-korean-writing/
 ├── SKILL.md                    # 한글 윤문·진단·번역 후편집 스킬
 ├── korean-writing/
-│   └── SKILL.md                # 주제·메모에서 시작하는 한글 글쓰기 워크플로우
+│   ├── SKILL.md                # 주제·메모에서 시작하는 한글 글쓰기 워크플로우
+│   └── references/             # 유형·채널 플레이북·도입·문체 프로파일·변환·성과 기록
 ├── scripts/
 │   ├── korean_writing.py       # 진단·보존·변경률·일관성 통합 도구
+│   ├── channel_specs.json      # 채널 형식 기준과 근거 등급
 │   ├── validate_repo.py        # 버전·참조·배포 자산 drift 차단
 │   ├── self_scan.py            # 저장소 자체 문체 회귀 검사
 │   ├── build_skill_package.py  # 검증 후 .skill 재현 빌드
