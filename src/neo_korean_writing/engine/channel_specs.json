@@ -1,0 +1,124 @@
+{
+  "spec_version": "1.0",
+  "checked_on": "2026-11-10",
+  "basis_levels": {
+    "platform": "플랫폼 공식 공지 또는 여러 출처로 확인한 한도. 넘으면 hold",
+    "reported": "2차 출처가 보고한 표시 기준. 기기·화면에 따라 달라질 수 있어 warn",
+    "assumption": "운영 가정값. 플랫폼 한도가 아니며 사용자의 성과 기록으로 조정. warn"
+  },
+  "channels": {
+    "facebook": {
+      "label": "페이스북·카카오톡 평문",
+      "plain_text": true,
+      "fold_chars": {
+        "value": 120,
+        "basis": "assumption"
+      },
+      "body_max_chars": {
+        "value": 2000,
+        "basis": "assumption"
+      },
+      "paragraph_max_chars": {
+        "value": 200,
+        "basis": "assumption"
+      },
+      "hashtags_max": {
+        "value": 3,
+        "basis": "assumption"
+      }
+    },
+    "naver-blog": {
+      "label": "네이버 블로그 정보글",
+      "plain_text": true,
+      "title_min_chars": {
+        "value": 15,
+        "basis": "assumption"
+      },
+      "title_max_chars": {
+        "value": 35,
+        "basis": "assumption"
+      },
+      "paragraph_max_chars": {
+        "value": 150,
+        "basis": "assumption"
+      },
+      "sentence_max_chars": {
+        "value": 60,
+        "basis": "assumption"
+      },
+      "long_sentence_ratio_max": {
+        "value": 0.3,
+        "basis": "assumption"
+      },
+      "keyword_per_1000_max": {
+        "value": 8,
+        "basis": "assumption"
+      },
+      "hashtags_max": {
+        "value": 10,
+        "basis": "assumption"
+      }
+    },
+    "threads": {
+      "label": "스레드 연재",
+      "plain_text": true,
+      "post_separator": "---",
+      "post_max_chars": {
+        "value": 500,
+        "basis": "platform"
+      },
+      "posts_default": {
+        "value": 3,
+        "basis": "assumption"
+      },
+      "hashtags_max": {
+        "value": 1,
+        "basis": "assumption"
+      }
+    },
+    "instagram": {
+      "label": "인스타그램 캡션",
+      "plain_text": true,
+      "fold_chars": {
+        "value": 125,
+        "basis": "reported"
+      },
+      "body_max_chars": {
+        "value": 2200,
+        "basis": "platform"
+      },
+      "hashtags_max": {
+        "value": 30,
+        "basis": "platform"
+      }
+    },
+    "brunch": {
+      "label": "브런치스토리",
+      "plain_text": false,
+      "title_max_chars": {
+        "value": 30,
+        "basis": "assumption"
+      },
+      "body_max_chars": {
+        "value": 3000,
+        "basis": "assumption"
+      },
+      "paragraph_max_chars": {
+        "value": 300,
+        "basis": "assumption"
+      }
+    },
+    "newsletter": {
+      "label": "뉴스레터",
+      "plain_text": false,
+      "title_max_chars": {
+        "value": 40,
+        "basis": "assumption"
+      },
+      "body_max_chars": {
+        "value": 1500,
+        "basis": "assumption"
+      }
+    }
+  }
+}

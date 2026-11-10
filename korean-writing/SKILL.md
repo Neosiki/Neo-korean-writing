@@ -1,9 +1,9 @@
 ---
 name: korean-writing
-description: 주제·메모·자료를 목적과 독자에 맞는 한국어 초안으로 발전시키고, 작성 의도·출처·LOCK을 윤문 단계에 인계하는 neo-korean-writing v10 작성 경로다. 칼럼, 기사, 보고서, 보도자료, SNS, 강의 원고와 장문을 처리한다. 기존 원고가 있으면 사실·인용·수치·문체를 보존하며 원문에 없는 경험·감정·근거를 만들지 않는다.
+description: 주제·메모·자료를 목적과 독자에 맞는 한국어 초안으로 발전시키고, 작성 의도·출처·LOCK을 윤문 단계에 인계하는 neo-korean-writing v10 작성 경로다. 칼럼, 기사, 보고서, 보도자료, 에세이, SNS, 강의 원고와 장문을 처리하고 페이스북·네이버 블로그·스레드·인스타그램·브런치·뉴스레터 발행 형식을 검사한다. 기존 원고가 있으면 사실·인용·수치·문체를 보존하며 원문에 없는 경험·감정·근거를 만들지 않는다.
 ---
 
-# 한글 글쓰기 워크플로우 v10
+# 한글 글쓰기 워크플로우 v10.9
 
 주제나 메모를 목적 정의 → 구조 선택 → 초안 → 편집자 인계·리라이팅 → 최종 출력으로 발전시킨다. 글쓰기와 번역 후편집을 한 생성 지시에 섞지 않는다.
 
@@ -22,9 +22,16 @@ description: 주제·메모·자료를 목적과 독자에 맞는 한국어 초�
 
 | 상황 | 자료 |
 |---|---|
+| 유형·분량·변경 권한 판별 | [`references/content-types.md`](references/content-types.md) |
 | 초안 작성 전 | [`references/writing-principles.md`](references/writing-principles.md) |
 | 구조·톤 선택 | [`references/tone-guide.md`](references/tone-guide.md) |
+| 도입·마무리·제목 | [`references/opening-closing.md`](references/opening-closing.md) |
+| 발행 채널이 정해짐 | [`references/channel-playbooks.md`](references/channel-playbooks.md) |
+| 내 문체로·문체 표본 제공 | [`references/voice-profile.md`](references/voice-profile.md) |
 | 윤기자 voice 요청 | [`references/yoon-reporter-style.md`](references/yoon-reporter-style.md) |
+| 에세이 | [`references/essay-gaze.md`](references/essay-gaze.md) |
+| 다른 채널용으로 변환 | [`references/repurposing.md`](references/repurposing.md) |
+| 발행 뒤 반응 기록 | [`references/performance-log.md`](references/performance-log.md) |
 | 채널 포맷 결정 | [`references/publish-format.md`](references/publish-format.md) |
 | 리라이팅 | [`references/review-checklist.md`](references/review-checklist.md) |
 | 단계별 납품 | [`references/output-rules.md`](references/output-rules.md) |
@@ -42,6 +49,7 @@ description: 주제·메모·자료를 목적과 독자에 맞는 한국어 초�
 - 확정된 아웃라인이 있으면 Step 3부터 시작한다.
 - 초안이 있으면 루트 윤문 경로 또는 Step 4로 간다.
 - 원문과 번역문이 함께 있으면 번역 후편집 레인으로 분리한다.
+- 완성된 글을 다른 채널용으로 바꾸는 요청이면 [`references/repurposing.md`](references/repurposing.md)의 변환 절차로 간다.
 - 8,000자 이상이면 장문 가이드를 읽는다. 실제 청킹은 15,000자 초과 또는 사용자 요청일 때만 한다.
 
 사용자가 “한 번에”, “끝까지”라고 하면 중간 승인 없이 계속한다. 그렇지 않으면 구조 변경이나 새로운 근거가 필요한 지점에서만 확인한다.
@@ -53,7 +61,8 @@ description: 주제·메모·자료를 목적과 독자에 맞는 한국어 초�
 - 이 글이 바꾸려는 독자의 판단 또는 행동
 - 독자와 발행 채널
 - context: `column`, `article`, `press`, `official`, `technical`, `blog`, `sns`, `email`
-- voice: 기본 `preserve`; `yoon-reporter`, `professional`, `warm`, `blunt`, `technical`은 명시 선택
+- voice: 기본 `preserve`; `yoon-reporter`, `professional`, `warm`, `blunt`, `technical`은 명시 선택. 사용자의 문체 표본이 있으면 `custom`
+- 글 유형과 입력 상태(새로 쓰기·원문 보존). 분량 지정이 없으면 [`references/content-types.md`](references/content-types.md)의 기본값에서 출발
 - 목표 분량과 납품 형식
 - 출처가 있는 사실, 작성자 해석, 미확인 항목
 - LOCK과 의도적 수사 장치
@@ -72,6 +81,8 @@ description: 주제·메모·자료를 목적과 독자에 맞는 한국어 초�
 
 혼합할 수 있다. 내부 슬롯명은 설계에만 쓰고 최종 원고에는 남기지 않는다. 원문 보존 모드에서는 문단 순서와 서술 흐름을 우선한다.
 
+발행 채널이 정해졌으면 [`references/channel-playbooks.md`](references/channel-playbooks.md)의 첫 화면·분량·서식 기준을 구조에 반영한다. 도입과 마무리는 [`references/opening-closing.md`](references/opening-closing.md)에서 자료에 맞는 유형을 고른다. 에세이는 구조보다 시선을 먼저 정한다.
+
 ## Step 3. 초안
 
 [`references/writing-principles.md`](references/writing-principles.md)와 필요한 채널 자료를 읽는다.
@@ -82,6 +93,7 @@ description: 주제·메모·자료를 목적과 독자에 맞는 한국어 초�
 - “할 수 있다”, “중요하다”, “혁신적이다”는 문맥 없이 판단을 대신할 때만 고친다.
 - 장면·감정·1인칭은 제공된 자료 안에 있을 때만 쓴다.
 - SNS의 첫 두 줄은 내용을 대표하게 쓰되 과장형 후크를 만들지 않는다.
+- `custom` voice는 문체 프로파일의 종결·길이·장치를 따른다. 프로파일은 없던 1인칭·일화·수치의 근거가 아니다.
 - 결론은 구체적 권고, 남은 쟁점, 제한, 다음 행동, 함의 중 알맞은 것으로 끝낸다.
 
 초안이 끝나면 [`../templates/writer-editor-handoff.json`](../templates/writer-editor-handoff.json)을 채우거나 같은 필드를 내부 작업 상태로 유지한다.
@@ -126,6 +138,16 @@ python ../scripts/korean_writing.py format final.txt
 python ../scripts/korean_writing.py consistency final.md
 ```
 
+발행 채널이 정해졌으면 `channel-check`로 형식을 검사한다. 수치마다 근거 등급이 있다. 플랫폼 한도(`platform`)와 평문 채널의 Markdown 잔존(`format`)은 `hold`이므로 고친 뒤 낸다. 가정값(`assumption`)·보고값(`reported`)·도입 유형(`editorial`)은 `warn`이며 유지 조건을 보고 판단한다. 통과는 형식 점검 결과이고 반응이나 노출을 보증하지 않는다.
+
+```text
+python ../scripts/korean_writing.py channel-check final.txt --channel threads --json
+python ../scripts/korean_writing.py channel-check final.txt --channel naver-blog --title "제목" --keyword "핵심어" --json
+python ../scripts/korean_writing.py voice-profile 표본1.md 표본2.md --compare final.md --json
+```
+
+스레드 초안은 `---` 한 줄로 포스트를 나눈다. 기본 구성은 3포스트다. `voice-profile` 대조는 표본이 20문장 이상일 때만 판정하며, 차이는 편집 후보다.
+
 ## 번역 후편집
 
 원문·번역문을 함께 받으면 작성 레인에서 분리한다. 숫자·URL·코드·약어·링크 대상과 문서 구조를 먼저 검사하고, 주체·부정·양태·인과·문화어·모호성은 사람 검토로 둔다.
@@ -161,4 +183,6 @@ python ../scripts/korean_writing.py morphology draft.md --json
 - [ ] 고정 슬롯·TODO·챗봇 흔적이 남지 않았는가
 - [ ] 사용자 금지 어휘 `갈래`(세 갈래, 첫 갈래 등)를 쓰지 않았는가 — `세 가지`, `첫 번째는`, `유형`으로 대체
 - [ ] 수정 후 새 P0/P1 패턴이 증가하지 않았는가
+- [ ] 발행 채널이 있으면 `channel-check`의 `hold`를 해소하고 유지한 `warn`을 알렸는가
+- [ ] 채널 변환이면 빠진 조건 때문에 단정이 세지지 않았는가
 - [ ] 기준 미달 결과를 통과로 포장하지 않았는가

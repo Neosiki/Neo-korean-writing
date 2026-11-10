@@ -12,6 +12,11 @@
   python3 korean_writing.py format    기본본.txt                  # SNS/카톡 평문 포맷 검사
   python3 korean_writing.py connectives 원문.md [--remove-redundant] [--json]
                                                       # 접속 부사 후보 진단·선택적 축약
+  python3 korean_writing.py channel-check 최종본.txt --channel threads|facebook|naver-blog|instagram|brunch|newsletter
+                                           [--title 제목] [--keyword 핵심어] [--strict] [--json]
+                                                      # v10.9 채널 형식 검사 (플랫폼 한도=hold, 가정값=warn)
+  python3 korean_writing.py voice-profile 표본1.md [표본2.md ...] [--compare 초안.md] [--json]
+                                                      # v10.9 문체 표본 통계와 초안 이탈 후보
   python3 korean_writing.py taxonomy [--check]                   # patterns.json → 마크다운 표 / 무결성 검사
   python3 korean_writing.py translation-audit 원문.md 번역문.md   # v7 번역 충실성·문학 위험 감사
 
@@ -72,7 +77,7 @@ PROTECTED_REGEX = {
     "direct_quote": re.compile(r"\"[^\"\n]{2,}\"|“[^”\n]{2,}”|『[^』\n]{2,}』|「[^」\n]{2,}」"),
 }
 
-VALID_VOICES = {"preserve", "yoon-reporter", "professional", "warm", "blunt", "technical"}
+VALID_VOICES = {"preserve", "yoon-reporter", "professional", "warm", "blunt", "technical", "custom"}
 
 def load_patterns():
     with io.open(os.path.join(HERE, "patterns.json"), encoding="utf-8") as f:
@@ -80,7 +85,7 @@ def load_patterns():
 
 def read(args, n=1):
     files, skip_next = [], False
-    value_options = {"--profile", "--voice", "--direction"}
+    value_options = {"--profile", "--voice", "--direction", "--channel", "--title", "--keyword", "--compare"}
     for a in args:
         if skip_next:
             skip_next = False
@@ -703,6 +708,314 @@ def cmd_format(args):
         print("포맷 위반:"); [print("  -", x) for x in bad]; sys.exit(1)
     print("평문 포맷 통과")
 
+# ---------------- channel-check (v10.9) ----------------
+CHANNEL_ALIASES = {
+    "facebook": "facebook", "페이스북": "facebook", "페북": "facebook", "kakao": "facebook", "카카오톡": "facebook",
+    "naver-blog": "naver-blog", "naver": "naver-blog", "네이버": "naver-blog", "네이버블로그": "naver-blog",
+    "threads": "threads", "스레드": "threads", "쓰레드": "threads",
+    "instagram": "instagram", "인스타그램": "instagram", "인스타": "instagram",
+    "brunch": "brunch", "브런치": "brunch",
+    "newsletter": "newsletter", "뉴스레터": "newsletter",
+}
+
+OPENING_TYPES = (
+    ("meta", r"(?:오늘은|이번 글에서는|이 글에서는|이번 시간에는)[^.!?\n]{0,60}(?:이야기|소개|알아보|살펴보|정리해|다뤄)",
+     "글이 무엇을 할지 예고하는 도입"),
+    ("greeting", r"^\s*(?:안녕하세요|안녕하십니까|반갑습니다)", "인사말 도입"),
+    ("definition", r"^[^.!?\n]{1,25}(?:이란|란)\s[^.!?\n]{0,80}(?:말한다|말합니다|의미한다|의미합니다|뜻한다|뜻합니다|일컫는다)",
+     "사전식 정의 도입"),
+    ("engagement", r"(?:좋아요|공유|댓글|구독|팔로우)[^.!?\n]{0,12}(?:부탁|눌러|남겨|해\s?주세요)",
+     "참여를 먼저 요구하는 도입"),
+)
+
+MARKDOWN_RESIDUE = (
+    ("heading", r"(?m)^#{1,6}\s+\S"), ("bold", r"\*\*[^*\n]+\*\*"), ("bullet", r"(?m)^\s*[-*•]\s+\S"),
+    ("table", r"(?m)^\s*\|.*\|\s*$"), ("code", r"`[^`\n]+`"), ("link", r"\[[^\]\n]+\]\([^)\n]+\)"),
+    ("quote", r"(?m)^\s*>\s"),
+)
+HASHTAG_RE = re.compile(r"(?<![\w&])#[0-9A-Za-z가-힣_]+")
+
+
+def load_channel_specs():
+    with io.open(os.path.join(HERE, "channel_specs.json"), encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _plain_sentences(t):
+    return [s.strip() for s in re.split(r"(?<=[.!?])\s+|\n+", t) if len(s.strip()) >= 2]
+
+
+def channel_data(t, channel, title=None, keyword=None):
+    specs = load_channel_specs()
+    key = CHANNEL_ALIASES.get((channel or "").strip().lower(), (channel or "").strip().lower())
+    if key not in specs["channels"]:
+        return {"status": "error", "error": f"지원하지 않는 채널: {channel}",
+                "channels": sorted(specs["channels"])}
+    spec = specs["channels"][key]
+    findings = []
+
+    def add(fid, basis, message, value=None, limit=None, post=None, keep=None):
+        item = {"id": fid, "severity": "hold" if basis in ("platform", "format") else "warn",
+                "basis": basis, "message": message}
+        for name, val in (("value", value), ("limit", limit), ("post", post), ("keep", keep)):
+            if val is not None:
+                item[name] = val
+        findings.append(item)
+
+    def limit(name):
+        item = spec.get(name)
+        return (item["value"], item["basis"]) if item else (None, None)
+
+    body = t.strip()
+    separator = spec.get("post_separator")
+    posts = [body]
+    if separator:
+        posts = [p.strip() for p in re.split(r"(?m)^\s*-{3,}\s*$", body) if p.strip()]
+    text = "\n\n".join(posts)
+    metrics = {"chars": len(text), "chars_no_space": len(re.sub(r"\s", "", text)),
+               "paragraphs": 0, "hashtags": len(HASHTAG_RE.findall(text))}
+
+    # CH-1 길이 한도
+    post_max, post_basis = limit("post_max_chars")
+    if post_max:
+        metrics["posts"] = [len(p) for p in posts]
+        for index, post in enumerate(posts, 1):
+            if len(post) > post_max:
+                add("CH-1", post_basis, f"{index}번 포스트가 한도 {post_max}자를 넘음", len(post), post_max, index)
+    body_max, body_basis = limit("body_max_chars")
+    if body_max and len(text) > body_max:
+        add("CH-1", body_basis, f"본문이 기준 {body_max}자를 넘음", len(text), body_max)
+
+    # CH-10 포스트 수
+    posts_default, posts_basis = limit("posts_default")
+    if posts_default and len(posts) != posts_default:
+        add("CH-10", posts_basis, f"포스트 {len(posts)}개 — 기본 구성은 {posts_default}개", len(posts), posts_default,
+            keep="사용자가 다른 포스트 수를 지정했으면 유지")
+
+    # CH-2 접힘 전 첫 화면, CH-9 도입 유형
+    first_block = posts[0]
+    first_sentences = _plain_sentences(first_block)
+    fold, fold_basis = limit("fold_chars")
+    preview = None
+    if fold:
+        preview = re.sub(r"\s+", " ", first_block)[:fold]
+        if first_sentences and len(first_sentences[0]) > fold:
+            add("CH-2", fold_basis, f"첫 문장이 접힘 기준 {fold}자 안에 끝나지 않음", len(first_sentences[0]), fold)
+    opening = " ".join(first_sentences[:2])
+    for name, pattern, reason in OPENING_TYPES:
+        if re.search(pattern, opening):
+            add("CH-9", "editorial", reason, value=name,
+                keep="인사·정의·예고가 이 글에서 실제 기능을 하면 유지")
+
+    # CH-3 평문 기호
+    if spec.get("plain_text"):
+        residue = {name: len(re.findall(pattern, text)) for name, pattern in MARKDOWN_RESIDUE}
+        residue = {name: count for name, count in residue.items() if count}
+        if residue:
+            add("CH-3", "format", "평문 채널에 Markdown 기호가 남음", residue)
+
+    # CH-4 해시태그
+    tag_max, tag_basis = limit("hashtags_max")
+    if tag_max is not None and metrics["hashtags"] > tag_max:
+        add("CH-4", tag_basis, f"해시태그 {metrics['hashtags']}개 — 기준 {tag_max}개", metrics["hashtags"], tag_max)
+
+    # CH-5 문단 길이
+    paragraphs = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip()]
+    metrics["paragraphs"] = len(paragraphs)
+    para_max, para_basis = limit("paragraph_max_chars")
+    if para_max:
+        long_paragraphs = [len(p) for p in paragraphs if len(p) > para_max]
+        if long_paragraphs:
+            add("CH-5", para_basis, f"{para_max}자를 넘는 문단 {len(long_paragraphs)}개", max(long_paragraphs), para_max)
+
+    # CH-6 문장 길이 비율
+    sentence_max, sentence_basis = limit("sentence_max_chars")
+    ratio_max, _ = limit("long_sentence_ratio_max")
+    all_sentences = _plain_sentences(text)
+    if sentence_max and ratio_max is not None and all_sentences:
+        ratio = sum(len(s) > sentence_max for s in all_sentences) / len(all_sentences)
+        metrics["long_sentence_ratio"] = round(ratio, 2)
+        if ratio > ratio_max:
+            add("CH-6", sentence_basis, f"{sentence_max}자를 넘는 문장 비율 {ratio:.0%}", round(ratio, 2), ratio_max)
+
+    # CH-7 제목
+    title_min, title_min_basis = limit("title_min_chars")
+    title_max, title_max_basis = limit("title_max_chars")
+    notes = []
+    if title_min or title_max:
+        if title is None:
+            notes.append("제목 미검사: --title로 제목을 넘기면 길이를 검사함")
+        else:
+            metrics["title_chars"] = len(title)
+            if title_max and len(title) > title_max:
+                add("CH-7", title_max_basis, f"제목이 기준 {title_max}자를 넘음", len(title), title_max)
+            if title_min and len(title) < title_min:
+                add("CH-7", title_min_basis, f"제목이 기준 {title_min}자보다 짧음", len(title), title_min)
+
+    # CH-8 키워드
+    if keyword:
+        count = text.count(keyword)
+        per_1000 = round(count / max(len(text), 1) * 1000, 1)
+        first_paragraph = paragraphs[0] if paragraphs else ""
+        metrics["keyword"] = {"term": keyword, "count": count, "per_1000": per_1000,
+                              "in_title": None if title is None else keyword in title,
+                              "in_first_paragraph": keyword in first_paragraph}
+        density_max, density_basis = limit("keyword_per_1000_max")
+        if density_max is not None:
+            if title is not None and keyword not in title:
+                add("CH-8", density_basis, "핵심어가 제목에 없음", keyword)
+            if keyword not in first_paragraph:
+                add("CH-8", density_basis, "핵심어가 첫 문단에 없음", keyword)
+            if per_1000 > density_max:
+                add("CH-8", density_basis, f"핵심어 반복이 1,000자당 {per_1000}회 — 기계적 반복 후보", per_1000, density_max,
+                    keep="문맥상 필요한 반복이면 유지")
+
+    severities = {item["severity"] for item in findings}
+    status = "hold" if "hold" in severities else "warn" if "warn" in severities else "pass"
+    return {"channel": key, "label": spec["label"], "status": status, "metrics": metrics,
+            "preview": preview, "findings": findings, "notes": notes,
+            "spec_checked_on": specs["checked_on"],
+            "policy": "platform·format은 발행 전 수정, reported·assumption·editorial은 편집 후보. 반응이나 노출을 보증하지 않음"}
+
+
+def cmd_channel_check(args):
+    channel = opt(args, "--channel", True)
+    if not channel or channel is True:
+        sys.exit("--channel 값이 필요합니다 (threads, facebook, naver-blog, instagram, brunch, newsletter)")
+    title = opt(args, "--title", True)
+    keyword = opt(args, "--keyword", True)
+    (t,) = read(args)
+    d = channel_data(t, channel, title if isinstance(title, str) else None,
+                     keyword if isinstance(keyword, str) else None)
+    if opt(args, "--json"):
+        print(json.dumps(d, ensure_ascii=False, indent=1))
+    elif d["status"] == "error":
+        print(d["error"], "/ 지원:", ", ".join(d["channels"]))
+    else:
+        print(f"[{d['label']}] {d['status']} — {d['metrics']['chars']}자, 문단 {d['metrics']['paragraphs']}개, 해시태그 {d['metrics']['hashtags']}개")
+        if d["preview"]:
+            print("  첫 화면:", d["preview"])
+        for f in d["findings"]:
+            print(f"  [{f['severity']}/{f['basis']}] {f['id']} {f['message']}")
+        for note in d["notes"]:
+            print("  참고:", note)
+    if d["status"] in ("error", "hold") or (d["status"] == "warn" and opt(args, "--strict")):
+        sys.exit(1)
+
+
+# ---------------- voice-profile (v10.9) ----------------
+VOICE_MIN_SENTENCES = 20
+FIRST_PERSON_RE = re.compile(r"(?<![가-힣])(?:저는|제가|저도|나는|내가|나도|우리는|우리가|필자는)(?![가-힣])")
+
+
+def _ending_class(sentence):
+    s = re.sub(r"[\s\"'”’)\]]+$", "", sentence)
+    if re.search(r"(?:니다|니까|시오)[.!?…]*$", s):
+        return "formal"
+    if re.search(r"[가-힣](?:요|죠)[.!?…]*$", s):
+        return "polite"
+    if re.search(r"[가-힣]다[.!?…]*$", s):
+        return "plain"
+    return "other"
+
+
+def voice_stats(t):
+    body = mask_protected(t)
+    # 조사 '마다'처럼 '다'로 끝나는 어절에서 끊기지 않도록 문장부호와 줄바꿈으로만 나눈다.
+    sents = [s for s in _plain_sentences(body) if len(s) >= 5]
+    n = len(sents)
+    lengths = sorted(len(s) for s in sents)
+    chars = max(len(re.sub(r"\s", "", body)), 1)
+    endings = Counter(_ending_class(s) for s in sents)
+    mean = sum(lengths) / n if n else 0
+    stdev = (sum((x - mean) ** 2 for x in lengths) / n) ** 0.5 if n else 0
+    paragraphs = [p for p in re.split(r"\n\s*\n", body) if p.strip()]
+
+    def share(count):
+        return round(count / n, 2) if n else 0
+
+    def per_1000(count):
+        return round(count / chars * 1000, 1)
+
+    return {
+        "sentences": n,
+        "reliable": n >= VOICE_MIN_SENTENCES,
+        "endings": {name: share(endings.get(name, 0)) for name in ("formal", "polite", "plain", "other")},
+        "sentence_chars": {"mean": round(mean, 1), "median": lengths[n // 2] if n else 0, "stdev": round(stdev, 1),
+                           "short_share": share(sum(x <= 20 for x in lengths)),
+                           "long_share": share(sum(x >= 80 for x in lengths))},
+        "question_share": share(sum(s.rstrip().endswith("?") for s in sents)),
+        "exclamation_share": share(sum(s.rstrip().endswith("!") for s in sents)),
+        "first_person_per_1000": per_1000(len(FIRST_PERSON_RE.findall(body))),
+        "parentheses_per_1000": per_1000(body.count("(")),
+        "connectives_per_1000": per_1000(connectives_data(body)["total"]),
+        "sentences_per_paragraph": round(n / len(paragraphs), 1) if paragraphs else 0,
+    }
+
+
+def voice_compare(profile, draft):
+    if not profile["reliable"] or not draft["sentences"]:
+        return {"status": "insufficient_sample", "drift": [],
+                "note": f"표본이 {VOICE_MIN_SENTENCES}문장 미만이거나 초안이 비어 판정 범위 밖"}
+    drift = []
+    main_profile = max(profile["endings"], key=profile["endings"].get)
+    main_draft = max(draft["endings"], key=draft["endings"].get)
+    if main_profile != main_draft:
+        drift.append({"axis": "ending", "message": f"주된 종결이 다름: 표본 {main_profile} / 초안 {main_draft}"})
+    else:
+        for name in profile["endings"]:
+            if abs(profile["endings"][name] - draft["endings"][name]) >= 0.25:
+                drift.append({"axis": "ending", "message": f"{name} 종결 비율 차이 {profile['endings'][name]} → {draft['endings'][name]}"})
+    p_mean, d_mean = profile["sentence_chars"]["mean"], draft["sentence_chars"]["mean"]
+    if p_mean and not 0.7 <= d_mean / p_mean <= 1.4:
+        drift.append({"axis": "length", "message": f"평균 문장 길이 차이: 표본 {p_mean}자 / 초안 {d_mean}자"})
+    for name, label in (("short_share", "짧은 문장"), ("long_share", "긴 문장")):
+        if abs(profile["sentence_chars"][name] - draft["sentence_chars"][name]) >= 0.2:
+            drift.append({"axis": "rhythm", "message": f"{label} 비율 차이 {profile['sentence_chars'][name]} → {draft['sentence_chars'][name]}"})
+    if abs(profile["question_share"] - draft["question_share"]) >= 0.15:
+        drift.append({"axis": "device", "message": f"물음표 문장 비율 차이 {profile['question_share']} → {draft['question_share']}"})
+    if profile["first_person_per_1000"] == 0 and draft["first_person_per_1000"] > 0:
+        drift.append({"axis": "person", "message": "표본에 없는 1인칭이 초안에 있음 — 제공된 자료에 근거가 있는지 확인"})
+    return {"status": "drift" if drift else "aligned", "drift": drift,
+            "note": "통계 차이는 편집 후보이며 문체 일치나 저자를 판정하지 않음"}
+
+
+def cmd_voice_profile(args):
+    compare_path = opt(args, "--compare", True)
+    files, skip = [], False
+    for a in args:
+        if skip:
+            skip = False
+            continue
+        if a == "--compare":
+            skip = True
+            continue
+        if not a.startswith("--"):
+            files.append(a)
+    if not files:
+        sys.exit("문체 표본 파일이 필요합니다")
+    sample = ""
+    for path in files:
+        with io.open(path, encoding="utf-8") as stream:
+            sample += stream.read() + "\n\n"
+    d = {"samples": len(files), "profile": voice_stats(sample)}
+    if isinstance(compare_path, str):
+        with io.open(compare_path, encoding="utf-8") as stream:
+            d["draft"] = voice_stats(stream.read())
+        d["comparison"] = voice_compare(d["profile"], d["draft"])
+    if opt(args, "--json"):
+        print(json.dumps(d, ensure_ascii=False, indent=1)); return
+    p = d["profile"]
+    print(f"표본 {d['samples']}개 / {p['sentences']}문장" + ("" if p["reliable"] else f" — {VOICE_MIN_SENTENCES}문장 미만이라 참고용"))
+    print(f"  종결: {p['endings']}")
+    print(f"  문장 길이: {p['sentence_chars']}")
+    print(f"  물음 {p['question_share']} / 1인칭 {p['first_person_per_1000']} / 괄호 {p['parentheses_per_1000']} / 접속 부사 {p['connectives_per_1000']} (1,000자당)")
+    if "comparison" in d:
+        print(f"초안 대조: {d['comparison']['status']} — {d['comparison']['note']}")
+        for item in d["comparison"]["drift"]:
+            print(f"  [{item['axis']}] {item['message']}")
+
+
 # ---------------- taxonomy ----------------
 def cmd_taxonomy(args):
     P = load_patterns()
@@ -757,6 +1070,7 @@ CMDS = {"diagnose": cmd_diagnose, "sunny": cmd_sunny, "connectives": cmd_connect
         "diffrate": cmd_diffrate, "consistency": cmd_consistency, "format": cmd_format,
         "structure": cmd_structure, "morphology": cmd_morphology,
         "handoff-validate": cmd_handoff_validate,
+        "channel-check": cmd_channel_check, "voice-profile": cmd_voice_profile,
         "taxonomy": cmd_taxonomy, "translation-audit": cmd_translation_audit,
         "translation-session": cmd_translation_session,
         "translation-impact": cmd_translation_impact,

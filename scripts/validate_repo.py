@@ -71,6 +71,7 @@ def main() -> int:
         (ROOT / "scripts/translation_reader.py", ROOT / "src/neo_korean_writing/engine/translation_reader.py"),
         (ROOT / "scripts/context_audit.py", ROOT / "src/neo_korean_writing/engine/context_audit.py"),
         (ROOT / "scripts/patterns.json", ROOT / "src/neo_korean_writing/engine/patterns.json"),
+        (ROOT / "scripts/channel_specs.json", ROOT / "src/neo_korean_writing/engine/channel_specs.json"),
     ]
     for source in (ROOT / "scripts/_vendor").rglob("*"):
         if source.is_file() and "__pycache__" not in source.parts:

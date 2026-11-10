@@ -6,7 +6,7 @@ description: >-
   새 글은 korean-writing 워크플로우로 연결하고, 기존 원고는 사실·인용·숫자·화자를 보존하면서 거시 패턴, 장문 무손실 청킹, 4축 검증 게이트를 적용해 윤문한다. 번역 감수·용어 통일·여러 문서의 인물과 주장·근거 대조도 지원한다. 구조 진단·완독률 개선·칼럼 고도화 요청에서는 Editorial Audit을 분리 실행한다. 단순 맞춤법 교정이나 원문에 없는 내용을 추가하는 작업에는 사용하지 않는다.
 ---
 
-# 한글 글쓰기(윤문) — 진단 증거·작성 의도·보존 계약 스킬 v10.8
+# 한글 글쓰기(윤문) — 진단 증거·작성 의도·보존 계약 스킬 v10.9
 
 원칙은 **글은 더 분명하게, 문체는 더 자연스럽게, 사실은 원문 그대로**다. 새 글은 `korean-writing/SKILL.md`로 연결하고, 초안에서 윤문으로 넘어갈 때 작성 의도·출처·LOCK·변경 예산을 Writer–Editor 계약으로 전달한다. 기존 원고는 위치 기반 진단·국소 윤문·보호 구간 검증을 적용한다. 진단 신호는 편집 후보이며 AI 작성 여부의 판정이 아니다.
 
@@ -17,6 +17,7 @@ description: >-
 - 장르와 문체를 정할 때는 [`references/context-voice-matrix.md`](references/context-voice-matrix.md)를 읽는다.
 - 새 글을 윤문 단계로 넘길 때는 [`references/writer-editor-handoff.md`](references/writer-editor-handoff.md)를 읽는다.
 - `--audit`·`--editorial`·`--full-edit`, “구조까지”, “완독률”, “칼럼 고도화” 요청에서는 [`references/editorial-audit.md`](references/editorial-audit.md)를 읽는다.
+- 발행 채널(페이스북·네이버 블로그·스레드·인스타그램·브런치·뉴스레터)이 정해진 글, 채널 변환, 문체 표본 대조는 `korean-writing/SKILL.md`의 채널 플레이북·변환·문체 프로파일 자료를 따른다.
 
 ## 1. 네 가지 철칙
 
@@ -47,6 +48,7 @@ description: >-
 | 최강 윤문·가장 세게 | heavy 강제 | 확장 taxonomy + 전후 메트릭 + fidelity/naturalness 감사 |
 | 번역문 감수·번역투·문학 번역 | 번역 검토 | 원문–번역문 대조 → 표면 잠금·구조 감사 → FID/LIT 위험 검토 |
 | 장문·장편·롱폼 | 장문 | 경로 판별 후 필요할 때만 무손실 청킹 |
+| 스레드용으로·블로그용으로 바꿔줘 | 채널 변환 | 원본 대조 → 채널 형식에 맞춰 재구성 → `preserve` → `channel-check` |
 
 ### 3단 경로
 
@@ -248,6 +250,8 @@ python scripts/korean_writing.py preserve 원문.md 윤문본.md [--strict] [--j
 python scripts/korean_writing.py diffrate 원문.md 윤문본.md [--json]
 python scripts/korean_writing.py consistency 장문.md
 python scripts/korean_writing.py format 평문.txt
+python scripts/korean_writing.py channel-check 최종본.txt --channel threads|facebook|naver-blog|instagram|brunch|newsletter [--title 제목] [--keyword 핵심어] [--strict] [--json]
+python scripts/korean_writing.py voice-profile 표본1.md 표본2.md [--compare 초안.md] [--json]
 python scripts/korean_writing.py taxonomy --check
 python scripts/korean_writing.py translation-audit 원문.md 번역문.md --direction en-to-ko --literary --json
 
@@ -273,6 +277,8 @@ python scripts/build_diagnosis_rules.py --check
 - **P6 보존 통합:** `preserve`의 숫자·인용·코드·URL·잔존 패턴과 말투 전환을 병합한다. 보호 손상·문체 전환 후보는 보류하고, 부정·수치 귀속·새 내용 후보는 실제 의미 검토로 넘긴다. 다른 축의 통과로 덮지 않는다.
 
 `verify_change_rate.py`는 하위 호환으로 보존한다.
+
+`channel-check`는 `scripts/channel_specs.json`의 기준으로 발행 형식만 검사한다. 플랫폼 한도와 평문 채널의 Markdown 잔존은 `hold`, 가정값·보고값·도입 유형은 `warn`이다. 이 결과는 수렴 게이트와 별개이며 반응·노출을 보증하지 않는다. `voice-profile`은 문체 표본의 종결·길이·장치 통계와 초안의 차이를 편집 후보로 내고, 문체 일치나 저자를 판정하지 않는다.
 
 헤딩·불릿 산문화 때문에 수치가 부풀면 `--ignore-markup`을 보조로 실행하되 두 수치를 모두 보고한다. 에이전트가 눈대중으로 계산한 변경률로 게이트 결과를 덮어쓰지 않는다.
 
@@ -330,5 +336,7 @@ UI·HTML·XML·ICU 번역이나 다의어 용어집을 다루면 [번역 형식�
 번역가의 문체·조사 방식·문학적 전개를 검토할 때는 [외부 자료 3선](references/translator-craft-research-20261021.md)과 `prompts/translation-craft-review.md`를 사용한다. 문체 표본의 근거, 조사 종료·보류 이유, 정보 공개 순서를 기록한다. 공개 관심도는 효과 검증과 구분하고 단순 교정에서는 추가 자료를 읽지 않는다.
 
 외부 번역 평가 기준·한국어 연구·현장 사례를 대조하거나 번역 검토 기준을 설계할 때는 [대외 자료 조사](references/translation-external-research-20261021.md)를 읽고 `templates/translation-review-brief.md`로 목적·허용 용어·말투·문맥을 인계한다. light/full 목표 품질과 편집 변경량을 구분한다. 허용되는 용어 변형은 보존하고, 원문·초벌·수정본에서 새 오류를 확인한다. 현재 자동 severity는 검토 우선순위이며 사람의 MQM 평가가 아니다. 출처의 확인 범위와 언어쌍을 표시하고 언론 사례를 성능 검증으로 사용하지 않는다.
+
+v10.9의 유형·채널·도입·문체 프로파일·변환·성과 기록 자료는 공개 글쓰기 스킬 모음과 대조해 구조만 참고하고 새로 썼다. 받아들인 것과 받아들이지 않은 것은 [대조 기록](references/skill-comparison-20261110.md)에 있다.
 
 확장 taxonomy·quick-rules·rewriting-playbook·post-editese 지표는 윤기자의 설계를 바탕으로 구성했다. 이 스킬의 운영 taxonomy·LOCK·한국어 장르 프로파일·Codex 실행 규칙은 `Neosiki/neo-korean-writing`의 v5 설계를 계승해 v6으로 통합했고, v7에서 번역 충실성·문학 번역 참고선을 추가했으며, v8에서 윤기자 설계의 v2.2~v2.3 개선 사항(단일 콜 우선 route 재편, 4축 구조 수렴 게이트, 진단 슬림 인덱스, 대조 코퍼스 실증 검증)을 반영했다. 번역·문학 판단의 외부 근거와 서비스 benchmark는 `references/translation-fidelity.md`와 `references/translation-benchmarks.md`에 기록한다.

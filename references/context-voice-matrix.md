@@ -15,6 +15,8 @@ Context는 장르상 무엇을 허용할지 정하고, Voice는 문장이 어떻
 | `sns` | 짧은 문장·일부 장식·목록 | 해시태그·후크·감정 과잉 |
 | `email` | 인사와 요청 구조 | 과장·모호한 다음 행동 |
 
+에세이는 `column` context에 `korean-writing/references/essay-gaze.md`의 시선 점검을 더한다. 발행 채널의 형식 기준은 context가 아니라 `channel-check`가 맡는다.
+
 ## Voice
 
 - `preserve`: 기본값. 원문의 종결, 어휘 온도, 문장 길이 편차를 유지한다.
@@ -23,5 +25,6 @@ Context는 장르상 무엇을 허용할지 정하고, Voice는 문장이 어떻
 - `warm`: 원문에 이미 있는 독자 호명과 배려를 살린다.
 - `blunt`: 완곡한 예고를 줄이고 결론을 앞에 둔다.
 - `technical`: 용어 정의와 절차 정확성을 우선한다.
+- `custom`: 사용자의 문체 표본으로 만든 프로파일을 따른다. 만드는 법과 대조는 `korean-writing/references/voice-profile.md`에 있다.
 
 Voice는 원문에 없는 1인칭, 감정, 일화, 반대편 주장, 수치나 사례를 만들 권한이 아니다.
