@@ -114,7 +114,8 @@
       "hashtags_max": {
         "value": 1,
         "basis": "assumption"
-      }
+      },
+      "register": "casual"
     },
     "instagram": {
       "label": "인스타그램 캡션",
