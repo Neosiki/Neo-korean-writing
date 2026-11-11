@@ -289,7 +289,7 @@ python scripts/build_diagnosis_rules.py --check
 
 `channel-check`는 `scripts/channel_specs.json`의 기준으로 발행 형식만 검사한다. 플랫폼 한도와 평문 채널의 Markdown 잔존은 `hold`, 가정값·보고값·도입 유형은 `warn`이다. 이 결과는 수렴 게이트와 별개이며 반응·노출을 보증하지 않는다. `voice-profile`은 문체 표본의 종결·길이·장치 통계와 초안의 차이를 편집 후보로 내고, 문체 일치나 저자를 판정하지 않는다.
 
-`review-signals`는 숫자 없는 양·빈도 단정, 1인칭 글의 저자 3인칭 표기, 같은 시작말 반복, 문단 안 종결 혼용(반말 어체 포함)을 편집 후보로 낸다. `apply-edits`는 작가가 승인한 문장만 원고 복사본에 글자 그대로 치환하며, 원문에 정확히 한 번 나오지 않거나 구간이 겹치거나 인용·코드와 닿으면 파일을 쓰지 않는다. 둘 다 위반을 판정하지 않고, 통과가 의미 보존의 증명도 아니다. `--check`를 붙이면 치환 뒤 `preserve`와 `verify_gates`를 이어서 돌린다(저장소의 `scripts/`에 `verify_gates.py`가 있을 때). 숫자·인용 손실이나 게이트 중단이면 종료 코드 1이다. 절차는 `references/review-mode.md`에 있다. `channel-check`는 스레드에서 반말 어체와 다른 종결이 분류된 문장의 20%를 넘으면 CH-15(`warn`)로 알리고, `voice-profile`은 어체를 `casual` 종결로 따로 센다.
+`review-signals`는 숫자 없는 양·빈도 단정, 1인칭 글의 저자 3인칭 표기, 같은 시작말 반복, 문단 안 종결 혼용(반말 어체 포함)을 편집 후보로 낸다. `apply-edits`는 작가가 승인한 문장만 원고 복사본에 글자 그대로 치환한다. 원문에 정확히 한 번 나오지 않거나 구간이 겹치거나 인용·코드와 닿으면 파일을 쓰지 않는다. 둘 다 위반을 판정하지 않는다. 통과가 의미 보존의 증명도 아니다. `--check`를 붙이면 치환 뒤 `preserve`와 `verify_gates`를 이어서 돌린다(저장소의 `scripts/`에 `verify_gates.py`가 있을 때). 숫자·인용 손실이나 게이트 중단이면 종료 코드 1이다. 절차는 `references/review-mode.md`에 있다. `channel-check`는 스레드에서 반말 어체와 다른 종결이 분류된 문장의 20%를 넘으면 CH-15(`warn`)로 알린다. `voice-profile`은 어체를 `casual` 종결로 따로 센다.
 
 헤딩·불릿 산문화 때문에 수치가 부풀면 `--ignore-markup`을 보조로 실행하되 두 수치를 모두 보고한다. 에이전트가 눈대중으로 계산한 변경률로 게이트 결과를 덮어쓰지 않는다.
 
