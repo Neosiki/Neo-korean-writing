@@ -8,7 +8,7 @@ description: >-
   새 글은 korean-writing 워크플로우로 연결하고, 기존 원고는 사실·인용·숫자·화자를 보존하면서 거시 패턴, 장문 무손실 청킹, 4축 검증 게이트를 적용해 윤문한다. 번역 감수·용어 통일·여러 문서의 인물과 주장·근거 대조도 지원한다. 구조 진단·완독률 개선·칼럼 고도화 요청에서는 Editorial Audit을 분리 실행한다. 단순 맞춤법 교정이나 원문에 없는 내용을 추가하는 작업에는 사용하지 않는다.
 ---
 
-# 한글 글쓰기(윤문) — 진단 증거·작성 의도·보존 계약 스킬 v10.11
+# 한글 글쓰기(윤문) — 진단 증거·작성 의도·보존 계약 스킬 v10.13
 
 원칙은 **글은 더 분명하게, 문체는 더 자연스럽게, 사실은 원문 그대로**다. 새 글은 `korean-writing/SKILL.md`로 연결하고, 초안에서 윤문으로 넘어갈 때 작성 의도·출처·LOCK·변경 예산을 Writer–Editor 계약으로 전달한다. 기존 원고는 위치 기반 진단·국소 윤문·보호 구간 검증을 적용한다. 진단 신호는 편집 후보이며 AI 작성 여부의 판정이 아니다.
 
@@ -18,6 +18,7 @@ description: >-
 - 원문과 수정본을 대조할 때는 [`references/protected-spans.md`](references/protected-spans.md)를 읽는다.
 - 장르와 문체를 정할 때는 [`references/context-voice-matrix.md`](references/context-voice-matrix.md)를 읽는다.
 - 새 글을 윤문 단계로 넘길 때는 [`references/writer-editor-handoff.md`](references/writer-editor-handoff.md)를 읽는다.
+- “제안만 먼저 보여줘”, “내가 골라서 반영할게”처럼 수정안을 작가가 고른 뒤에만 반영하라는 요청은 [`references/review-mode.md`](references/review-mode.md)를 읽는다.
 - `--audit`·`--editorial`·`--full-edit`, “구조까지”, “완독률”, “칼럼 고도화” 요청에서는 [`references/editorial-audit.md`](references/editorial-audit.md)를 읽는다.
 - 발행 채널(페이스북·네이버 블로그·자체 블로그·스레드·인스타그램·브런치·뉴스레터)이 정해진 글, 채널 변환, 문체 표본 대조는 `korean-writing/SKILL.md`의 채널 자료를 따른다. 페이스북·블로그·브런치는 전용 절차(`korean-writing/references/channel-facebook.md`, `channel-blog.md`, `channel-brunch.md`)가 있다. 스레드는 반말 「어」체(~했어, ~같아, ~거든)로 쓰고 합니다체를 섞지 않는다.
 
@@ -46,6 +47,7 @@ description: >-
 | `--audit`·편집 진단만 | Editorial Audit | 한 문장 주장·결론 선배치·전제 누락·개인 반복·이탈 지점·리듬·글 분리를 진단하고 본문은 바꾸지 않음 |
 | `--editorial`·구조까지·완독률·칼럼 고도화 | 편집 설계 | Editorial Audit + 적용 순서·변경 예산 제시. 거시 구조는 유지 |
 | `--full-edit`·구조 재배치까지 | 구조 편집+윤문 | 진단 → 재배치 기준본 → 국소 윤문 → 구조·LOCK 보존 검증 |
+| 제안만 보여줘·내가 골라서 반영 | 제안 승인형 | `review-signals` → 수정 번호 표 제안 → 작가 선택 → `apply-edits` 승인 문장 치환 → `preserve`·`verify_gates` → 항목별 판정. 승인 전 원고 변경 없음 |
 | 파일 직접 고쳐줘 | 파일 수정 | 진단 → diff 미리보기 → 승인 → `.bak` 백업 후 반영 |
 | 최강 윤문·가장 세게 | heavy 강제 | 확장 taxonomy + 전후 메트릭 + fidelity/naturalness 감사 |
 | 번역문 감수·번역투·문학 번역 | 번역 검토 | 원문–번역문 대조 → 표면 잠금·구조 감사 → FID/LIT 위험 검토 |
@@ -257,6 +259,8 @@ python scripts/korean_writing.py format 평문.txt
 python scripts/korean_writing.py channel-check 최종본.txt --channel threads|facebook|naver-blog|blog|instagram|brunch|newsletter [--title 제목] [--keyword 핵심어] [--meta 메타설명] [--tags 태그1,태그2] [--strict] [--json]
 python scripts/korean_writing.py voice-profile 표본1.md 표본2.md [--compare 초안.md] [--json]
 python scripts/korean_writing.py bizplan-check 사업계획서.md [--outline 양식목차.json] [--strict] [--json]
+python scripts/korean_writing.py review-signals 원고.md [--json]
+python scripts/korean_writing.py apply-edits 치환.json 원고.md 반영본.md [--allow-locked] [--overwrite] [--check] [--json]
 python scripts/korean_writing.py taxonomy --check
 python scripts/korean_writing.py translation-audit 원문.md 번역문.md --direction en-to-ko --literary --json
 
@@ -284,6 +288,8 @@ python scripts/build_diagnosis_rules.py --check
 `verify_change_rate.py`는 하위 호환으로 보존한다.
 
 `channel-check`는 `scripts/channel_specs.json`의 기준으로 발행 형식만 검사한다. 플랫폼 한도와 평문 채널의 Markdown 잔존은 `hold`, 가정값·보고값·도입 유형은 `warn`이다. 이 결과는 수렴 게이트와 별개이며 반응·노출을 보증하지 않는다. `voice-profile`은 문체 표본의 종결·길이·장치 통계와 초안의 차이를 편집 후보로 내고, 문체 일치나 저자를 판정하지 않는다.
+
+`review-signals`는 숫자 없는 양·빈도 단정, 1인칭 글의 저자 3인칭 표기, 같은 시작말 반복, 문단 안 종결 혼용(반말 어체 포함)을 편집 후보로 낸다. `apply-edits`는 작가가 승인한 문장만 원고 복사본에 글자 그대로 치환한다. 원문에 정확히 한 번 나오지 않거나 구간이 겹치거나 인용·코드와 닿으면 파일을 쓰지 않는다. 둘 다 위반을 판정하지 않는다. 통과가 의미 보존의 증명도 아니다. `--check`를 붙이면 치환 뒤 `preserve`와 `verify_gates`를 이어서 돌린다(저장소의 `scripts/`에 `verify_gates.py`가 있을 때). 숫자·인용 손실이나 게이트 중단이면 종료 코드 1이다. 절차는 `references/review-mode.md`에 있다. `channel-check`는 스레드에서 반말 어체와 다른 종결이 분류된 문장의 20%를 넘으면 CH-15(`warn`)로 알린다. `voice-profile`은 어체를 `casual` 종결로 따로 센다.
 
 헤딩·불릿 산문화 때문에 수치가 부풀면 `--ignore-markup`을 보조로 실행하되 두 수치를 모두 보고한다. 에이전트가 눈대중으로 계산한 변경률로 게이트 결과를 덮어쓰지 않는다.
 

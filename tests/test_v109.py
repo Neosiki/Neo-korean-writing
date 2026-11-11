@@ -41,7 +41,7 @@ class ChannelSpecTests(unittest.TestCase):
 
 class ThreadsTests(unittest.TestCase):
     def test_three_short_posts_pass(self):
-        text = "첫 포스트입니다.\n---\n둘째 포스트입니다.\n---\n셋째 포스트입니다."
+        text = "첫 포스트야.\n---\n둘째 포스트야.\n---\n셋째 포스트야."
         data = korean_writing.channel_data(text, "스레드")
         self.assertEqual(data["status"], "pass")
         self.assertEqual(len(data["metrics"]["posts"]), 3)

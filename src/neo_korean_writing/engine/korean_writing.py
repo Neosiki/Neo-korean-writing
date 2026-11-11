@@ -19,12 +19,16 @@
                                                       # v10.11 사업계획서 기계 점검 (자리표시자·표 합계·시장 규모 순서=hold)
   python3 korean_writing.py voice-profile 표본1.md [표본2.md ...] [--compare 초안.md] [--json]
                                                       # v10.9 문체 표본 통계와 초안 이탈 후보
+  python3 korean_writing.py review-signals 원고.md [--json]      # v10.12 양·빈도 단정·인칭 섞임·문장 시작 반복·어체 포함 종결 혼용 후보
+  python3 korean_writing.py apply-edits 치환.json 원본.md 반영본.md [--allow-locked] [--overwrite] [--check] [--json]
+                                                      # v10.12 승인한 문장만 글자 그대로 치환(모호하면 쓰지 않음)
+                                                      # v10.13 --check: 치환 뒤 preserve·verify_gates 자동 실행, channel-check CH-15 스레드 어체
   python3 korean_writing.py taxonomy [--check]                   # patterns.json → 마크다운 표 / 무결성 검사
   python3 korean_writing.py translation-audit 원문.md 번역문.md   # v7 번역 충실성·문학 위험 감사
 
 규칙의 단일 원천은 같은 폴더의 patterns.json이다. 파일 인자를 생략하면 stdin을 읽는다.
 """
-import sys, re, io, os, json, itertools
+import sys, re, io, os, json, itertools, subprocess
 from collections import Counter
 from difflib import SequenceMatcher
 
@@ -918,6 +922,19 @@ def channel_data(t, channel, title=None, keyword=None, meta=None, tags=None):
         if len(set(tag_list)) < len(tag_list):
             add("CH-14", "editorial", "중복된 태그가 있음", len(tag_list) - len(set(tag_list)))
 
+    # CH-15 말투: 채널이 정한 종결 말투(현재는 스레드의 반말 어체)와 다른 종결
+    if spec.get("register") == "casual":
+        register_basis = "editorial"
+        classified = [(s, k) for post in posts for s, k in _edit_review().classified_sentences(post) if k]
+        other = [s for s, k in classified if k != "어체"]
+        metrics["register"] = dict(Counter(k for _, k in classified))
+        if len(classified) >= 3 and len(other) / len(classified) > 0.2:
+            sample = " / ".join(x[:30] for x in other[:2])
+            add("CH-15", register_basis,
+                f"반말 어체 채널인데 다른 종결이 {len(other)}/{len(classified)}문장 — {sample}",
+                round(len(other) / len(classified), 2), 0.2,
+                keep="따옴표 안 인용과 고정 문구는 유지. 종결 판별은 어미 모양만 보는 휴리스틱")
+
     severities = {item["severity"] for item in findings}
     status = "hold" if "hold" in severities else "warn" if "warn" in severities else "pass"
     return {"channel": key, "label": spec["label"], "status": status, "metrics": metrics,
@@ -1157,6 +1174,14 @@ VOICE_MIN_SENTENCES = 20
 FIRST_PERSON_RE = re.compile(r"(?<![가-힣])(?:저는|제가|저도|나는|내가|나도|우리는|우리가|필자는)(?![가-힣])")
 
 
+def _edit_review():
+    try:
+        from . import edit_review as module
+    except ImportError:
+        import edit_review as module
+    return module
+
+
 def _ending_class(sentence):
     s = re.sub(r"[\s\"'”’)\]]+$", "", sentence)
     if re.search(r"(?:니다|니까|시오)[.!?…]*$", s):
@@ -1165,6 +1190,8 @@ def _ending_class(sentence):
         return "polite"
     if re.search(r"[가-힣]다[.!?…]*$", s):
         return "plain"
+    if _edit_review().register(sentence) == "어체":
+        return "casual"
     return "other"
 
 
@@ -1189,7 +1216,7 @@ def voice_stats(t):
     return {
         "sentences": n,
         "reliable": n >= VOICE_MIN_SENTENCES,
-        "endings": {name: share(endings.get(name, 0)) for name in ("formal", "polite", "plain", "other")},
+        "endings": {name: share(endings.get(name, 0)) for name in ("formal", "polite", "plain", "casual", "other")},
         "sentence_chars": {"mean": round(mean, 1), "median": lengths[n // 2] if n else 0, "stdev": round(stdev, 1),
                            "short_share": share(sum(x <= 20 for x in lengths)),
                            "long_share": share(sum(x >= 80 for x in lengths))},
@@ -1315,6 +1342,57 @@ def cmd_editing_audit(args):
         from editing_audit import main
     sys.exit(main(args))
 
+def cmd_review_signals(args):
+    try:
+        from .edit_review import signals_main
+    except ImportError:
+        from edit_review import signals_main
+    sys.exit(signals_main(args))
+
+
+def cmd_apply_edits(args):
+    try:
+        from .edit_review import apply_main
+    except ImportError:
+        from edit_review import apply_main
+    check = "--check" in args
+    args = [a for a in args if a != "--check"]
+    code = apply_main(args)
+    if code != 0 or not check:
+        sys.exit(code)
+    paths = [a for a in args if not a.startswith("--")]
+    if len(paths) < 3:
+        sys.exit(code)
+    source, output = paths[1], paths[2]
+    with io.open(source, encoding="utf-8") as f:
+        before = f.read()
+    with io.open(output, encoding="utf-8") as f:
+        after = f.read()
+    d = preserve_data(before, after)
+    print("--- 자동 확인 (preserve) ---")
+    failed = bool(d["missing"] or not d["protected_pass"] or d["residual_growth"])
+    if d["missing"]:
+        print(f"표면 잠금 실패 {len(d['missing'])}건:")
+        for m in d["missing"][:30]:
+            print(f"  [{m['type']}] {m['value']}")
+    else:
+        print("표면 잠금 통과 (숫자·직접 인용·영문 용어).")
+    print("보호 구간 통과" if d["protected_pass"] else f"보호 구간 변경 {len(d['protected_changes'])}종")
+    for item in d["residual_growth"]:
+        print(f"  새 패턴 증가 [{item['severity']}] {item['id']} {item['before']} → {item['after']}")
+    for w in d["meaning_warnings"]:
+        print(f"  경고 [{w['type']}] {w['before']} → {w['after']}: {w['note']}")
+    gates = os.path.join(HERE, "verify_gates.py")
+    gate_code = 0
+    if os.path.exists(gates):
+        print("--- 자동 확인 (verify_gates) ---")
+        sys.stdout.flush()
+        gate_code = subprocess.call([sys.executable, gates, "--before", source, "--after", output])
+    else:
+        print("verify_gates.py가 없는 배포본이라 4축 게이트는 건너뜁니다. 저장소의 scripts/에서 따로 돌립니다.")
+    print("의미(부정·인과·주체)는 이 확인으로 증명되지 않습니다. 승인한 문장과 한 번 더 대조합니다.")
+    sys.exit(1 if failed else gate_code)
+
 CMDS = {"diagnose": cmd_diagnose, "sunny": cmd_sunny, "connectives": cmd_connectives, "preserve": cmd_preserve,
         "diffrate": cmd_diffrate, "consistency": cmd_consistency, "format": cmd_format,
         "structure": cmd_structure, "morphology": cmd_morphology,
@@ -1325,7 +1403,8 @@ CMDS = {"diagnose": cmd_diagnose, "sunny": cmd_sunny, "connectives": cmd_connect
         "translation-session": cmd_translation_session,
         "translation-impact": cmd_translation_impact,
         "translation-reader": cmd_translation_reader,
-        "context-audit": cmd_context_audit, "editing-audit": cmd_editing_audit}
+        "context-audit": cmd_context_audit, "editing-audit": cmd_editing_audit,
+        "review-signals": cmd_review_signals, "apply-edits": cmd_apply_edits}
 
 if __name__ == "__main__":
     if len(sys.argv) < 2 or sys.argv[1] not in CMDS:
